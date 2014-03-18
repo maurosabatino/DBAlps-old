@@ -1,21 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html >
-<jsp:useBean id="opb" scope="request" class="bean.Ubi"/>
-<jsp:setProperty name="opb" property="*"/>
+<jsp:useBean id="HTMLc" class="bean.HTMLContent" scope="request" />
+<jsp:setProperty  name="HTMLc" property="*"/>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
+<title>Processo</title>
 </head>
 <body>
+<jsp:getProperty name="HTMLc" property="content"/>
 
-
-
-
-
-
-
- <jsp:getProperty property="visualizza" name="opb" /> 
 </body>
 </html>

@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import bean.*;
 
@@ -49,7 +50,6 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		Processo p = new Processo();
-		System.out.println("id del processo"+idProcesso);
 		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idProcesso="+idProcesso+" ");
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
@@ -64,6 +64,28 @@ public class ControllerDatabase {
 			p.setUbicazione(u);
 		}
 		return p;
+	}
+	public static ArrayList<Processo> prendiTuttiProcessi() throws SQLException{
+		ArrayList<Processo> al = new ArrayList<Processo>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("SELECT * FROM processo");
+		while(rs.next()){
+			Processo p = new Processo();
+			p.setIdprocesso(rs.getInt("idProcesso"));
+			p.setNome(rs.getString("nome"));
+			p.setData(rs.getDate("data"));
+			p.setDescrizione(rs.getString("descrizione"));
+			p.setNote(rs.getString("note"));
+			p.setAltezza(rs.getDouble("altezza"));
+			p.setLarghezza(rs.getDouble("larghezza"));
+			p.setSuperficie(rs.getDouble("superficie"));
+			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			p.setUbicazione(u);
+			al.add(p);
+		}
+		return al;
+			
 	}
 	
 	
@@ -92,7 +114,7 @@ public class ControllerDatabase {
 		 st.close(); conn.close();
 	}
 	
-	public static StazioneMetereologica prendiStazione(int idStazioneMetereologica)throws SQLException{
+	public static StazioneMetereologica prendiStazioneMetereologica(int idStazioneMetereologica)throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		ResultSet rs=st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE IDstazionemetereologica="+idStazioneMetereologica+"");
@@ -114,6 +136,27 @@ public class ControllerDatabase {
 	    return s;
 	}
 	
+	public static ArrayList<StazioneMetereologica> prendiTutteStazioniMetereologiche() throws SQLException{
+		ArrayList<StazioneMetereologica> al = new ArrayList<StazioneMetereologica>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("SELECT * FROM stazione_metereologica");
+		while(rs.next()){
+			StazioneMetereologica s=new StazioneMetereologica();
+			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
+			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
+			s.setNote(rs.getString("note"));
+			s.setOraria(rs.getBoolean("oraria"));
+			s.setPeriodoFunzionamento(rs.getString("periodoFunzionamento"));
+			s.setNome(rs.getString("nome"));
+			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			s.setUbicazione(u);
+			al.add(s);
+		}
+		return al;
+			
+	}
+	
 	
 	/*
 	 * ubicazione
@@ -127,7 +170,7 @@ public class ControllerDatabase {
 		sb.append(",1");
 		sb.append(","+u.getQuota());
 		sb.append(",'"+u.getEsposizione()+"'");
-		sb.append(",ST_GeographyFromText("+u.getCoordinate().toDB()+")");
+		sb.append(",ST_GeometryFromText("+u.getCoordinate().toDB()+")");
 		st.executeUpdate("INSERT INTO ubicazione(idSottobacino,idComune,quota,esposizione,coordinate) values("+sb.toString()+") ");
 		
 		ResultSet rs = st.executeQuery("SELECT * FROM ubicazione WHERE coordinate= "+u.getCoordinate().toDB()+" ");

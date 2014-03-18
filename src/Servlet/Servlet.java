@@ -1,5 +1,8 @@
 package Servlet;
 
+import html.HTMLProcesso;
+import html.HTMLStazioneMetereologica;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -17,9 +20,9 @@ import controller.ControllerProcesso;
 import controller.ControllerUbicazione;
 import controller.StazioneMetereologicaController;
 
+import bean.HTMLContent;
 import bean.Processo;
 import bean.StazioneMetereologica;
-import bean.Ubi;
 import bean.Ubicazione;
 
 /**
@@ -75,15 +78,42 @@ public class Servlet extends HttpServlet {
 		}else if(operazione.equals("inserisciStazione")){
 			StazioneMetereologica s=StazioneMetereologicaController.inserisciStazioneMetereologica(request);
 			
-			request.setAttribute("stazione",ControllerDatabase.prendiStazione(s.getIdStazioneMetereologica()));
+			request.setAttribute("stazione",ControllerDatabase.prendiStazioneMetereologica(s.getIdStazioneMetereologica()));
 			forward(request,response,"/stazione.jsp");
 		}else if(operazione.equals("inserisciUbicazione")){
 			Ubicazione u=new Ubicazione();
 			u=ControllerUbicazione.creaUbicazione(request);
 			
 			forward(request,response,"/visualizzaUbicazione.jsp");
-		}
+			
+		}else if(operazione.equals("mostraProcesso")){
+			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
+			String content = HTMLProcesso.mostraProcesso(idProcesso);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}else if(operazione.equals("mostraTuttiProcessi")){
+			String content=HTMLProcesso.mostraTuttiProcessi();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
 		
+		}else if(operazione.equals("mostraStazioneMetereologica")){
+			int idStazioneMetereologica=Integer.parseInt(request.getParameter("idStazioneMetereologica"));
+			String content=HTMLStazioneMetereologica.mostraStazioneMetereologica(idStazioneMetereologica);
+			HTMLContent c=new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc", c);
+			forward(request,response,"/stazione.jsp");
+		}else if(operazione.equals("mostraTutteStazioniMetereologiche")){
+			String content=HTMLStazioneMetereologica.mostraTutteStazioniMetereologiche();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/stazione.jsp");
+		}
 	    
 	}
 	private void forward(HttpServletRequest request, HttpServletResponse response, String page)  throws ServletException, IOException {

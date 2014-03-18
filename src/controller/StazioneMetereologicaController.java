@@ -1,7 +1,6 @@
 package controller;
 
 import bean.StazioneMetereologica;
-import bean.Ubi;
 import bean.Ubicazione;
 
 import java.sql.Connection;
@@ -27,7 +26,7 @@ public class StazioneMetereologicaController {
 		s.setPeriodoFunzionamento(request.getParameter("periodoFunzionamento"));
 		s.setOraria(Boolean.parseBoolean(request.getParameter("oraria")));
 		
-		DBController.salvaStazione(s);
+		ControllerDatabase.salvaStazione(s);
 		return s;
 	}
 	

@@ -21,7 +21,7 @@ public class Coordinate {
 		this.y = y;
 	}
 	public String toDB(){
-		String out = "'SRID=4326;POINT("+getX()+" "+getY()+")'";
+		String out = "'POINT("+getX()+" "+getY()+")'";
 		return out;
 	}
 	public String toString(){
