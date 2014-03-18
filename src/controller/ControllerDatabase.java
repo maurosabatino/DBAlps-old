@@ -85,9 +85,32 @@ public class ControllerDatabase {
 			al.add(p);
 		}
 		return al;
-			
 	}
-	
+	public static ArrayList<Processo> ricercaProcesso(Processo p) throws SQLException{
+		ArrayList<Processo> al = new ArrayList<Processo>();
+		StringBuilder sb = new StringBuilder();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		if(p.getNome()!=null || p.getNome()!="" ){
+			sb.append("where nome='"+p.getNome()+"'");
+		}
+		ResultSet rs = st.executeQuery("SELECT * FROM processo "+sb.toString()+"");
+		while(rs.next()){
+			Processo ps = new Processo();
+			ps.setIdprocesso(rs.getInt("idProcesso"));
+			ps.setNome(rs.getString("nome"));
+			ps.setData(rs.getDate("data"));
+			ps.setDescrizione(rs.getString("descrizione"));
+			ps.setNote(rs.getString("note"));
+			ps.setAltezza(rs.getDouble("altezza"));
+			ps.setLarghezza(rs.getDouble("larghezza"));
+			ps.setSuperficie(rs.getDouble("superficie"));
+			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			ps.setUbicazione(u);
+			al.add(ps);
+		}
+		return al;
+	}
 	
 	/*
 	 * stazione metereologica
@@ -176,12 +199,8 @@ public class ControllerDatabase {
 		ResultSet rs = st.executeQuery("SELECT * FROM ubicazione WHERE coordinate= "+u.getCoordinate().toDB()+" ");
 		
 		//TODO fare in una sola riga selezionando solo l'id
-		System.out.println(rs.toString());
 		while(rs.next()){
-			System.out.println("query esposizione"+rs.getString("esposizione"));
-			System.out.println("risultato query"+rs.getInt("idUbicazione"));
 			u.setIdUbicazione(rs.getInt("idUbicazione"));
-			System.out.println("id ubicazione dopo salvataggio: "+u.getIdUbicazione());
 		}
 		st.close();
 		conn.close();

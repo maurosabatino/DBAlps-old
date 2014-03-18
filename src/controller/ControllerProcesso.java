@@ -23,20 +23,17 @@ public class ControllerProcesso {
 		String descrizione =request.getParameter("descrizione");
 		p.setDescrizione(descrizione);
 		p.setNote(request.getParameter("note"));
-		//p.setAltezza(Double.parseDouble(request.getParameter("altezza")));
-		//p.setLarghezza(Double.parseDouble(request.getParameter("larghezza")));
-		//p.setSuperficie(Double.parseDouble(request.getParameter("superficie")));
+		p.setAltezza(Double.parseDouble(request.getParameter("altezza")));
+		p.setLarghezza(Double.parseDouble(request.getParameter("larghezza")));
+		p.setSuperficie(Double.parseDouble(request.getParameter("superficie")));
 		return p;
 	}
 	public static Processo nuovoProcesso(HttpServletRequest request) throws ParseException, SQLException{ //qui ci metto tutte le informazioni e la pubblicazione sul db + ubicazione, sito, allegati, effetti
 		Processo p = creaProcesso(request);
-		Ubicazione u = ControllerUbicazione.creaUbicazione(request);
-		System.out.println("esposizione prima processo"+u.getEsposizione());
+		Ubicazione u = ControllerUbicazione.nuovaUbicazione(request);
 		p.setUbicazione(u);
-		System.out.println("esposizione processo"+p.getUbicazione().getEsposizione());
 		ControllerDatabase.salvaProcesso(p);
 		return p;
-		
 	}
 	
 	

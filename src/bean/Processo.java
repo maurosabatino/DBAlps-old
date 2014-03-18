@@ -113,15 +113,4 @@ public class Processo {
 	 System.out.println("esposizione nel bean: "+getUbicazione().getEsposizione());
 	 return out;
   }
-   
-   /*public void inserisciProcesso(Processo p) throws SQLException{
-	   String url = "jdbc:postgresql://localhost:5432/DBAlps";
-	   String user = "admin";
-	   String pwd = "dbalps";
-	   Connection conn = DriverManager.getConnection(url,user,pwd);
-	   Statement st = conn.createStatement();
-	   st.executeUpdate("INSERT INTO processo(idUbicazione,idsito,nome,data,descrizione,note,superificie,larghezza,altezza) VALUES"
-			   + "("+p.getUbicazione().getIdUbicazione()+","++","+p.getNome()+","+p.getData()+","+p.getDescrizione()+","+p.getSuperficie()+","+p.getSuperficie()+","+p.getLarghezza()+","+p.getAltezza()+")");
-	   st.close(); conn.close();
-   }*/
 }

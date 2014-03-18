@@ -2,7 +2,6 @@ package bean;
 
 
 public class Ubicazione {
-
 	int idUbicazione;
 	LocazioneIdrologica locIdr;
 	LocazioneAmministrativa locAmm;
@@ -56,19 +55,6 @@ public class Ubicazione {
 	
 	public String toString(){
 		String out = "<p> amministrazione"+locAmm.toString()+"</p><p> idrologia"+locIdr.toString()+"</p><p> coordinate"+coordinate.toString()+"</p><p> esposizione"+esposizione+"</p><p>quota"+quota+"</p>";
-		
-		System.out.println("esposizione nel bean ubicazione: "+esposizione);
 		return out;
 	}
-	/*
-	public void inserisciUbicazione(Ubicazione ub) throws SQLException{
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		   String user = "admin";
-		   String pwd = "dbalps";
-		   Connection conn = DriverManager.getConnection(url,user,pwd);
-		   Statement st = conn.createStatement();
-		   st.executeUpdate("INSERT INTO ubicazione(idSottobacino,idComune,quota,esposizione,coordinate) VALUES"
-				   + "("+locIdr.getIdSottobacino()+","+locAmm.getIdComune()+","+quota+","+esposizione+",ST_GeographyFromText('SRID=4326;POINT("+coordinate.getX()+" "+coordinate.getY()+")'))");
-		   st.close(); conn.close();
-	}*/
 }

@@ -14,5 +14,6 @@
 <a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a>
 <br>
 <a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni metereologiche</a>
+<br>
 </body>
 </html>
