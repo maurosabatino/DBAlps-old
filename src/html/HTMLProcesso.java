@@ -26,4 +26,14 @@ public class HTMLProcesso {
 		sb.append("</table>");
 		return sb.toString();
 	}
+	public static String mostraCercaProcessi(ArrayList<Processo> ap) throws SQLException{
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> </tr>");
+		for(Processo p: ap){
+			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
+					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td></tr>");
+		}
+		return sb.toString();
+	}
 }

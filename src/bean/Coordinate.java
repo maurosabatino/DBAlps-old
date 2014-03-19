@@ -28,4 +28,9 @@ public class Coordinate {
 		String out = ""+x+""+y+"";
 		return out;
 	}
+	public boolean isEmpty(){
+		if(x==0.0 && y==0.0)
+			return true;
+		else return false;
+	}
 }

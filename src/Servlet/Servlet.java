@@ -6,6 +6,7 @@ import html.HTMLStazioneMetereologica;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.ArrayList;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -19,7 +20,6 @@ import controller.ControllerDatabase;
 import controller.ControllerProcesso;
 import controller.ControllerUbicazione;
 import controller.StazioneMetereologicaController;
-
 import bean.HTMLContent;
 import bean.Processo;
 import bean.StazioneMetereologica;
@@ -70,44 +70,63 @@ public class Servlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, ParseException {
 		
 		String operazione = (String) request.getParameter("operazione");
+		
+		/*
+		 * Processo
+		 */
 		if(operazione.equals("inserisciProcesso")){
 			Processo p = ControllerProcesso.nuovoProcesso(request);
 			
 			request.setAttribute("Processo",p);
 			forward(request,response,"/visualizzaProcesso.jsp");
-		}else if(operazione.equals("inserisciStazione")){
-			StazioneMetereologica s=StazioneMetereologicaController.inserisciStazioneMetereologica(request);
-			
-			request.setAttribute("stazione",ControllerDatabase.prendiStazioneMetereologica(s.getIdStazioneMetereologica()));
-			forward(request,response,"/stazione.jsp");
-		}else if(operazione.equals("inserisciUbicazione")){
-			Ubicazione u=new Ubicazione();
-			u=ControllerUbicazione.creaUbicazione(request);
-			
-			forward(request,response,"/visualizzaUbicazione.jsp");
-			
-		}else if(operazione.equals("mostraProcesso")){
+		
+		}
+		else if(operazione.equals("mostraProcesso")){
 			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
 			String content = HTMLProcesso.mostraProcesso(idProcesso);
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/processo.jsp");
-		}else if(operazione.equals("mostraTuttiProcessi")){
+		}
+		else if(operazione.equals("mostraTuttiProcessi")){
 			String content=HTMLProcesso.mostraTuttiProcessi();
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/processo.jsp");
 		
-		}else if(operazione.equals("mostraStazioneMetereologica")){
+		}
+		else if(operazione.equals("cercaProcesso")){
+			Processo p = ControllerProcesso.creaProcesso(request);
+			Ubicazione u = ControllerUbicazione.creaUbicazione(request);
+			ArrayList<Processo> ap =ControllerDatabase.ricercaProcesso(p,u);
+			String content = HTMLProcesso.mostraCercaProcessi(ap);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
+		
+		/*
+		 * Stazione metereologica
+		 */
+		else if(operazione.equals("inserisciStazione")){
+			StazioneMetereologica s=StazioneMetereologicaController.inserisciStazioneMetereologica(request);
+			
+			request.setAttribute("stazione",ControllerDatabase.prendiStazioneMetereologica(s.getIdStazioneMetereologica()));
+			forward(request,response,"/stazione.jsp");
+		
+		}
+		else if(operazione.equals("mostraStazioneMetereologica")){
 			int idStazioneMetereologica=Integer.parseInt(request.getParameter("idStazioneMetereologica"));
 			String content=HTMLStazioneMetereologica.mostraStazioneMetereologica(idStazioneMetereologica);
 			HTMLContent c=new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc", c);
 			forward(request,response,"/stazione.jsp");
-		}else if(operazione.equals("mostraTutteStazioniMetereologiche")){
+		}
+		else if(operazione.equals("mostraTutteStazioniMetereologiche")){
 			String content=HTMLStazioneMetereologica.mostraTutteStazioniMetereologiche();
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);

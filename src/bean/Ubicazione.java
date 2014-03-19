@@ -57,4 +57,9 @@ public class Ubicazione {
 		String out = "<p> amministrazione"+locAmm.toString()+"</p><p> idrologia"+locIdr.toString()+"</p><p> coordinate"+coordinate.toString()+"</p><p> esposizione"+esposizione+"</p><p>quota"+quota+"</p>";
 		return out;
 	}
+	public boolean isEmpty(){
+		if(idUbicazione == 0 &&	locIdr.isEmpty() && locAmm.isEmpty() &&quota ==0.0 && esposizione == "" && coordinate.isEmpty())
+			return true;
+		else return false;
+	}
 }

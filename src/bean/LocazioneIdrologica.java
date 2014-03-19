@@ -32,4 +32,10 @@ public class LocazioneIdrologica {
 		String out = "<p> bacino: "+bacino+"</p> <p>sottobacino: "+sottobacino+"</p>";
 		return out;
 	}
+	
+	public boolean isEmpty(){
+		if(sottobacino == "" &&	bacino == "")
+			return true;
+		else return false;
+	}
 }

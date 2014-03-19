@@ -48,4 +48,10 @@ public class LocazioneAmministrativa {
 		String out = "<p>comune: "+comune+"</p> <p>provincia: "+provincia+"</p> <p> regione:"+regione+"</p> <p> nazione"+nazione+"</p>";
 		return out;
 	}
+	public boolean isEmpty(){
+		if(comune == "" && provincia == "" &&	regione == "" &&	nazione == "")
+			return true;
+			else return false;
+		
+	}
 }

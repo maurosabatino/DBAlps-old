@@ -86,15 +86,67 @@ public class ControllerDatabase {
 		}
 		return al;
 	}
-	public static ArrayList<Processo> ricercaProcesso(Processo p) throws SQLException{
+	public static ArrayList<Processo> ricercaProcesso(Processo p,Ubicazione u) throws SQLException{
 		ArrayList<Processo> al = new ArrayList<Processo>();
 		StringBuilder sb = new StringBuilder();
+		StringBuilder su = new StringBuilder();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		if(p.getNome()!=null || p.getNome()!="" ){
-			sb.append("where nome='"+p.getNome()+"'");
+		//System.out.println("nome"+p.getNome());
+		if(!(p.getAltezza()==null || p.getAltezza()==0)){
+			sb.append(" where altezza="+p.getAltezza()+"");
 		}
-		ResultSet rs = st.executeQuery("SELECT * FROM processo "+sb.toString()+"");
+		
+		if(!(p.getNome()==null || p.getNome().equals(""))){
+			if(sb.toString().equals("") || sb == null)
+				sb.append(" where nome="+p.getNome()+"");
+			else
+				sb.append(" and nome="+p.getNome()+"");
+		}
+		if(!(p.getSuperficie()==null || p.getSuperficie()==0)){
+			if(sb.toString().equals("") || sb == null)
+				sb.append(" where superficie="+p.getSuperficie()+"");
+			else
+				sb.append(" and superficie="+p.getSuperficie()+"");
+		}
+		if(!(p.getLarghezza()==null || p.getLarghezza()==0)){
+			if(sb.toString().equals("") || sb == null)
+				sb.append(" where larghezza="+p.getLarghezza()+"");
+			else
+				sb.append(" and larghezza="+p.getLarghezza()+"");
+		}//da fare ancora i volumi
+		/*
+		 * 
+		 */
+		if(sb.toString().equals("") || sb == null)
+		su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
+				+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
+		else
+			su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
+					+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
+		if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
+			System.out.println("comune= "+u.getLocAmm().getComune());
+			su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
+		}
+		if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
+			su.append(" and p.nomeprovincia='"+u.getLocAmm().getProvincia()+"'");
+		}
+		if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
+			su.append(" and r.nomeregione ='"+u.getLocAmm().getRegione()+"'");
+		}		
+		if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
+			su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+		}
+		su.append(")");
+		
+		ResultSet rs = null;
+		
+		if(u.isEmpty()==true){
+		 rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" ");
+		}
+		else {
+			rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" "+su.toString()+" ");
+		}
 		while(rs.next()){
 			Processo ps = new Processo();
 			ps.setIdprocesso(rs.getInt("idProcesso"));
@@ -105,10 +157,12 @@ public class ControllerDatabase {
 			ps.setAltezza(rs.getDouble("altezza"));
 			ps.setLarghezza(rs.getDouble("larghezza"));
 			ps.setSuperficie(rs.getDouble("superficie"));
-			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
-			ps.setUbicazione(u);
+			Ubicazione ub = prendiUbicazione(rs.getInt("idUbicazione"));
+			ps.setUbicazione(ub);
 			al.add(ps);
 		}
+		
+		
 		return al;
 	}
 	
@@ -203,10 +257,10 @@ public class ControllerDatabase {
 			u.setIdUbicazione(rs.getInt("idUbicazione"));
 		}
 		st.close();
-		conn.close();
-		
+		conn.close();		
 		return u;
 	}
+	
 	public static Ubicazione prendiUbicazione(int idUbicazione) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();

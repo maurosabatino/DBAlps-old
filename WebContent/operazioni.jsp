@@ -4,12 +4,14 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
+<title>Operazioni</title>
 </head>
 <body>
 <a href="inserisciProcesso.jsp"> inserisci processo</a>
 <br>
 <a href="inserisciStazione.jsp"> inserisci stazione</a>
+<br>
+<a href="ricerca.jsp"> ricerca processo</a>
 <br>
 <a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a>
 <br>

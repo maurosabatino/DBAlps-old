@@ -2,6 +2,13 @@
     pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
+<script src="//code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <script>
+  $(function() {
+    $( "#datepicker" ).datepicker();
+  });
+  </script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Inserisci un processo</title>
@@ -12,7 +19,7 @@
 			
 			
 			 <p>Nome:<input type="text" name="nome" value="nome"></p>
-			<p>Data:<input type="datetime" name="data"></p>
+			<p>Data:<input type="datetime" name="data" id="datepicker"></p>
 			<p>descrizione:<input type="text" name="descrizione" value="descrizione" ></p>
 			<p>note:<input type="text" name="note" value="not"></p>
 			<p>superficie:<input type="text" name="superficie" value="12"></p>

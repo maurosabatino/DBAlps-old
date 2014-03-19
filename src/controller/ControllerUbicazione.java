@@ -11,12 +11,17 @@ public class ControllerUbicazione {
 		Coordinate coord = new Coordinate();
 		LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
 		LocazioneIdrologica locIdro = new LocazioneIdrologica();
+		if(!(request.getParameter("longitudine").equals(""))){
 		Double x = Double.parseDouble(request.getParameter("longitudine"));
 		coord.setX(x);
+		}
+		if(!(request.getParameter("latitudine").equals(""))){
 		Double y = Double.parseDouble(request.getParameter("latitudine"));
 		coord.setY(y);
+		}
 		u.setCoordinate(coord);
 		u.setEsposizione((String)request.getParameter("esposizione"));
+		if(!(request.getParameter("quota").equals("")))
 		u.setQuota(Double.parseDouble((String)request.getParameter("quota")));
 		locAmm.setComune((String)request.getParameter("comune"));
 		locAmm.setProvincia((String)request.getParameter("provincia"));
