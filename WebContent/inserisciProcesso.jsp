@@ -2,13 +2,49 @@
     pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
-<script src="//code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<script src="js/jquery-1.11.0.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.js"></script>
+<script src="js/globalize.js"></script>
+ <script src="js/globalize.culture.de-DE.js"></script>
+ 
   <script>
   $(function() {
-    $( "#datepicker" ).datepicker();
+    $( "#data" ).datepicker({
+    	changeMonth: true,
+        changeYear: true,
+        dateFormat: "yy-mm-dd"});
+    });
+  </script>
+  
+  <script>
+  $.widget( "ui.timespinner", $.ui.spinner, {
+	    options: {
+	      step: 60 * 1000,
+	      page: 60
+	    },
+	 
+	    _parse: function( value ) {
+	      if ( typeof value === "string" ) {
+	        if ( Number( value ) == value ) {
+	          return Number( value );
+	        }
+	        return +Globalize.parseDate( value );
+	      }
+	      return value;
+	    },
+	 
+	    _format: function( value ) {
+	      return Globalize.format( new Date(value), "t" );
+	    }
+	  });
+  $(function() {
+	  $( "#ora" ).timespinner();
+	  var current = $( "#ora" ).timespinner( "value" );
+	  Globalize.culture( "de-DE");
+	  $( "#ora" ).timespinner( "value", current );
   });
   </script>
+  
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Inserisci un processo</title>
@@ -18,8 +54,11 @@
 		
 			
 			
-			 <p>Nome:<input type="text" name="nome" value="nome"></p>
-			<p>Data:<input type="datetime" name="data" id="datepicker"></p>
+			<p>Nome:<input type="text" name="nome" value="nome"></p>
+			<p>Data:</p>
+			<p> <input type="text" id="data" name="data"></p>
+			<p> <input type="time" id="ora" name="ora" > </p>
+			
 			<p>descrizione:<input type="text" name="descrizione" value="descrizione" ></p>
 			<p>note:<input type="text" name="note" value="not"></p>
 			<p>superficie:<input type="text" name="superficie" value="12"></p>

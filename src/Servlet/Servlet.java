@@ -76,9 +76,11 @@ public class Servlet extends HttpServlet {
 		 */
 		if(operazione.equals("inserisciProcesso")){
 			Processo p = ControllerProcesso.nuovoProcesso(request);
-			
-			request.setAttribute("Processo",p);
-			forward(request,response,"/visualizzaProcesso.jsp");
+			String content = HTMLProcesso.mostraProcesso(p.getIdProcesso());
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
 		
 		}
 		else if(operazione.equals("mostraProcesso")){
