@@ -17,11 +17,18 @@ public class ControllerProcesso {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		dateFormat.setLenient(false);
 		 
-		String data = request.getParameter("data");
-		String ora = request.getParameter("ora");
-		String dataCompleta = ""+data+" "+ora+":00";
-		Date parsedDate = dateFormat.parse(dataCompleta);
-		p.setData(parsedDate);
+		if(!(request.getParameter("data").equals(""))){
+			String data = request.getParameter("data");
+			if(!(request.getParameter("data").equals(""))){
+				String ora = request.getParameter("ora");
+				String dataCompleta = ""+data+" "+ora+":00";
+				Date parsedDate = dateFormat.parse(dataCompleta);
+				p.setData(parsedDate);
+			}
+		}
+		
+		
+		
 	    String descrizione =request.getParameter("descrizione");
 		p.setDescrizione(descrizione);
 		p.setNote(request.getParameter("note"));
