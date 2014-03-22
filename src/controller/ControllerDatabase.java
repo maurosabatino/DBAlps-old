@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import bean.*;
@@ -114,7 +115,18 @@ public class ControllerDatabase {
 				sb.append(" where larghezza="+p.getLarghezza()+"");
 			else
 				sb.append(" and larghezza="+p.getLarghezza()+"");
-		}//da fare ancora i volumi
+		}
+		if(!(p.getData()==null)){
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+			if(sb.toString().equals("") || sb == null){
+				
+				sb.append(" where data='"+p.getData()+"'");
+			}
+				
+			else
+				sb.append(" and data='"+p.getData()+"'");
+		}
+		//da fare ancora i volumi e le date
 		/*
 		 * 
 		 */
@@ -142,6 +154,7 @@ public class ControllerDatabase {
 		ResultSet rs = null;
 		
 		if(u.isEmpty()==true){
+			System.out.println(sb.toString());
 		 rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" ");
 		}
 		else {
