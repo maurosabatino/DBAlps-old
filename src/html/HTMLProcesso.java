@@ -1,24 +1,29 @@
 package html;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
-import controller.*;
-import bean.*;
+import bean.Processo;
+import controller.ControllerDatabase;
 
 public class HTMLProcesso {
 	
 	public static String mostraTuttiProcessi() throws SQLException{
 		ArrayList<Processo>  ap = ControllerDatabase.prendiTuttiProcessi(); 
 		StringBuilder sb = new StringBuilder();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 		
 		/*script per google maps*///centrerei la mappa al centro delle alpi 
 		
 		
-		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> </tr>");
+		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> <th> modifica</th> </tr>");
 		for(Processo p: ap){
-			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
-					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td></tr>");
+			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+dateFormat.format(p.getData())+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
+					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td>"
+							+ "<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td></tr>");
 		}
 		return sb.toString();
 	}
@@ -78,6 +83,88 @@ public class HTMLProcesso {
 			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
 					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td></tr>");
 		}
+		return sb.toString();
+	}
+	
+	
+	public static String modificaProcesso(Processo p){
+		StringBuilder sb = new StringBuilder();
+		Calendar cal = new GregorianCalendar();
+		cal.setTime(p.getData());
+		
+		sb.append(scriptData());
+		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">"
+				+ "<p>Nome:<input type=\"text\" name=\"nome\" value=\""+p.getNome()+"\"></p>"
+				+ "<p>Data:</p>"
+				+ "<p> <input type=\"text\" id=\"data\" name=\"data\" value=\""+cal.get(Calendar.YEAR)+"-"+cal.get(Calendar.MONTH)+"-"+cal.get(Calendar.DAY_OF_MONTH)+"\"></p>"
+				+ "<p> <input type=\"time\" id=\"ora\" name=\"ora\" value=\""+cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+"\" > </p>"
+				+ "<p>descrizione:<input type=\"text\" name=\"descrizione\" value=\""+p.getDescrizione()+"\" ></p>"
+				+ "<p>note:<input type=\"text\" name=\"note\" value=\" "+p.getNote()+" \"></p>"
+				+ "<p>superficie:<input type=\"text\" name=\"superficie\" value=\" "+p.getSuperficie()+" \"></p>"
+				+ "<p>larghezza:<input type=\"text\" name=\"larghezza\" value=\""+p.getLarghezza()+"\"></p>"
+				+ "<p>altezza:<input type=\"text\" name=\"altezza\" value=\" "+p.getAltezza()+" \"></p>"
+				+ "<p>volume_specifico<input type=\"number\" name=\"volume_specifico\" value=\" "+p.getVolumeSpecifico()+"\"></p>"
+				+ "<p>dati sull'ubicazione</p>"
+				/*+ "<p>bacino:<input type=\"text\" name=\"bacino\" ></p>"
+				+ "<p>sottobacino:<input type="text" name="sottobacino">"
+				+ "<p>comune:<input type="text" name="comune"></p>"
+				+ "<p>provncia:<input type="text" name="provincia"></p>"
+				+ "<p>regione:<input type="text" name="regione"></p> "
+				+ "<p>nazione:<input type="text" name="nazione"></p>"
+				+ "<p>latitudine:<input type="text" name="latitudine" value="12"></p>"
+				+ "<p>longitudine:<input type="text" name="longitudine"value="14"></p>"
+				+ "<p>quota:<input type="text" name="quota" value="12"></p>"
+				+ "<p>esposizione:<input type="text" name="esposizione" value="nord"></p>"*/
+				+ "<input type=\"hidden\" name=\"operazione\" value=\"modificaProcesso\">"
+				+ "<input type=\"hidden\" name=\"idProcesso\" value=\""+p.getIdProcesso()+"\"/>"
+				+ "<input type=\"submit\" name =\"submit\" value=\"OK\">"
+				+ "</form>");
+			
+		
+		
+		return sb.toString();
+	}
+	
+	public static String scriptData(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<script src=\"js/jquery-1.11.0.js\"></script>"
+				+ "<script src=\"js/jquery-ui-1.10.4.custom.js\"></script>"
+				+ "<script src=\"js/globalize.js\"></script>"
+				+ "<script src=\"js/globalize.culture.de-DE.js\"></script>");
+			sb.append("<script>"
+				+ "$(function() {"
+				+ "$( \"#data\" ).datepicker({"
+				+ "changeMonth: true,"
+				+ "changeYear: true,"
+				+ "dateFormat: \"yy-mm-dd\"});"
+				+ "});</script>"
+				+"<script>");
+				
+				sb.append("$.widget( \"ui.timespinner\", $.ui.spinner, {"
+				+ "options: {"
+				+ "step: 60 * 1000,"
+				+ "page: 60"
+				+ "},"
+				+ "_parse: function( value ) {"
+				+ "if ( typeof value === \"string\" ) {"
+				+ "if ( Number( value ) == value ) {"
+				+ "return Number( value );"
+				+ "}"
+				+ "return +Globalize.parseDate( value );"
+				+ "}"
+				+ "return value;"
+				+ "},"
+				+ "_format: function( value ) {"
+				+ "return Globalize.format( new Date(value), \"t\" );"
+				+ "}"
+				+ "});"
+				+ "$(function() {"
+				+ "$( \"#ora\" ).timespinner();"
+				+ "var current = $( \"#ora\" ).timespinner( \"value\" );"
+				+ "Globalize.culture( \"de-DE\");"
+				+ "$( \"#ora\" ).timespinner( \"value\", current );"
+				+ "});"
+				+ "</script>");
 		return sb.toString();
 	}
 }

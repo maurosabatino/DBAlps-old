@@ -3,12 +3,12 @@ package bean;
 
 
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 public class Processo {
 	int idProcesso;
     String nome;
-	Date data;
+	Timestamp data;
     String descrizione;
     String note;
     Double superficie;
@@ -28,7 +28,7 @@ public class Processo {
     public Processo() {     
         idProcesso=0;
         nome = "sconosciuto";
-        data = new Date(0);
+        data = new Timestamp(0);
         descrizione = "sconosciuto";
         note = "assente";
         superficie = 0.0;
@@ -50,7 +50,7 @@ public class Processo {
 	   return nome;
    }
    
-   public Date getData(){
+   public Timestamp getData(){
 	   return data;
    }
    public String getDescrizione(){
@@ -81,7 +81,7 @@ public class Processo {
    public void setNome(String nome){
 	   this.nome=nome;
    }
-   public void setData(Date data){
+   public void setData(Timestamp data){
 	   this.data = data;
    }
    public void setDescrizione(String descrizione){

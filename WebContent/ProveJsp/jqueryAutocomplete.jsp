@@ -48,7 +48,8 @@
 				ResultSet rs = st.executeQuery("select * from comune");
 				while(rs.next()){
 					%>
-					"<%=rs.getString("nomecomune") %>",
+					
+					"<%=rs.getString("nomecomune")%>",
 				<%}
 
 			conn.close();

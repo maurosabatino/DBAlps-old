@@ -2,34 +2,32 @@ package controller;
 
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
-import bean.*;
+import bean.Processo;
+import bean.Ubicazione;
 
 public class ControllerProcesso {
 	public static Processo creaProcesso(HttpServletRequest request) throws ParseException{//qui creo le parti solo del processo
 		Processo p = new Processo();
 		p.setNome(request.getParameter("nome"));
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-		dateFormat.setLenient(false);
-		 
+		String data="0-0-0";
+		String ora="0:0";
 		if(!(request.getParameter("data").equals(""))){
-			String data = request.getParameter("data");
+			 data = request.getParameter("data");
 			if(!(request.getParameter("data").equals(""))){
-				String ora = request.getParameter("ora");
+				if(!(request.getParameter("ora").equals(""))){
+					ora = request.getParameter("ora");
+				}
 				String dataCompleta = ""+data+" "+ora+":00";
-				Date parsedDate = dateFormat.parse(dataCompleta);
-				p.setData(parsedDate);
+				p.setData((Timestamp.valueOf(dataCompleta)));
 			}
 		}
 		
-		
-		
-	    String descrizione =request.getParameter("descrizione");
+		String descrizione =request.getParameter("descrizione");
 		p.setDescrizione(descrizione);
 		p.setNote(request.getParameter("note"));
 		if(!(request.getParameter("altezza").equals("")))

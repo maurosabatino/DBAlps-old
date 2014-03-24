@@ -55,7 +55,7 @@ public class ControllerDatabase {
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 			p.setNome(rs.getString("nome"));
-			p.setData(rs.getDate("data"));
+			p.setData(rs.getTimestamp("data"));
 			p.setDescrizione(rs.getString("descrizione"));
 			p.setNote(rs.getString("note"));
 			p.setAltezza(rs.getDouble("altezza"));
@@ -75,7 +75,7 @@ public class ControllerDatabase {
 			Processo p = new Processo();
 			p.setIdprocesso(rs.getInt("idProcesso"));
 			p.setNome(rs.getString("nome"));
-			p.setData(rs.getDate("data"));
+			p.setData(rs.getTimestamp("data"));
 			p.setDescrizione(rs.getString("descrizione"));
 			p.setNote(rs.getString("note"));
 			p.setAltezza(rs.getDouble("altezza"));
@@ -93,7 +93,6 @@ public class ControllerDatabase {
 		StringBuilder su = new StringBuilder();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		//System.out.println("nome"+p.getNome());
 		if(!(p.getAltezza()==null || p.getAltezza()==0)){
 			sb.append(" where altezza="+p.getAltezza()+"");
 		}
@@ -164,7 +163,7 @@ public class ControllerDatabase {
 			Processo ps = new Processo();
 			ps.setIdprocesso(rs.getInt("idProcesso"));
 			ps.setNome(rs.getString("nome"));
-			ps.setData(rs.getDate("data"));
+			ps.setData(rs.getTimestamp("data"));
 			ps.setDescrizione(rs.getString("descrizione"));
 			ps.setNote(rs.getString("note"));
 			ps.setAltezza(rs.getDouble("altezza"));
@@ -177,6 +176,40 @@ public class ControllerDatabase {
 		
 		
 		return al;
+	}
+	
+	
+	public static void modificaProcesso(Processo p) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("update processo ");
+		if(!(p.getNome()==null || p.getNome().equals(""))){
+			sb.append("set nome = '"+p.getNome()+"',");
+		}
+		if(!(p.getSuperficie()==null || p.getSuperficie()==0)){
+			sb.append("superficie = "+p.getSuperficie()+",");
+		}
+		if(!(p.getAltezza()==null || p.getAltezza()==0)){
+			sb.append("altezza = "+p.getAltezza()+" ,");
+		}
+		if(!(p.getLarghezza()==null || p.getLarghezza()==0)){
+			sb.append("larghezza = "+p.getLarghezza()+" ,");
+		}
+		if(!(p.getData()==null)){
+			sb.append("data = '"+p.getData()+"' ,");
+		}
+		if(!(p.getNote()==null || p.getNote().equals(""))){
+			sb.append("note = '"+p.getNote()+"',");
+		}
+		if(!(p.getDescrizione()==null || p.getDescrizione().equals(""))){
+			sb.append("descrizione = '"+p.getDescrizione()+"'");
+		}
+		sb.append("where idProcesso="+p.getIdProcesso());
+		System.out.println("query: "+sb.toString());
+		st.executeUpdate(""+sb.toString());
+		
 	}
 	
 	/*

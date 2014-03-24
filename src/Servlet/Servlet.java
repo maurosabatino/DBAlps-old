@@ -109,6 +109,26 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/processo.jsp");
 		}
+		else if(operazione.equals("mostraModificaProcesso")){
+			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
+			Processo p = ControllerDatabase.prendiProcesso(idProcesso);
+			String content = HTMLProcesso.modificaProcesso(p);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
+		else if(operazione.equals("modificaProcesso")){
+			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
+			Processo p = ControllerProcesso.creaProcesso(request);
+			p.setIdprocesso(idProcesso);
+			ControllerDatabase.modificaProcesso(p);
+			String content = HTMLProcesso.mostraProcesso(idProcesso);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
 		
 		/*
 		 * Stazione metereologica

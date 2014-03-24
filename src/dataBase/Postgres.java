@@ -40,8 +40,8 @@ public class Postgres {
 		for(Integer i=1;i<50;i++) {
 			Timestamp tm = new Timestamp(date.getTime());
 			//Timestamp t=new Timestamp()
-			//SimpleDateFormat sf = new SimpleDateFormat("YYYY-d-MM hh:mm:ss");
-			//sf.format(tm);
+			SimpleDateFormat sf = new SimpleDateFormat("YYYY-d-MM hh:mm:ss");
+			sf.format(tm);
 			String data ="1989-02-27";
 			//System.out.println(Timestamp.valueOf(data));
 			System.out.println("INSERT INTO "+name+" (IDSTAZIONEMETEREOLOGICA,TEMPERATURAMAX,DATA) VALUES ("+staz+", "+i+","+data+" )");
