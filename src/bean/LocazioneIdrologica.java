@@ -19,7 +19,7 @@ public class LocazioneIdrologica {
 		return bacino;
 	}
 	public void setIdSottoBacino(int idSottobacino){
-		
+		this.idSottobacino=idSottobacino;
 	}
 	public void setSottobacino(String sottobacino){
 		this.sottobacino = sottobacino;

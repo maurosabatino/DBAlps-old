@@ -1,6 +1,7 @@
 package html;
 
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -19,9 +20,10 @@ public class HTMLProcesso {
 		/*script per google maps*///centrerei la mappa al centro delle alpi 
 		
 		
-		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> <th> modifica</th> </tr>");
+		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> dettagli</th> <th> modifica</th> <th>sottobacino</th></tr>");
 		for(Processo p: ap){
 			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+dateFormat.format(p.getData())+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
+					+ " <td>"+p.getUbicazione().getLocAmm().getNazione()+"</td> <td>"+p.getUbicazione().getLocIdro().getIdSottobacino()+"</td>"
 					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td>"
 							+ "<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td></tr>");
 		}
@@ -80,7 +82,7 @@ public class HTMLProcesso {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> </tr>");
 		for(Processo p: ap){
-			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
+			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td>"+p.getUbicazione().getLocAmm().getComune()+"</td>"
 					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td></tr>");
 		}
 		return sb.toString();
@@ -91,7 +93,9 @@ public class HTMLProcesso {
 		StringBuilder sb = new StringBuilder();
 		Calendar cal = new GregorianCalendar();
 		cal.setTime(p.getData());
-		
+		System.out.println(cal.toString());
+		cal.add(Calendar.MONTH, 1);
+	
 		sb.append(scriptData());
 		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">"
 				+ "<p>Nome:<input type=\"text\" name=\"nome\" value=\""+p.getNome()+"\"></p>"
@@ -104,17 +108,17 @@ public class HTMLProcesso {
 				+ "<p>larghezza:<input type=\"text\" name=\"larghezza\" value=\""+p.getLarghezza()+"\"></p>"
 				+ "<p>altezza:<input type=\"text\" name=\"altezza\" value=\" "+p.getAltezza()+" \"></p>"
 				+ "<p>volume_specifico<input type=\"number\" name=\"volume_specifico\" value=\" "+p.getVolumeSpecifico()+"\"></p>"
-				+ "<p>dati sull'ubicazione</p>"
-				/*+ "<p>bacino:<input type=\"text\" name=\"bacino\" ></p>"
-				+ "<p>sottobacino:<input type="text" name="sottobacino">"
-				+ "<p>comune:<input type="text" name="comune"></p>"
-				+ "<p>provncia:<input type="text" name="provincia"></p>"
-				+ "<p>regione:<input type="text" name="regione"></p> "
-				+ "<p>nazione:<input type="text" name="nazione"></p>"
-				+ "<p>latitudine:<input type="text" name="latitudine" value="12"></p>"
-				+ "<p>longitudine:<input type="text" name="longitudine"value="14"></p>"
-				+ "<p>quota:<input type="text" name="quota" value="12"></p>"
-				+ "<p>esposizione:<input type="text" name="esposizione" value="nord"></p>"*/
+				+ "<p>modifica ubicazione</p>"
+				+"<p>bacino:<input type=\"text\" name=\"bacino\" value=\""+p.getUbicazione().getLocIdro().getBacino()+" \"></p>"
+				+ "<p>sottobacino:<input type=\"text\" name=\"sottobacino\" value=\""+p.getUbicazione().getLocIdro().getSottobacino()+"\">"
+				+ "<p>comune:<input type=\"text\" name=\"comune\" value=\""+p.getUbicazione().getLocAmm().getComune()+"\"></p>"
+				+ "<p>provncia:<input type=\"text\" name=\"provincia\" value=\""+p.getUbicazione().getLocAmm().getProvincia()+"\"></p>"
+				+ "<p>regione:<input type=\"text\" name=\"regione\" value=\""+p.getUbicazione().getLocAmm().getRegione()+"\"></p> "
+				+ "<p>nazione:<input type=\"text\" name=\"nazione\" value=\""+p.getUbicazione().getLocAmm().getNazione()+"\"></p>"
+				+ "<p>latitudine:<input type=\"text\" name=\"latitudine\" value=\""+p.getUbicazione().getCoordinate().getX()+"\"></p>"
+				+ "<p>longitudine:<input type=\"text\" name=\"longitudine\"value=\""+p.getUbicazione().getCoordinate().getY()+"\"></p>"
+				+ "<p>quota:<input type=\"text\" name=\"quota\" value=\""+p.getUbicazione().getQuota()+"\"></p>"
+				+ "<p>esposizione:<input type=\"text\" name=\"esposizione\" value=\""+p.getUbicazione().getEsposizione()+"\"></p>"
 				+ "<input type=\"hidden\" name=\"operazione\" value=\"modificaProcesso\">"
 				+ "<input type=\"hidden\" name=\"idProcesso\" value=\""+p.getIdProcesso()+"\"/>"
 				+ "<input type=\"submit\" name =\"submit\" value=\"OK\">"

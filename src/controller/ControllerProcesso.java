@@ -1,9 +1,11 @@
 package controller;
 
 
+import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,8 +16,8 @@ public class ControllerProcesso {
 	public static Processo creaProcesso(HttpServletRequest request) throws ParseException{//qui creo le parti solo del processo
 		Processo p = new Processo();
 		p.setNome(request.getParameter("nome"));
-		String data="0-0-0";
-		String ora="0:0";
+		String data="00-00-00";
+		String ora="00:00";
 		if(!(request.getParameter("data").equals(""))){
 			 data = request.getParameter("data");
 			if(!(request.getParameter("data").equals(""))){
@@ -23,6 +25,7 @@ public class ControllerProcesso {
 					ora = request.getParameter("ora");
 				}
 				String dataCompleta = ""+data+" "+ora+":00";
+				
 				p.setData((Timestamp.valueOf(dataCompleta)));
 			}
 		}

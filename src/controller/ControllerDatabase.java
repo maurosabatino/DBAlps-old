@@ -20,6 +20,7 @@ public class ControllerDatabase {
 	/**
 	 * Processo
 	 */
+	
 	public static Processo salvaProcesso(Processo p) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -47,6 +48,7 @@ public class ControllerDatabase {
 		//qui salvo nel db e mi devo andare a ricavare l'id del processo
 	}
 	
+	
 	public static Processo prendiProcesso(int idProcesso) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -66,6 +68,7 @@ public class ControllerDatabase {
 		}
 		return p;
 	}
+	
 	public static ArrayList<Processo> prendiTuttiProcessi() throws SQLException{
 		ArrayList<Processo> al = new ArrayList<Processo>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -87,6 +90,7 @@ public class ControllerDatabase {
 		}
 		return al;
 	}
+	
 	public static ArrayList<Processo> ricercaProcesso(Processo p,Ubicazione u) throws SQLException{
 		ArrayList<Processo> al = new ArrayList<Processo>();
 		StringBuilder sb = new StringBuilder();
@@ -116,12 +120,9 @@ public class ControllerDatabase {
 				sb.append(" and larghezza="+p.getLarghezza()+"");
 		}
 		if(!(p.getData()==null)){
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 			if(sb.toString().equals("") || sb == null){
-				
 				sb.append(" where data='"+p.getData()+"'");
 			}
-				
 			else
 				sb.append(" and data='"+p.getData()+"'");
 		}
@@ -178,15 +179,15 @@ public class ControllerDatabase {
 		return al;
 	}
 	
-	
 	public static void modificaProcesso(Processo p) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
+		StringBuilder su = new StringBuilder();
 		
-		sb.append("update processo ");
+		sb.append("update processo set ");
 		if(!(p.getNome()==null || p.getNome().equals(""))){
-			sb.append("set nome = '"+p.getNome()+"',");
+			sb.append("nome = '"+p.getNome()+"',");
 		}
 		if(!(p.getSuperficie()==null || p.getSuperficie()==0)){
 			sb.append("superficie = "+p.getSuperficie()+",");
@@ -209,6 +210,34 @@ public class ControllerDatabase {
 		sb.append("where idProcesso="+p.getIdProcesso());
 		System.out.println("query: "+sb.toString());
 		st.executeUpdate(""+sb.toString());
+		
+		/*
+		 * modifica dell'ubicazione
+		 */
+		if(p.getUbicazione()!=null){
+			su.append("update ubicazione set ");
+			if(!(p.getUbicazione().getEsposizione()==null || p.getUbicazione().getEsposizione().equals(""))){
+				su.append("esposizione = '"+p.getUbicazione().getEsposizione()+"',");
+			}
+			if(!(p.getUbicazione().getQuota()==null || p.getUbicazione().getQuota()==0)){
+				su.append("quota = "+p.getUbicazione().getQuota()+",");
+			}
+			if(!(p.getUbicazione().getCoordinate().getX()==null || p.getUbicazione().getCoordinate().getX()==0)){
+				
+			if(!(p.getUbicazione().getCoordinate().getY()==null || p.getUbicazione().getCoordinate().getY()==0))
+				
+				su.append("coordinate = 'POINT("+p.getUbicazione().getCoordinate().getX()+" "+p.getUbicazione().getCoordinate().getY()+")',");
+			}
+			if(p.getUbicazione().getLocAmm()!=null){
+				su.append("idcomune ="+p.getUbicazione().getLocAmm().getIdComune()+",");
+			}
+			if(p.getUbicazione().getLocIdro()!=null){
+				su.append("idsottobacino ="+p.getUbicazione().getLocIdro().getIdSottobacino());
+			}
+			su.append(" where idubicazione="+p.getUbicazione().getIdUbicazione());
+			System.out.println(su.toString());
+			st.executeUpdate(""+su.toString());
+		}
 		
 	}
 	
@@ -335,7 +364,7 @@ public class ControllerDatabase {
 			locAmm.setComune(rs.getString("nomecomune"));
 			locAmm.setProvincia(rs.getString("nomeprovincia"));
 			locAmm.setRegione(rs.getString("nomeregione"));
-			locAmm.setNazione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
 		}
 		st.close();
 		conn.close();
@@ -357,6 +386,7 @@ public class ControllerDatabase {
 		conn.close();
 		return locIdro;
 	}
+	
 	public static Coordinate prendiCoordinate(int idUbicazione) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -369,5 +399,46 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return coord;
+	}
+	
+	public static LocazioneAmministrativa cercaLocazioneAmministrativa(String nomecomune) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+		ResultSet rs = st.executeQuery("select * from comune c,provincia p,regione r,nazione n where (c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione)"
+				+ "and(r.idnazione=n.idnazione) and c.nomecomune= '"+nomecomune+"'");
+		while(rs.next()){
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+		}
+		return locAmm;
+		
+	}
+
+	public static LocazioneIdrologica cercaLocazioneIdrologica(String nomesottobacino) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		LocazioneIdrologica locIdro = new LocazioneIdrologica();
+		ResultSet rs = st.executeQuery("select * from bacino,sottobacino where bacino.idbacino=sottobacino.idbacino and nomesottobacino='"+nomesottobacino+"'");
+		while(rs.next()){
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+		}
+		return locIdro;
+	}
+	
+	public static int getIdUbicazione(int idProcesso) throws SQLException{
+		int id = 0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select u.idubicazione from ubicazione u, processo p where u.idubicazione=p.idubicazione and p.idprocesso="+idProcesso);
+		while(rs.next()){
+			id = (rs.getInt("idUbicazione"));
+		}
+		return id;
 	}
 }

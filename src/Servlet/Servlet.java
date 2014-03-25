@@ -21,6 +21,8 @@ import controller.ControllerProcesso;
 import controller.ControllerUbicazione;
 import controller.StazioneMetereologicaController;
 import bean.HTMLContent;
+import bean.LocazioneAmministrativa;
+import bean.LocazioneIdrologica;
 import bean.Processo;
 import bean.StazioneMetereologica;
 import bean.Ubicazione;
@@ -121,7 +123,16 @@ public class Servlet extends HttpServlet {
 		else if(operazione.equals("modificaProcesso")){
 			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
 			Processo p = ControllerProcesso.creaProcesso(request);
+			
+			LocazioneAmministrativa locAmm = ControllerDatabase.cercaLocazioneAmministrativa(request.getParameter("comune"));
+			LocazioneIdrologica locIdro = ControllerDatabase.cercaLocazioneIdrologica(request.getParameter("sottobacino"));
+			Ubicazione u = ControllerUbicazione.creaUbicazione(request);
+			u.setIdUbicazione(ControllerDatabase.getIdUbicazione(idProcesso));
+			u.setLocAmm(locAmm);
+			u.setLocIdro(locIdro);
 			p.setIdprocesso(idProcesso);
+			p.setUbicazione(u);
+			
 			ControllerDatabase.modificaProcesso(p);
 			String content = HTMLProcesso.mostraProcesso(idProcesso);
 			HTMLContent c = new HTMLContent();
