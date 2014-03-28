@@ -16,10 +16,7 @@ public class Processo {
     Double altezza;
     Double volume_specifico;
     Ubicazione ubicazione;//referenziato
-    //String caratteristicaSito;//id ? magari come oggetto
-    //String litologia;
-    //String proprietaTermiche;
-    //String statoFratturazione;
+    SitoProcesso SitoProcesso;
     //arraylist allegati
     //ArrayList effetti
     //ArrayList danni
@@ -36,6 +33,7 @@ public class Processo {
         altezza = 0.0;
         volume_specifico = 0.0;
         ubicazione = new Ubicazione();
+        SitoProcesso = new SitoProcesso();
         //caratteristicaSito = null;
         //litologia = null;
         //proprietaTermiche = null;
@@ -74,6 +72,9 @@ public class Processo {
    public Ubicazione getUbicazione(){
 	   return ubicazione;
    }
+   public SitoProcesso getSitoProcesso(){
+  	 return SitoProcesso;
+   }
    
    public void setIdprocesso(int idProcesso){
 	   this.idProcesso = idProcesso;
@@ -104,6 +105,9 @@ public class Processo {
    }
    public void setUbicazione(Ubicazione ubicazione){
 	   this.ubicazione = ubicazione;
+   }
+   public void setSitoProcesso(SitoProcesso SitoProcesso){
+  	 this.SitoProcesso=SitoProcesso;
    }
  
   public String getVisualizzaprocesso(){

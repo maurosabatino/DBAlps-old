@@ -23,10 +23,10 @@ public class ControllerUbicazione {
 		u.setEsposizione((String)request.getParameter("esposizione"));
 		if(!(request.getParameter("quota").equals("")))
 		u.setQuota(Double.parseDouble((String)request.getParameter("quota")));
-		locAmm.setComune((String)request.getParameter("comune"));
-		locAmm.setProvincia((String)request.getParameter("provincia"));
-		locAmm.setRegione((String)request.getParameter("regione"));
-		locAmm.setNazione((String)request.getParameter("nazione"));
+		if(!(request.getParameter("idcomune").equals(""))){
+			
+			locAmm=ControllerDatabase.prendiLocAmministrativa(Integer.parseInt(request.getParameter("idcomune")));
+		}
 		u.setLocAmm(locAmm);
 		locIdro.setBacino((String)request.getParameter("bacino"));
 		locIdro.setSottobacino((String)request.getParameter("sottobacino"));
@@ -36,6 +36,7 @@ public class ControllerUbicazione {
 	
 	public static Ubicazione nuovaUbicazione(HttpServletRequest request) throws SQLException{
 		Ubicazione u = creaUbicazione(request);
+		System.out.println("idcomune: "+u.getLocAmm().getIdComune());
 		ControllerDatabase.salvaUbicazione(u);
 		return u;
 	}

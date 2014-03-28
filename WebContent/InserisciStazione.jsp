@@ -13,7 +13,7 @@
 			<p>Note:<input type="text" name="note" value="note"></p>
 			<p>Periodo Funzionamento:<input type="text" name="periodoFunzionamento" value="periodo"></p>
 			<p>Oraria:<input type="text" name="oraria" value="false"></p>
-						
+			<br>					
 			<p>dati sull'ubicazione</p>
 			<p>bacino:<input type="text" name="bacino"></p>
 			<p>sottobacino:<input type="text" name="sottobacino">
@@ -25,7 +25,6 @@
 			<p>longitudine:<input type="text" name="longitudine"value="14"></p>
 			<p>quota:<input type="text" name="quota" value="12"></p>
 			<p>esposizione:<input type="text" name="esposizione" value="nord"></p>
-		
 			
 			<input type="hidden" name="operazione" value="inserisciStazione">
 			<input type="submit" name ="submit" value="OK">

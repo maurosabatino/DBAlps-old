@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
+    pageEncoding="ISO-8859-1" import="controller.ControllerDatabase"%>
 <!DOCTYPE html>
 <html>
 <script src="js/jquery-1.11.0.js"></script>
@@ -44,7 +44,24 @@
 	  $( "#ora" ).timespinner( "value", current );
   });
   </script>
-  
+    <script type="text/javascript">
+	$(function() {
+		var states = <%=ControllerDatabase.getJsonLocazioneAmminitrativa() %>;
+  		$("#comune").autocomplete({
+  			source: states,
+ 			focus: function( event, ui ) {
+    	$( "#comune" ).val( ui.item.comune);
+     	  	return false;
+  			},
+		select: function(event, ui) {
+			$('#idcomune').val(ui.item.idComune);
+	  		$('#provincia').val(ui.item.provincia);	
+	 		$('#regione').val(ui.item.regione);
+	  		$('#nazione').val(ui.item.nazione);
+ 	 	}
+ 	 	});
+  });
+  </script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Inserisci un processo</title>
@@ -69,10 +86,12 @@
 			<p>dati sull'ubicazione</p>
 			<p>bacino:<input type="text" name="bacino"></p>
 			<p>sottobacino:<input type="text" name="sottobacino">
-			<p>comune:<input type="text" name="comune"></p>
-			<p>provncia:<input type="text" name="provincia"></p>
-			<p>regione:<input type="text" name="regione"></p> 
-			<p>nazione:<input type="text" name="nazione"></p>
+			<p>comune:<input type="text" id="comune" name="comune" /> </p>
+				
+				<p>idcomune:<input readonly="readonly" type="text" id="idcomune" name="idcomune" /></p>
+			<p>provncia:<input readonly="readonly" type="text" id="provincia" name="provincia" /></p>
+			<p>regione:<input readonly="readonly" type="text" id="regione" name="regione" /></p> 
+			<p>nazione:<input readonly="readonly" type="text" id="nazione" name="nazione" /></p>
 			<p>latitudine:<input type="text" name="latitudine" value="12"></p>
 			<p>longitudine:<input type="text" name="longitudine"value="14"></p>
 			<p>quota:<input type="text" name="quota" value="12"></p>

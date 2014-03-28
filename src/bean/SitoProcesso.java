@@ -2,29 +2,29 @@ package bean;
 
 public class SitoProcesso {
 	int idSito; 
-	String caratteristica;
+	String caratteristicaSito;
 	Litologia litologia;
 	public SitoProcesso(){
 		idSito = 0;
-		caratteristica = "";
+		caratteristicaSito = "";
 		litologia = null;
 	}
-	int getIdSito(){
+	public int getIdSito(){
 		return idSito;
 	}
-	String getCaratteristica(){
-		return caratteristica;
+	public String getCaratteristica(){
+		return caratteristicaSito;
 	}
-	Litologia getLitologia(){
+	public Litologia getLitologia(){
 		return litologia;
 	}
-	void setIdSito(int idSito){
+	public void setIdSito(int idSito){
 		this.idSito = idSito;
 	}
-	void setCaratteristica(String caratteristica){
-		this.caratteristica = caratteristica;
+	public void setCaratteristicaSito(String caratteristicaSito){
+		this.caratteristicaSito = caratteristicaSito;
 	}
-	void setLitologia(Litologia litologia){
+	public void setLitologia(Litologia litologia){
 		this.litologia = litologia;
 	}
 }

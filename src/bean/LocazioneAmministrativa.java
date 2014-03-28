@@ -45,7 +45,7 @@ public class LocazioneAmministrativa {
 		this.nazione = nazione;
 	}
 	public String toString(){
-		String out = "<p>comune: "+comune+"</p> <p>provincia: "+provincia+"</p> <p> regione:"+regione+"</p> <p> nazione"+nazione+"</p>";
+		String out = "LocazioneAmministrativa:[comune= "+comune+" provincia= "+provincia+"  regione="+regione+"  nazione="+nazione+"]";
 		return out;
 	}
 	public boolean isEmpty(){

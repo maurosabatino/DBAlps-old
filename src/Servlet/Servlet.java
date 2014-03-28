@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import controller.ControllerDatabase;
 import controller.ControllerProcesso;
 import controller.ControllerUbicazione;
-import controller.StazioneMetereologicaController;
+import controller.ControllerStazioneMetereologica;
 import bean.HTMLContent;
 import bean.LocazioneAmministrativa;
 import bean.LocazioneIdrologica;
@@ -145,8 +145,7 @@ public class Servlet extends HttpServlet {
 		 * Stazione metereologica
 		 */
 		else if(operazione.equals("inserisciStazione")){
-			StazioneMetereologica s=StazioneMetereologicaController.inserisciStazioneMetereologica(request);
-			
+			StazioneMetereologica s = ControllerStazioneMetereologica.nuovaStazioneMetereologica(request);
 			request.setAttribute("stazione",ControllerDatabase.prendiStazioneMetereologica(s.getIdStazioneMetereologica()));
 			forward(request,response,"/stazione.jsp");
 		

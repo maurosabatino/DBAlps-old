@@ -1,12 +1,19 @@
 package controller;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+
+import com.google.gson.Gson;
+
+import com.google.gson.reflect.TypeToken;
 
 import bean.*;
 
@@ -26,7 +33,7 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
 		sb.append(""+p.getUbicazione().getIdUbicazione());
-		sb.append(",1");
+		sb.append(",1");//p.getSitoProcesso().getIdSitoProcesso()
 		sb.append(",'"+p.getNome()+"'");
 		sb.append(",'"+p.getData()+"'");
 		sb.append(",'"+p.getDescrizione()+"'");
@@ -259,7 +266,7 @@ public class ControllerDatabase {
 		
 		 st.executeUpdate("INSERT INTO STAZIONE_METEREOLOGICA(IDENTE,NOME,AGGREGAZIONEGIORNALIERA,ORARIA,NOTE,PERIODOFUNZIONAMENTO,idSitoStazione,IDUBICAZIONE) VALUES( "+sb+")");
 		
-		 ResultSet rs =st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE  idUbicazione="+s.getUbicazione().getIdUbicazione()+" and periodofunzionamento="+s.getPeriodoFunzionamento()+" ");
+		 ResultSet rs =st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE  idUbicazione="+s.getUbicazione().getIdUbicazione()+" and periodofunzionamento='"+s.getPeriodoFunzionamento()+"' ");
 		while(rs.next()) 
 			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
 
@@ -319,7 +326,7 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
 		sb.append("1");
-		sb.append(",1");
+		sb.append(","+u.getLocAmm().getIdComune()+"");
 		sb.append(","+u.getQuota());
 		sb.append(",'"+u.getEsposizione()+"'");
 		sb.append(",ST_GeometryFromText("+u.getCoordinate().toDB()+")");
@@ -369,6 +376,21 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return locAmm;
+	}public static ArrayList<LocazioneAmministrativa> prendiLocAmministrativaAll() throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ArrayList<LocazioneAmministrativa> localizAmm = new ArrayList<LocazioneAmministrativa>();
+		ResultSet rs = st.executeQuery("select * from comune,provincia,regione,nazione where (comune.idProvincia=provincia.idProvincia) and ( regione.idregione=provincia.idregione) and(regione.idnazione=nazione.idnazione)");
+		while(rs.next()){
+				LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+				locAmm.setIdComune(rs.getInt("idcomune"));
+				locAmm.setComune(rs.getString("nomecomune"));
+				locAmm.setProvincia(rs.getString("nomeprovincia"));
+				locAmm.setRegione(rs.getString("nomeregione"));
+				locAmm.setNazione(rs.getString("nomenazione"));
+				localizAmm.add(locAmm);
+		}
+		return localizAmm;
 	}
 	
 	public static LocazioneIdrologica prendiLocIdrologica(int idSottobacino) throws SQLException{
@@ -441,4 +463,59 @@ public class ControllerDatabase {
 		}
 		return id;
 	}
+	
+	
+	public static Litologia salvaLitologia(Litologia l) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		st.executeUpdate("insert into proprieta_litologia(idlitologia,idstatofratturazione,idproprietatermiche) values "
+				+ "("+l.getidLitologia()+","+l.getIdStato_fratturazione()+","+l.getIdStato_fratturazione()+")");
+		
+		return l;
+	}
+	
+	/*
+	 * per json
+	 */
+	
+	public static String getJsonLocazioneAmminitrativa(){
+		ArrayList<LocazioneAmministrativa> locAmm = new ArrayList<LocazioneAmministrativa>();
+		StringBuilder sb = new StringBuilder();
+		try {
+			BufferedReader br = new BufferedReader(
+					new FileReader("C:\\Users\\Mauro\\Desktop\\prova.json"));
+			locAmm = new Gson().fromJson(br, new TypeToken<ArrayList<LocazioneAmministrativa>>(){}.getType());
+			sb.append(new Gson().toJson(locAmm).replaceAll("comune", "label"));
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println(sb.toString());
+		return sb.toString();
+	}
+	public static String CreateJsonLocazioneAmministrativa() throws SQLException{
+	
+		Gson gson = new Gson();		
+		
+		ArrayList<LocazioneAmministrativa> locAmm = ControllerDatabase.prendiLocAmministrativaAll();
+			
+		String json = gson.toJson(locAmm);
+		try {
+			
+			FileWriter writer = new FileWriter("C:\\Users\\Mauro\\Desktop\\prova.json");
+			writer.write(json);
+			writer.close();
+	 
+	 } catch (IOException e) {
+			e.printStackTrace();
+	 }
+	 
+		System.out.println(json);		
+		return json;
+	}
+	public static void main (String[] args) throws SQLException{
+		//ControllerDatabase.CreateJsonLocazioneAmministrativa();
+		System.out.println("json: "+ControllerDatabase.getJsonLocazioneAmminitrativa());
+	}
+	
 }
