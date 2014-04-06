@@ -46,7 +46,7 @@
   </script>
     <script type="text/javascript">
 	$(function() {
-		var states = <%=ControllerDatabase.getJsonLocazioneAmminitrativa() %>;
+		var states =
   		$("#comune").autocomplete({
   			source: states,
  			focus: function( event, ui ) {
@@ -87,8 +87,7 @@
 			<p>bacino:<input type="text" name="bacino"></p>
 			<p>sottobacino:<input type="text" name="sottobacino">
 			<p>comune:<input type="text" id="comune" name="comune" /> </p>
-				
-				<p>idcomune:<input readonly="readonly" type="text" id="idcomune" name="idcomune" /></p>
+			<p>idcomune:<input readonly="readonly" type="text" id="idcomune" name="idcomune" /></p>
 			<p>provncia:<input readonly="readonly" type="text" id="provincia" name="provincia" /></p>
 			<p>regione:<input readonly="readonly" type="text" id="regione" name="regione" /></p> 
 			<p>nazione:<input readonly="readonly" type="text" id="nazione" name="nazione" /></p>

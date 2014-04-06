@@ -1,5 +1,6 @@
 package Servlet;
 
+import html.HTMLElaborazioni;
 import html.HTMLProcesso;
 import html.HTMLStazioneMetereologica;
 
@@ -72,12 +73,21 @@ public class Servlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, ParseException {
 		
 		String operazione = (String) request.getParameter("operazione");
+		String path = getServletContext().getRealPath("/");
+		String loc = "IT";//oggetto sessione
 		
 		/*
 		 * Processo
 		 */
+		if(operazione.equals("formInserisciProcesso")){
+			String content = HTMLProcesso.formInserisciProcesso(path);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
 		if(operazione.equals("inserisciProcesso")){
-			Processo p = ControllerProcesso.nuovoProcesso(request);
+			Processo p = ControllerProcesso.nuovoProcesso(request,loc);
 			String content = HTMLProcesso.mostraProcesso(p.getIdProcesso());
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
@@ -165,6 +175,42 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/stazione.jsp");
 		}
+	//elaborazioni
+			else if(operazione.equals("eleborazioniDeltaT")){	
+				String content=HTMLElaborazioni.deltaT();
+				HTMLContent c = new HTMLContent();
+				c.setContent(content);
+				request.setAttribute("HTMLc",c);
+				forward(request,response,"/elaborazioni.jsp");
+
+			}
+			else if(operazione.equals("eleborazioniTemperatura")){
+				String content=HTMLElaborazioni.mediaTemperatura();
+				HTMLContent c=new HTMLContent();
+				c.setContent(content);
+				request.setAttribute("HTMLc",c);
+				forward(request,response,"/elaborazioni.jsp");
+			}
+			else if(operazione.equals("precipitazioni")){
+				String content=HTMLElaborazioni.mediaPrecipitazioni();
+				HTMLContent c=new HTMLContent();
+				c.setContent(content);
+				request.setAttribute("HTMLc",c);
+				forward(request,response,"/elaborazioni.jsp");
+			}
+		/*
+		 * prova
+		 */
+			else if(operazione.equals("provaAutocomlete")){
+				String[] tag = request.getParameter("tag").split(",");
+				String[] id = request.getParameter("id").split(",");
+				System.out.println("lunghezza: "+request.getParameter("tag").split(",").length);
+				for(int i = 0; i<tag.length;i++){
+					System.out.println("tag: "+tag[i]+" i"+i);
+					System.out.println("id: "+id[i]+" i"+i);
+				}
+								
+			}
 	    
 	}
 	private void forward(HttpServletRequest request, HttpServletResponse response, String page)  throws ServletException, IOException {

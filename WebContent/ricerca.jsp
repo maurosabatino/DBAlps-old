@@ -67,6 +67,7 @@
 			<p>bacino:<input type="text" name="bacino"></p>
 			<p>sottobacino:<input type="text" name="sottobacino">
 			<p>comune:<input type="text" name="comune"></p>
+			<p>idcomune:<input readonly="readonly" type="text" id="idcomune" name="idcomune" /></p>
 			<p>provncia:<input type="text" name="provincia"></p>
 			<p>regione:<input type="text" name="regione"></p> 
 			<p>nazione:<input type="text" name="nazione"></p>

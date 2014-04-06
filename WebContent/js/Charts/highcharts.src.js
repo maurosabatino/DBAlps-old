@@ -1589,8 +1589,8 @@ defaultOptions = {
 
 	credits: {
 		enabled: true,
-		text: 'Highcharts.com',
-		href: 'http://www.highcharts.com',
+		text: 'ola',
+		href: 'ola',
 		position: {
 			align: 'right',
 			x: -10,

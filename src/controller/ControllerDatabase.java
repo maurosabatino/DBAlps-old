@@ -1,9 +1,6 @@
 package controller;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -11,9 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import com.google.gson.Gson;
-
-import com.google.gson.reflect.TypeToken;
 
 import bean.*;
 
@@ -33,7 +27,7 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
 		sb.append(""+p.getUbicazione().getIdUbicazione());
-		sb.append(",1");//p.getSitoProcesso().getIdSitoProcesso()
+		sb.append(","+p.getSitoProcesso().getIdSito()+"");
 		sb.append(",'"+p.getNome()+"'");
 		sb.append(",'"+p.getData()+"'");
 		sb.append(",'"+p.getDescrizione()+"'");
@@ -42,10 +36,19 @@ public class ControllerDatabase {
 		sb.append(","+p.getLarghezza());
 		sb.append(","+p.getSuperficie());
 		sb.append(","+p.getVolumeSpecifico());
+		sb.append(",1");
+		sb.append(",1");
+		sb.append(",true");
+		sb.append(","+p.getClasseVolume().getIdClasseVolume());
+		sb.append(","+p.getLitologia().getidLitologia());
+		sb.append(","+p.getProprietaTermiche().getIdProprieta_termiche());
+		sb.append(","+p.getStatoFratturazione().getIdStato_fratturazione());
 		
-		st.executeUpdate("INSERT INTO processo(idUbicazione,idSito,nome,data,descrizione,note,altezza,larghezza,superficie,volumespecifico) values("+sb.toString()+")");
+		st.executeUpdate("INSERT INTO processo(idUbicazione,idSito,nome,data,descrizione,note,altezza,larghezza,superficie,volumespecifico,"
+				+ "idutentecreatore,idutentemodifica,convalidato,idclassevolume,idlitologia,idproprietatermiche,idstatofratturazione)"
+				+ " values("+sb.toString()+")");
 		
-		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idUbicazione="+p.getUbicazione().getIdUbicazione()+" AND idSito=1 AND nome='"+p.getNome()+"' AND data='"+p.getData()+"' ");
+		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idUbicazione="+p.getUbicazione().getIdUbicazione()+" AND idSito="+p.getSitoProcesso().getIdSito()+" AND nome='"+p.getNome()+"' AND data='"+p.getData()+"' ");
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 		}
@@ -53,6 +56,24 @@ public class ControllerDatabase {
 		conn.close();
 		return p;
 		//qui salvo nel db e mi devo andare a ricavare l'id del processo
+	}
+	public static void salvaEffetti(int idProcesso,ArrayList<EffettiMorfologici> em,ArrayList<Danni> d) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		for(EffettiMorfologici eff:em){
+			st.executeUpdate("insert into effetti_processo(idprocesso,ideffettimorfologici) values("+idProcesso+","+eff.getIdEffettiMorfoligici()+")");
+		}
+		for(Danni da:d){
+			st.execute("insert into danni_processo(idprocesso,iddanno) values("+idProcesso+","+da.getIdDanni()+")");
+		}
+		
+	}
+	public static void salvaTipologiaProcesso(int idProcesso,ArrayList<TipologiaProcesso> tp) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		for(TipologiaProcesso pt : tp){
+			st.executeUpdate("insert into caratteristiche_processo(idprocesso,idtipologiaProcesso) values("+idProcesso+","+pt.getIdTipologiaProcesso()+")");
+		}
 	}
 	
 	
@@ -144,7 +165,7 @@ public class ControllerDatabase {
 			su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
 					+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
 		if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
-			System.out.println("comune= "+u.getLocAmm().getComune());
+			
 			su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
 		}
 		if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
@@ -161,7 +182,7 @@ public class ControllerDatabase {
 		ResultSet rs = null;
 		
 		if(u.isEmpty()==true){
-			System.out.println(sb.toString());
+			
 		 rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" ");
 		}
 		else {
@@ -215,7 +236,7 @@ public class ControllerDatabase {
 			sb.append("descrizione = '"+p.getDescrizione()+"'");
 		}
 		sb.append("where idProcesso="+p.getIdProcesso());
-		System.out.println("query: "+sb.toString());
+		
 		st.executeUpdate(""+sb.toString());
 		
 		/*
@@ -242,11 +263,187 @@ public class ControllerDatabase {
 				su.append("idsottobacino ="+p.getUbicazione().getLocIdro().getIdSottobacino());
 			}
 			su.append(" where idubicazione="+p.getUbicazione().getIdUbicazione());
-			System.out.println(su.toString());
+			
 			st.executeUpdate(""+su.toString());
 		}
 		
 	}
+	
+	/*
+	 * caratteristiche del processo
+	 */
+	
+	public static ArrayList<EffettiMorfologici> prendiEffettiMOrfologici() throws SQLException{
+		ArrayList<EffettiMorfologici> al = new ArrayList<EffettiMorfologici>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from effetti_Morfologici");
+		while(rs.next()){
+			EffettiMorfologici em = new EffettiMorfologici();
+			em.setIdEffettiMOrfologici(rs.getInt("ideffettimorfologici"));
+			em.setTipo_IT(rs.getString("tipo_it"));
+			em.setTipo_ENG(rs.getString("tipo_eng"));
+			al.add(em);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	public static ArrayList<Danni> prendiDanni() throws SQLException{
+		ArrayList<Danni> al = new ArrayList<Danni>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from danno");
+		while(rs.next()){
+			Danni d = new Danni();
+			d.setIdDanni(rs.getInt("iddanno"));
+			d.setTipo_IT(rs.getString("tipo_it"));
+			d.setTipo_ENG(rs.getString("tipo_eng"));
+			al.add(d);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static ArrayList<ProprietaTermiche> prendiProprietaTermiche() throws SQLException{
+		ArrayList<ProprietaTermiche> al = new ArrayList<ProprietaTermiche>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from proprieta_termiche");
+		while(rs.next()){
+			ProprietaTermiche pt = new ProprietaTermiche();
+			pt.setIdProprietaTermiche(rs.getInt("idproprietatermiche"));
+			pt.setProprietaTermiche_IT(rs.getString("nome_it"));
+			pt.setProprietaTermiche_ENG(rs.getString("nome_eng"));
+			al.add(pt);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static ArrayList<StatoFratturazione> prendiStatoFratturazione() throws SQLException{
+		ArrayList<StatoFratturazione> al = new ArrayList<StatoFratturazione>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from stato_fratturazione");
+		while(rs.next()){
+			StatoFratturazione sf = new StatoFratturazione();
+			sf.setIdStatoFratturazione(rs.getInt("idstatofratturazione"));
+			sf.setStatoFratturazione_IT(rs.getString("nome_it"));
+			sf.setStatoFratturazione_ENG(rs.getString("nome_ENG"));
+			al.add(sf);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static ArrayList<Litologia> prendiLitologia() throws SQLException{
+		ArrayList<Litologia> al = new ArrayList<Litologia>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from litologia");
+		while(rs.next()){
+			Litologia l = new Litologia();
+			l.setIdLitologia(rs.getInt("idlitologia"));
+			l.setNomeLitologia_IT(rs.getString("nome_IT"));
+			l.setNomeLitologia_ENG(rs.getString("nome_ENG"));
+			al.add(l);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static ArrayList<SitoProcesso> prendiSitoProcesso() throws SQLException{
+		ArrayList<SitoProcesso> al = new ArrayList<SitoProcesso>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from sito_processo");
+		while(rs.next()){
+			SitoProcesso sp = new SitoProcesso();
+			sp.setIdSito(rs.getInt("idsitoprocesso"));
+			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_IT"));
+			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
+			al.add(sp);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static ArrayList<ClasseVolume> prendiClasseVolume() throws SQLException{
+		ArrayList<ClasseVolume> al = new ArrayList<ClasseVolume>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from classi_volume");
+		while(rs.next()){
+			ClasseVolume cv = new ClasseVolume();
+			cv.setIdClasseVolume(rs.getInt("idclassevolume"));
+			cv.setIntervallo(rs.getString("intervallo"));
+			al.add(cv);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static ArrayList<TipologiaProcesso> prendiTipologiaProcesso() throws SQLException{
+		ArrayList<TipologiaProcesso> al = new ArrayList<TipologiaProcesso>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from tipologia_processo");
+		while(rs.next()){
+			TipologiaProcesso tp = new TipologiaProcesso();
+			tp.setIdTipologiaProcesso(rs.getInt("idtipologiaprocesso"));
+			tp.setNome_IT(rs.getString("nome_it"));
+			tp.setNome_ENG(rs.getString("nome_eng"));
+			al.add(tp);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	
+	public static int prendiIdEffettiMorfologici(String effetto,String loc) throws SQLException{
+		int i = 0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select idEffettimorfologici from effetti_morfologici where tipo_"+loc+"='"+effetto+"'");
+		while(rs.next()){
+			i = rs.getInt("idEffettimorfologici");
+		}
+		st.close();
+		conn.close();
+		return i;
+	}
+	public static int prendiIdDanni(String danno,String loc) throws SQLException{
+		int i = 0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select iddanno from danno where tipo_"+loc+" = '"+danno+"'");
+		while(rs.next()){
+			i = rs.getInt("iddanno");
+		}
+		st.close();
+		conn.close();
+		return i;
+	}
+	public static int prendiIdTipologiaProcesso(String tipologiaProcesso,String loc) throws SQLException{
+		int i = 0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select idtipologiaprocesso from tipologia_processo where nome_"+loc+" ='"+tipologiaProcesso+"'");
+		while(rs.next()){
+			i = rs.getInt("idtipologiaprocesso");
+		}
+		st.close();
+		conn.close();
+		return i;
+	}
+	
 	
 	/*
 	 * stazione metereologica
@@ -334,7 +531,6 @@ public class ControllerDatabase {
 		
 		ResultSet rs = st.executeQuery("SELECT * FROM ubicazione WHERE coordinate= "+u.getCoordinate().toDB()+" ");
 		
-		//TODO fare in una sola riga selezionando solo l'id
 		while(rs.next()){
 			u.setIdUbicazione(rs.getInt("idUbicazione"));
 		}
@@ -376,7 +572,8 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return locAmm;
-	}public static ArrayList<LocazioneAmministrativa> prendiLocAmministrativaAll() throws SQLException{
+	}
+	public static ArrayList<LocazioneAmministrativa> prendiLocAmministrativaAll() throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		ArrayList<LocazioneAmministrativa> localizAmm = new ArrayList<LocazioneAmministrativa>();
@@ -407,6 +604,20 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return locIdro;
+	}
+	public static ArrayList<LocazioneIdrologica> prendiLocIdrologicaAll() throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ArrayList<LocazioneIdrologica> locIdrologica = new ArrayList<LocazioneIdrologica>();
+		ResultSet rs = st.executeQuery("select * from bacino,sottobacino where sottobacino.idbacino=bacino.idbacino");
+		while(rs.next()){
+			LocazioneIdrologica locIdro = new LocazioneIdrologica();
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			locIdrologica.add(locIdro);
+		}
+		return locIdrologica;
 	}
 	
 	public static Coordinate prendiCoordinate(int idUbicazione) throws SQLException{
@@ -463,59 +674,4 @@ public class ControllerDatabase {
 		}
 		return id;
 	}
-	
-	
-	public static Litologia salvaLitologia(Litologia l) throws SQLException{
-		Connection conn = DriverManager.getConnection(url,user,pwd);
-		Statement st = conn.createStatement();
-		st.executeUpdate("insert into proprieta_litologia(idlitologia,idstatofratturazione,idproprietatermiche) values "
-				+ "("+l.getidLitologia()+","+l.getIdStato_fratturazione()+","+l.getIdStato_fratturazione()+")");
-		
-		return l;
 	}
-	
-	/*
-	 * per json
-	 */
-	
-	public static String getJsonLocazioneAmminitrativa(){
-		ArrayList<LocazioneAmministrativa> locAmm = new ArrayList<LocazioneAmministrativa>();
-		StringBuilder sb = new StringBuilder();
-		try {
-			BufferedReader br = new BufferedReader(
-					new FileReader("C:\\Users\\Mauro\\Desktop\\prova.json"));
-			locAmm = new Gson().fromJson(br, new TypeToken<ArrayList<LocazioneAmministrativa>>(){}.getType());
-			sb.append(new Gson().toJson(locAmm).replaceAll("comune", "label"));
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println(sb.toString());
-		return sb.toString();
-	}
-	public static String CreateJsonLocazioneAmministrativa() throws SQLException{
-	
-		Gson gson = new Gson();		
-		
-		ArrayList<LocazioneAmministrativa> locAmm = ControllerDatabase.prendiLocAmministrativaAll();
-			
-		String json = gson.toJson(locAmm);
-		try {
-			
-			FileWriter writer = new FileWriter("C:\\Users\\Mauro\\Desktop\\prova.json");
-			writer.write(json);
-			writer.close();
-	 
-	 } catch (IOException e) {
-			e.printStackTrace();
-	 }
-	 
-		System.out.println(json);		
-		return json;
-	}
-	public static void main (String[] args) throws SQLException{
-		//ControllerDatabase.CreateJsonLocazioneAmministrativa();
-		System.out.println("json: "+ControllerDatabase.getJsonLocazioneAmminitrativa());
-	}
-	
-}

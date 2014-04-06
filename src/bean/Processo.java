@@ -1,26 +1,29 @@
 package bean;
-
-
-
-
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 public class Processo {
 	int idProcesso;
-    String nome;
+	String nome;
 	Timestamp data;
-    String descrizione;
-    String note;
-    Double superficie;
-    Double larghezza;
-    Double altezza;
-    Double volume_specifico;
-    Ubicazione ubicazione;//referenziato
-    SitoProcesso SitoProcesso;
+	String descrizione;
+	String note;
+	Double superficie;
+	Double larghezza;
+	Double altezza;
+	Double volume_specifico;
+	Ubicazione ubicazione;
+	Litologia litologia;
+	ProprietaTermiche proprietaTermiche;
+	StatoFratturazione statoFratturazione;
+	SitoProcesso SitoProcesso;
+	ClasseVolume classeVolume;
+	ArrayList<EffettiMorfologici> effetti;
+	ArrayList <Danni> danni;
+	ArrayList<TipologiaProcesso> tipologiaProcesso;
+    
+    
     //arraylist allegati
-    //ArrayList effetti
-    //ArrayList danni
-    // ArrayList caratteristiche de processo
     
     public Processo() {     
         idProcesso=0;
@@ -32,12 +35,15 @@ public class Processo {
         larghezza = 0.0;
         altezza = 0.0;
         volume_specifico = 0.0;
+        classeVolume = new ClasseVolume();
         ubicazione = new Ubicazione();
+        litologia = new Litologia();
+        statoFratturazione=new StatoFratturazione();
+        proprietaTermiche = new ProprietaTermiche();
         SitoProcesso = new SitoProcesso();
-        //caratteristicaSito = null;
-        //litologia = null;
-        //proprietaTermiche = null;
-        //statoFratturazione = null;
+        effetti = new ArrayList<EffettiMorfologici>();
+        danni = new ArrayList<Danni>();
+        tipologiaProcesso = new ArrayList<TipologiaProcesso>();
     }
     
    public int getIdProcesso(){
@@ -109,12 +115,74 @@ public class Processo {
    public void setSitoProcesso(SitoProcesso SitoProcesso){
   	 this.SitoProcesso=SitoProcesso;
    }
+
+	public Double getVolume_specifico() {
+		return volume_specifico;
+	}
+
+	public void setVolume_specifico(Double volume_specifico) {
+		this.volume_specifico = volume_specifico;
+	}
+
+	public ArrayList<EffettiMorfologici> getEffetti() {
+		return effetti;
+	}
+
+	public void setEffetti(ArrayList<EffettiMorfologici> effetti) {
+		this.effetti = effetti;
+	}
+
+	public ArrayList<Danni> getDanni() {
+		return danni;
+	}
+
+	public void setDanni(ArrayList<Danni> danni) {
+		this.danni = danni;
+	}
+
+	public ArrayList<TipologiaProcesso> getTipologiaProcesso() {
+		return tipologiaProcesso;
+	}
+
+	public void setTipologiaProcesso(ArrayList<TipologiaProcesso> tipologiaProcesso) {
+		this.tipologiaProcesso = tipologiaProcesso;
+	}
+
+	public void setIdProcesso(int idProcesso) {
+		this.idProcesso = idProcesso;
+	}
+
+	public ClasseVolume getClasseVolume() {
+		return classeVolume;
+	}
+
+	public void setClasseVolume(ClasseVolume classeVolume) {
+		this.classeVolume = classeVolume;
+	}
+
+	public Litologia getLitologia() {
+		return litologia;
+	}
+
+	public void setLitologia(Litologia litologia) {
+		this.litologia = litologia;
+	}
+
+	public ProprietaTermiche getProprietaTermiche() {
+		return proprietaTermiche;
+	}
+
+	public void setProprietaTermiche(ProprietaTermiche proprietaTermiche) {
+		this.proprietaTermiche = proprietaTermiche;
+	}
+
+	public StatoFratturazione getStatoFratturazione() {
+		return statoFratturazione;
+	}
+
+	public void setStatoFratturazione(StatoFratturazione statoFratturazione) {
+		this.statoFratturazione = statoFratturazione;
+	}
  
-  public String getVisualizzaprocesso(){
-	 String out = "<p> descrizione: "+descrizione+"</p> <p> nome: "+nome+"</p> <p>note: "+note+"</p><p> data: "+data.toString()+"</p> <p>superficie: "+superficie+"</p>";
-	 out+="<p>ubicazione</p>";
-	 out+="<p>ubicazione "+ubicazione.toString()+"</p>";
-	 System.out.println("esposizione nel bean: "+getUbicazione().getEsposizione());
-	 return out;
-  }
+  
 }

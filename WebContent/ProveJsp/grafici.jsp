@@ -5,7 +5,7 @@
 <head>
 
 <script src="js/jquery-1.11.0.js"></script>
-<script src="js/Charts/highcharts.js"></script>
+<script src="js/Charts/highcharts.src.js"></script>
 <script src="js/Charts/modules/exporting.js"></script>
 
 

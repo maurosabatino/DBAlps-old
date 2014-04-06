@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1" import="controller.ControllerDatabase"%>
+    pageEncoding="ISO-8859-1" import="controller.ControllerJson"%>
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,11 +11,11 @@
   
   <script type="text/javascript">
 	$(function() {
-		var states = <%=ControllerDatabase.getJsonLocazioneAmminitrativa() %>;
+		var states = <%= ControllerJson.getJsonLocazioneAmminitrativa("C:\\Users\\Mauro\\workspace\\Tirocinio\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\DBAlps\\") %>;
   		$("#comune").autocomplete({
   			source: states,
  			focus: function( event, ui ) {
-    	$( "#comune" ).val( ui.item.comune);
+    	$( "#comune" ).val( ui.item.label);
      	  	return false;
   			},
 		select: function(event, ui) {
