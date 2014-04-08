@@ -5,21 +5,25 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title></title>
+<link rel="stylesheet" type="text/css" href="css/sidebar.css"/>
 </head>
 <body>
 
-<h1>Operazioni disponibili</h1>
-<br>
-<a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a>
-<br>
-<a href="InserisciStazione.jsp">inserisci stazione</a>
-<br>
-<a href="ricerca.jsp"> ricerca processo</a>
-<br>
-<a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a>
-<br>
-<a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni metereologiche</a>
-<br>
+
+<div class="container-fluid">
+<div class="row">
+<div class="col-sm-3 col-md-2 sidebar">
+<ul class="nav nav-sidebar">
+     <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a></li>
+     <li><a href="InserisciStazione.jsp">inserisci stazione</a></li>
+     <li><a href="ricerca.jsp"> ricerca processo</a></li>
+     <li><a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a></li>
+     <li><a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni metereologiche</a></li>
+</ul>
+
+</div>
+</div>
+</div>
 
 </body>
 </html>

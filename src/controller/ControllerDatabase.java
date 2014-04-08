@@ -64,7 +64,9 @@ public class ControllerDatabase {
 			st.executeUpdate("insert into effetti_processo(idprocesso,ideffettimorfologici) values("+idProcesso+","+eff.getIdEffettiMorfoligici()+")");
 		}
 		for(Danni da:d){
+			System.out.println("danni:"+da.getTipo_IT());
 			st.execute("insert into danni_processo(idprocesso,iddanno) values("+idProcesso+","+da.getIdDanni()+")");
+			
 		}
 		
 	}
@@ -72,6 +74,7 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		for(TipologiaProcesso pt : tp){
+			System.out.println("tip"+pt.getIdTipologiaProcesso());
 			st.executeUpdate("insert into caratteristiche_processo(idprocesso,idtipologiaProcesso) values("+idProcesso+","+pt.getIdTipologiaProcesso()+")");
 		}
 	}
@@ -91,7 +94,16 @@ public class ControllerDatabase {
 			p.setAltezza(rs.getDouble("altezza"));
 			p.setLarghezza(rs.getDouble("larghezza"));
 			p.setSuperficie(rs.getDouble("superficie"));
+			p.setVolumeSpecifico(rs.getDouble("volumespecifico"));
 			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			p.setClasseVolume(prendiClasseVolume(rs.getInt("idclassevolume")));
+			p.setLitologia(prendiLitologia(rs.getInt("idlitologia")));
+			p.setProprietaTermiche(prendiProprietaTermica(rs.getInt("idproprietatermiche")));
+			p.setStatoFratturazione(prendiStatoFratturazione(rs.getInt("idstatofratturazione")));
+			p.setSitoProcesso(prendiSitoProcesso(rs.getInt("idsito")));
+			p.setDanni(prendiDanniProcesso(idProcesso));
+			p.setEffetti(prendiEffettiProcesso(idProcesso));
+			p.setTipologiaProcesso(prendiCaratteristicheProcesso(idProcesso));
 			p.setUbicazione(u);
 		}
 		return p;
@@ -232,6 +244,22 @@ public class ControllerDatabase {
 		if(!(p.getNote()==null || p.getNote().equals(""))){
 			sb.append("note = '"+p.getNote()+"',");
 		}
+		
+		if(!(p.getClasseVolume().getIdClasseVolume()==0)){
+			sb.append("idclassevolume ="+p.getClasseVolume().getIdClasseVolume()+",");
+		}
+		if(!(p.getLitologia().getidLitologia()==0)){
+			sb.append("idlitologia = "+p.getLitologia().getidLitologia()+",");
+		}
+		if(!(p.getProprietaTermiche().getIdProprieta_termiche()==0)){
+			sb.append("idproprietatermiche = "+p.getProprietaTermiche().getIdProprieta_termiche()+",");
+		}
+		if(!(p.getStatoFratturazione().getIdStato_fratturazione()==0)){
+			sb.append("idstatofratturazione = "+p.getStatoFratturazione().getIdStato_fratturazione()+",");
+		}
+		if(!(p.getSitoProcesso().getIdSito()==0)){
+			sb.append("idsito = "+p.getSitoProcesso().getIdSito()+",");
+		}
 		if(!(p.getDescrizione()==null || p.getDescrizione().equals(""))){
 			sb.append("descrizione = '"+p.getDescrizione()+"'");
 		}
@@ -239,6 +267,26 @@ public class ControllerDatabase {
 		
 		st.executeUpdate(""+sb.toString());
 		
+		
+		/*
+		 * modifica di danni,effetti,caratteristiche
+		 */
+		if(!(p.getEffetti().isEmpty()||p.getDanni().isEmpty()||p.getEffetti().size()==0||p.getDanni().size()==0)){
+			st.executeUpdate("delete from danni_processo where idprocesso ="+p.getIdProcesso()+"" );
+			st.executeUpdate("delete from effetti_processo where idprocesso = "+p.getIdProcesso()+"");
+			salvaEffetti(p.getIdProcesso(), p.getEffetti(), p.getDanni());
+		}else{
+			st.executeUpdate("delete from danni_processo where idprocesso ="+p.getIdProcesso()+"" );
+			st.executeUpdate("delete from effetti_processo where idprocesso = "+p.getIdProcesso()+"");
+		}
+		
+		if(!(p.getTipologiaProcesso().isEmpty() ||p.getTipologiaProcesso().size()==0)){
+			System.out.println("size: "+p.getTipologiaProcesso().size());
+			st.executeUpdate("delete from caratteristiche_processo where idprocesso = "+p.getIdProcesso()+"" );
+			salvaTipologiaProcesso(p.getIdProcesso(), p.getTipologiaProcesso());
+		}else{
+			st.executeUpdate("delete from caratteristiche_processo where idprocesso = "+p.getIdProcesso()+"" );
+		}
 		/*
 		 * modifica dell'ubicazione
 		 */
@@ -289,6 +337,22 @@ public class ControllerDatabase {
 		conn.close();
 		return al;
 	}
+	
+	public static EffettiMorfologici prendiEffettoMorfologico(int idEffetto) throws SQLException{
+		EffettiMorfologici em  = new EffettiMorfologici();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from effetti_Morfologici where ideffettimorfologici="+idEffetto+"");
+		while(rs.next()){
+			em.setIdEffettiMOrfologici(rs.getInt("ideffettimorfologici"));
+			em.setTipo_IT(rs.getString("tipo_it"));
+			em.setTipo_ENG(rs.getString("tipo_eng"));
+		}
+		st.close();
+		conn.close();
+		return em;
+	}
+	
 	public static ArrayList<Danni> prendiDanni() throws SQLException{
 		ArrayList<Danni> al = new ArrayList<Danni>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -304,6 +368,20 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return al;
+	}
+	public static Danni prendiDanno(int idDanno) throws SQLException{
+		Danni d = new Danni();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from danno where iddanno="+idDanno+"");
+		while(rs.next()){
+			d.setIdDanni(rs.getInt("iddanno"));
+			d.setTipo_IT(rs.getString("tipo_it"));
+			d.setTipo_ENG(rs.getString("tipo_eng"));
+		}
+		st.close();
+		conn.close();
+		return d;
 	}
 	
 	public static ArrayList<ProprietaTermiche> prendiProprietaTermiche() throws SQLException{
@@ -322,6 +400,20 @@ public class ControllerDatabase {
 		conn.close();
 		return al;
 	}
+	public static ProprietaTermiche prendiProprietaTermica(int idPropTermica) throws SQLException{
+		ProprietaTermiche pt = new ProprietaTermiche();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from proprieta_termiche where idproprietatermiche="+idPropTermica+"");
+		while(rs.next()){
+			pt.setIdProprietaTermiche(rs.getInt("idproprietatermiche"));
+			pt.setProprietaTermiche_IT(rs.getString("nome_it"));
+			pt.setProprietaTermiche_ENG(rs.getString("nome_eng"));
+		}
+		st.close();
+		conn.close();
+		return pt;
+	}
 	
 	public static ArrayList<StatoFratturazione> prendiStatoFratturazione() throws SQLException{
 		ArrayList<StatoFratturazione> al = new ArrayList<StatoFratturazione>();
@@ -339,7 +431,20 @@ public class ControllerDatabase {
 		conn.close();
 		return al;
 	}
-	
+	public static StatoFratturazione prendiStatoFratturazione(int idStatofratturazione) throws SQLException{
+		StatoFratturazione sf = new StatoFratturazione();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from stato_fratturazione where idstatofratturazione="+idStatofratturazione+"");
+		while(rs.next()){
+			sf.setIdStatoFratturazione(rs.getInt("idstatofratturazione"));
+			sf.setStatoFratturazione_IT(rs.getString("nome_it"));
+			sf.setStatoFratturazione_ENG(rs.getString("nome_ENG"));
+		}
+		st.close();
+		conn.close();
+		return sf;
+	}
 	public static ArrayList<Litologia> prendiLitologia() throws SQLException{
 		ArrayList<Litologia> al = new ArrayList<Litologia>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -355,6 +460,20 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return al;
+	}
+	public static Litologia prendiLitologia(int idLitologia) throws SQLException{
+		Litologia l = new Litologia();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from litologia where idlitologia="+idLitologia+"");
+		while(rs.next()){
+			l.setIdLitologia(rs.getInt("idlitologia"));
+			l.setNomeLitologia_IT(rs.getString("nome_IT"));
+			l.setNomeLitologia_ENG(rs.getString("nome_ENG"));
+		}
+		st.close();
+		conn.close();
+		return l;
 	}
 	
 	public static ArrayList<SitoProcesso> prendiSitoProcesso() throws SQLException{
@@ -373,6 +492,20 @@ public class ControllerDatabase {
 		conn.close();
 		return al;
 	}
+	public static SitoProcesso prendiSitoProcesso(int idSitoProcesso) throws SQLException{
+		SitoProcesso sp = new SitoProcesso();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from sito_processo where idsitoprocesso="+idSitoProcesso+" ");
+		while(rs.next()){
+			sp.setIdSito(rs.getInt("idsitoprocesso"));
+			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_IT"));
+			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
+		}
+		st.close();
+		conn.close();
+		return sp;
+	}
 	
 	public static ArrayList<ClasseVolume> prendiClasseVolume() throws SQLException{
 		ArrayList<ClasseVolume> al = new ArrayList<ClasseVolume>();
@@ -388,6 +521,20 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return al;
+	}
+	
+	public static ClasseVolume prendiClasseVolume(int idClasseVolume) throws SQLException{
+		ClasseVolume cv = new ClasseVolume();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from classi_volume where idclassevolume="+idClasseVolume+" ");
+		while(rs.next()){
+			cv.setIdClasseVolume(rs.getInt("idclassevolume"));
+			cv.setIntervallo(rs.getString("intervallo"));
+		}
+		st.close();
+		conn.close();
+		return cv;
 	}
 	
 	public static ArrayList<TipologiaProcesso> prendiTipologiaProcesso() throws SQLException{
@@ -406,6 +553,20 @@ public class ControllerDatabase {
 		conn.close();
 		return al;
 	}
+	public static TipologiaProcesso prendiTipologiaProcesso(int idTipologiaProcesso) throws SQLException{
+		TipologiaProcesso tp = new TipologiaProcesso();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from tipologia_processo where idtipologiaprocesso="+idTipologiaProcesso+" ");
+		while(rs.next()){
+			tp.setIdTipologiaProcesso(rs.getInt("idtipologiaprocesso"));
+			tp.setNome_IT(rs.getString("nome_it"));
+			tp.setNome_ENG(rs.getString("nome_eng"));
+		}
+		st.close();
+		conn.close();
+		return tp;
+	}
 	
 	public static int prendiIdEffettiMorfologici(String effetto,String loc) throws SQLException{
 		int i = 0;
@@ -419,6 +580,7 @@ public class ControllerDatabase {
 		conn.close();
 		return i;
 	}
+	
 	public static int prendiIdDanni(String danno,String loc) throws SQLException{
 		int i = 0;
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -431,6 +593,38 @@ public class ControllerDatabase {
 		conn.close();
 		return i;
 	}
+	public static ArrayList<Danni> prendiDanniProcesso(int idProcesso) throws SQLException{
+		ArrayList<Danni> al = new ArrayList<Danni>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from danno where iddanno in( select iddanno from danni_processo where idprocesso="+idProcesso+")");
+		while(rs.next()){
+			Danni d = new Danni();
+			d.setIdDanni(rs.getInt("iddanno"));
+			d.setTipo_IT(rs.getString("tipo_it"));
+			d.setTipo_ENG(rs.getString("tipo_eng"));
+			al.add(d);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
+	public static ArrayList<EffettiMorfologici> prendiEffettiProcesso(int idProcesso) throws SQLException{
+		ArrayList<EffettiMorfologici> al = new ArrayList<EffettiMorfologici>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from effetti_morfologici where ideffettimorfologici in( select ideffettimorfologici from effetti_processo where idprocesso="+idProcesso+")");
+		while(rs.next()){
+			EffettiMorfologici em = new EffettiMorfologici();
+			em.setIdEffettiMOrfologici(rs.getInt("ideffettimorfologici"));
+			em.setTipo_IT(rs.getString("tipo_it"));
+			em.setTipo_ENG(rs.getString("tipo_eng"));
+			al.add(em);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
 	public static int prendiIdTipologiaProcesso(String tipologiaProcesso,String loc) throws SQLException{
 		int i = 0;
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -442,6 +636,23 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return i;
+	}
+	
+	public static ArrayList<TipologiaProcesso> prendiCaratteristicheProcesso(int idProcesso) throws SQLException{
+		ArrayList<TipologiaProcesso> al = new ArrayList<TipologiaProcesso>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from tipologia_processo where idtipologiaprocesso in( select idtipologiaprocesso from caratteristiche_processo where idprocesso="+idProcesso+")");
+		while(rs.next()){
+			TipologiaProcesso tp = new TipologiaProcesso();
+			tp.setIdTipologiaProcesso(rs.getInt("idtipologiaprocesso"));
+			tp.setNome_IT(rs.getString("nome_it"));
+			tp.setNome_ENG(rs.getString("nome_eng"));
+			al.add(tp);
+		}
+		st.close();
+		conn.close();
+		return al;
 	}
 	
 	
@@ -522,7 +733,7 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
-		sb.append("1");
+		sb.append(""+u.getLocIdro().getIdSottobacino()+"");
 		sb.append(","+u.getLocAmm().getIdComune()+"");
 		sb.append(","+u.getQuota());
 		sb.append(",'"+u.getEsposizione()+"'");

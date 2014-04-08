@@ -116,13 +116,7 @@ public class Processo {
   	 this.SitoProcesso=SitoProcesso;
    }
 
-	public Double getVolume_specifico() {
-		return volume_specifico;
-	}
 
-	public void setVolume_specifico(Double volume_specifico) {
-		this.volume_specifico = volume_specifico;
-	}
 
 	public ArrayList<EffettiMorfologici> getEffetti() {
 		return effetti;

@@ -1,22 +1,29 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<link rel="stylesheet" type="text/css" href="css/bootstrap.css"/>
-<title>index</title>
-</head>
+  <head>
+  
+ <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <title>index</title>
+  </head>
 <body>
-<div class="container-fluid">
-<div class="row">
-<div class="col-sm-3 col-md-2 sidebar">
-<ul class="nav nav-sidebar">
-<li><a href="#">cu</a></li>
-</ul>
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+     <a class="navbar-brand" href="#">DBAlps</a>
+    </div>
+   <ul class="nav navbar-nav">
+     <li class="active"><a href="#">info</a></li>
+     <li><a href="#">contatti</a></li>
+  </ul>
+ </div>
+</nav>
 
-</div>
-</div>
-</div>
+<jsp:include page="barraLaterale.jsp"></jsp:include>
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/docs.min.js"></script>
 </body>
 </html>

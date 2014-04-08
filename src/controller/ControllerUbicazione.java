@@ -28,6 +28,10 @@ public class ControllerUbicazione {
 			locAmm=ControllerDatabase.prendiLocAmministrativa(Integer.parseInt(request.getParameter("idcomune")));
 		}
 		u.setLocAmm(locAmm);
+		if(!(request.getParameter("idSottobacino").equals(""))){
+			
+			locIdro=ControllerDatabase.prendiLocIdrologica(Integer.parseInt(request.getParameter("idSottobacino")));
+		}
 		locIdro.setBacino((String)request.getParameter("bacino"));
 		locIdro.setSottobacino((String)request.getParameter("sottobacino"));
 		u.setLocIdro(locIdro);
@@ -36,7 +40,6 @@ public class ControllerUbicazione {
 	
 	public static Ubicazione nuovaUbicazione(HttpServletRequest request) throws SQLException{
 		Ubicazione u = creaUbicazione(request);
-		System.out.println("idcomune: "+u.getLocAmm().getIdComune());
 		ControllerDatabase.salvaUbicazione(u);
 		return u;
 	}

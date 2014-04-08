@@ -52,13 +52,13 @@ public class ControllerProcesso {
 		if(!(request.getParameter("superficie").equals("")))
 		p.setSuperficie(Double.parseDouble(request.getParameter("superficie")));
 		if(!(request.getParameter("volumespecifico").equals("")))
-			p.setVolume_specifico(Double.parseDouble(request.getParameter("volumespecifico")));
+			p.setVolumeSpecifico(Double.parseDouble(request.getParameter("volumespecifico")));
 		
 		return p;
 	}
 	public static Processo nuovoProcesso(HttpServletRequest request,String loc) throws ParseException, SQLException{ //qui ci metto tutte le informazioni e la pubblicazione sul db + ubicazione, sito, allegati, effetti
 		Processo p = creaProcesso(request);
-		Ubicazione u = ControllerUbicazione.nuovaUbicazione(request);
+		Ubicazione u = ControllerUbicazione.creaUbicazione(request);
 		SitoProcesso sp = creaSito(request);
 		ClasseVolume cv = creaClasseVolume(request);
 		ArrayList<EffettiMorfologici> em = creaEffettiMorfologici(request,loc);
@@ -76,9 +76,6 @@ public class ControllerProcesso {
 		p.setClasseVolume(cv);
 		p.setSitoProcesso(sp);
 		p.setUbicazione(u);
-		ControllerDatabase.salvaProcesso(p);
-		ControllerDatabase.salvaEffetti(p.getIdProcesso(), em, d);
-		ControllerDatabase.salvaTipologiaProcesso(p.getIdProcesso(), tp);
 		return p;
 	}
 	
@@ -113,101 +110,7 @@ public class ControllerProcesso {
 		return cv;
 	}
 	
-	public static ArrayList<EffettiMorfologici> creaEffettiMorfologici(HttpServletRequest request,String loc) throws SQLException{
-	ArrayList<EffettiMorfologici> em = new ArrayList<EffettiMorfologici>();
-	String[] emtipo_it;
-	String[] emtipo_eng;
-	int n = 0;
-	if(loc.equals("IT")){
-		if(!(request.getParameter("emtipo_IT").equals(""))){
-			n = request.getParameter("emtipo_IT").split(", ").length;
-			emtipo_it = request.getParameter("emtipo_IT").split(", ");
-			for(int i = 0;i<n-1;i++){
-				EffettiMorfologici e = new EffettiMorfologici();
-				e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_it[i], "IT"));
-				e.setTipo_IT(emtipo_it[i]);
-				em.add(e);
-			}
-		}
-	}
-	if(loc.equals("ENG")){
-		if(!(request.getParameter("emtipo_ENG").equals("") )){
-			n= request.getParameter("emtipo_ENG").split(", ").length;
-			emtipo_eng = request.getParameter("emtipo_ENG").split(", ");
-			for(int i = 0;i<n-1;i++){
-				EffettiMorfologici e = new EffettiMorfologici();
-				e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_eng[i], "ENG"));
-				e.setTipo_ENG(emtipo_eng[i]);
-				em.add(e);
-			}
-		}
-	}
-	
-		return em;
-	}
-	public static ArrayList<Danni> creaDanni(HttpServletRequest request,String loc) throws SQLException{
-		ArrayList<Danni> d = new ArrayList<Danni>();
-	
-		String[] dtipo_it;
-		String[] dtipo_eng;
-		int n = 0;
-		if(loc.equals("IT")){
-			if(!(request.getParameter("dtipo_IT").equals(""))){
-				n = request.getParameter("dtipo_IT").split(", ").length;
-				dtipo_it = request.getParameter("dtipo_IT").split(", ");
-				for(int i = 0;i<n-1;i++){
-					Danni da = new Danni();
-					da.setIdDanni(ControllerDatabase.prendiIdDanni(dtipo_it[i], "IT"));
-					da.setTipo_IT(dtipo_it[i]);
-					d.add(da);
-				}
-			}
-		}
-		if(loc.equals("ENG")){
-			if(!(request.getParameter("dtipo_ENG").equals(""))){
-				n = request.getParameter("dtipo_ENG").split(", ").length;
-				dtipo_eng = request.getParameter("dtipo_ENG").split(", ");
-				for(int i = 0;i<n-1;i++){
-					Danni da = new Danni();
-					da.setIdDanni(ControllerDatabase.prendiIdDanni(dtipo_eng[i], "ENG"));
-					da.setTipo_ENG(dtipo_eng[i]);
-					d.add(da);
-				}
-			}
-		}
-		return d;
-	}
-	public static ArrayList<TipologiaProcesso> creaTipologiaProcesso(HttpServletRequest request,String loc) throws SQLException{
-		ArrayList<TipologiaProcesso> t = new ArrayList<TipologiaProcesso>();
-		String[] tpnome_it;
-		String[] tpnome_eng;
-		int n = 0;
-		if(loc.equals("IT")){
-			if(!(request.getParameter("tpnome_IT").equals(""))){
-				n = request.getParameter("tpnome_IT").split(", ").length;
-				tpnome_it = request.getParameter("tpnome_IT").split(", ");
-				for(int i = 0;i<n-1;i++){
-					TipologiaProcesso tp = new TipologiaProcesso(); 
-					tp.setIdTipologiaProcesso(ControllerDatabase.prendiIdTipologiaProcesso(tpnome_it[i],"IT"));
-					tp.setNome_IT(tpnome_it[i]);
-					t.add(tp);
-				}
-			}
-		}
-		if(loc.equals("ENG")){
-			if(!(request.getParameter("tpnome_ENG").equals(""))){
-				n = request.getParameter("tpnome_ENG").split(", ").length;
-				tpnome_eng = request.getParameter("tpnome_ENG").split(", ");
-				for(int i = 0;i<n-1;i++){
-					TipologiaProcesso tp = new TipologiaProcesso(); 
-					tp.setIdTipologiaProcesso(ControllerDatabase.prendiIdTipologiaProcesso(tpnome_eng[i],"ENG"));
-					tp.setNome_ENG(tpnome_eng[i]);
-					t.add(tp);
-				}
-			}
-		}
-			return t;
-	}
+
 	public static ProprietaTermiche creaProprietaTermiche(HttpServletRequest request,String loc){
 		ProprietaTermiche pt = new ProprietaTermiche();
 		if(!(request.getParameter("idProprietaTermiche").equals("")))
@@ -227,6 +130,94 @@ public class ControllerProcesso {
 		if(loc.equals("ENG"))
 		pt.setStatoFratturazione_ENG(request.getParameter("statoFratturazione_ENG"));
 		return pt;
+	}
+	
+	public static ArrayList<EffettiMorfologici> creaEffettiMorfologici(HttpServletRequest request,String loc) throws SQLException{
+	ArrayList<EffettiMorfologici> em = new ArrayList<EffettiMorfologici>();
+	String[] emtipo_it;
+	String[] emtipo_eng;
+
+	if(loc.equals("IT")){
+		if(!(request.getParameter("emtipo_IT")==null)){
+		
+			emtipo_it = request.getParameterValues("emtipo_IT");
+			for(int i = 0;i<emtipo_it.length;i++){
+				EffettiMorfologici e = new EffettiMorfologici();
+				e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_it[i], "IT"));
+				e.setTipo_IT(emtipo_it[i]);
+				em.add(e);
+			}
+		}
+	}
+	if(loc.equals("ENG")){
+		if(!(request.getParameter("emtipo_ENG")==null)){
+		emtipo_eng = request.getParameterValues("emtipo_ENG");
+			for(int i = 0;i<emtipo_eng.length;i++){
+				EffettiMorfologici e = new EffettiMorfologici();
+				e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_eng[i], "ENG"));
+				e.setTipo_ENG(emtipo_eng[i]);
+				em.add(e);
+			}
+		}
+	}
+	
+		return em;
+	}
+	public static ArrayList<Danni> creaDanni(HttpServletRequest request,String loc) throws SQLException{
+		ArrayList<Danni> d = new ArrayList<Danni>();
+		String[] dtipo_it;
+		String[] dtipo_eng;
+		if(loc.equals("IT")){
+			if(!(request.getParameterValues("dtipo_IT")==null)){
+				dtipo_it = request.getParameterValues("dtipo_IT");
+				for(int i = 0;i<dtipo_it.length;i++){
+					Danni da = new Danni();
+					da.setIdDanni(ControllerDatabase.prendiIdDanni(dtipo_it[i], "IT"));
+					da.setTipo_IT(dtipo_it[i]);
+					d.add(da);
+				}
+			}
+		}
+		if(loc.equals("ENG")){
+			if(!(request.getParameter("dtipo_ENG")==null)){
+				dtipo_eng = request.getParameterValues("dtipo_ENG");
+				for(int i = 0;i<dtipo_eng.length;i++){
+					Danni da = new Danni();
+					da.setIdDanni(ControllerDatabase.prendiIdDanni(dtipo_eng[i], "ENG"));
+					da.setTipo_ENG(dtipo_eng[i]);
+					d.add(da);
+				}
+			}
+		}
+		return d;
+	}
+	public static ArrayList<TipologiaProcesso> creaTipologiaProcesso(HttpServletRequest request,String loc) throws SQLException{
+		ArrayList<TipologiaProcesso> t = new ArrayList<TipologiaProcesso>();
+		String[] tpnome_it;
+		String[] tpnome_eng;
+		if(loc.equals("IT")){
+			if(!(request.getParameterValues("tpnome_IT")==null)){
+				tpnome_it = request.getParameterValues("tpnome_IT");
+				for(int i = 0;i<tpnome_it.length;i++){
+					TipologiaProcesso tp = new TipologiaProcesso(); 
+					tp.setIdTipologiaProcesso(ControllerDatabase.prendiIdTipologiaProcesso(tpnome_it[i],"IT"));
+					tp.setNome_IT(tpnome_it[i]);
+					t.add(tp);
+				}
+			}
+		}
+		if(loc.equals("ENG")){
+			if(!(request.getParameterValues("tpnome_ENG")==null)){
+				tpnome_eng = request.getParameterValues("tpnome_ENG");
+				for(int i = 0;i<tpnome_eng.length;i++){
+					TipologiaProcesso tp = new TipologiaProcesso(); 
+					tp.setIdTipologiaProcesso(ControllerDatabase.prendiIdTipologiaProcesso(tpnome_eng[i],"ENG"));
+					tp.setNome_ENG(tpnome_eng[i]);
+					t.add(tp);
+				}
+			}
+		}
+			return t;
 	}
 }
 

@@ -14,10 +14,10 @@ public class EffettiMorfologici {
 	public int getIdEffettiMorfoligici(){
 		return idEffettiMorfologici;
 	}
-	public String getTipo_IT(String tipo_IT){
+	public String getTipo_IT(){
 		return tipo_IT;
 	}
-	public String getTipo_ENG(String tipo_ENG){
+	public String getTipo_ENG(){
 		return tipo_ENG;
 	}
 	public void setIdEffettiMOrfologici(int idEffettiMorfologici){

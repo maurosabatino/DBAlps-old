@@ -92,7 +92,6 @@ public class ControllerJson {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(sb.toString());
 		return sb.toString();
 	}
 	public static String getJsonStatoFratturazione(String path,String loc){

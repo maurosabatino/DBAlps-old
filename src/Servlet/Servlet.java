@@ -80,7 +80,7 @@ public class Servlet extends HttpServlet {
 		 * Processo
 		 */
 		if(operazione.equals("formInserisciProcesso")){
-			String content = HTMLProcesso.formInserisciProcesso(path);
+			String content = HTMLProcesso.formInserisciProcesso(path,loc);
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
@@ -88,6 +88,10 @@ public class Servlet extends HttpServlet {
 		}
 		if(operazione.equals("inserisciProcesso")){
 			Processo p = ControllerProcesso.nuovoProcesso(request,loc);
+			ControllerDatabase.salvaUbicazione(p.getUbicazione());
+			ControllerDatabase.salvaProcesso(p);
+			ControllerDatabase.salvaEffetti(p.getIdProcesso(), p.getEffetti(), p.getDanni());
+			ControllerDatabase.salvaTipologiaProcesso(p.getIdProcesso(), p.getTipologiaProcesso());
 			String content = HTMLProcesso.mostraProcesso(p.getIdProcesso());
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
@@ -124,7 +128,7 @@ public class Servlet extends HttpServlet {
 		else if(operazione.equals("mostraModificaProcesso")){
 			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
 			Processo p = ControllerDatabase.prendiProcesso(idProcesso);
-			String content = HTMLProcesso.modificaProcesso(p);
+			String content = HTMLProcesso.modificaProcesso(p,path,loc);
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
@@ -132,17 +136,9 @@ public class Servlet extends HttpServlet {
 		}
 		else if(operazione.equals("modificaProcesso")){
 			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
-			Processo p = ControllerProcesso.creaProcesso(request);
-			
-			LocazioneAmministrativa locAmm = ControllerDatabase.cercaLocazioneAmministrativa(request.getParameter("comune"));
-			LocazioneIdrologica locIdro = ControllerDatabase.cercaLocazioneIdrologica(request.getParameter("sottobacino"));
-			Ubicazione u = ControllerUbicazione.creaUbicazione(request);
-			u.setIdUbicazione(ControllerDatabase.getIdUbicazione(idProcesso));
-			u.setLocAmm(locAmm);
-			u.setLocIdro(locIdro);
+			Processo p = ControllerProcesso.nuovoProcesso(request,loc);
+			p.getUbicazione().setIdUbicazione(ControllerDatabase.getIdUbicazione(idProcesso));
 			p.setIdprocesso(idProcesso);
-			p.setUbicazione(u);
-			
 			ControllerDatabase.modificaProcesso(p);
 			String content = HTMLProcesso.mostraProcesso(idProcesso);
 			HTMLContent c = new HTMLContent();
@@ -201,16 +197,9 @@ public class Servlet extends HttpServlet {
 		/*
 		 * prova
 		 */
-			else if(operazione.equals("provaAutocomlete")){
-				String[] tag = request.getParameter("tag").split(",");
-				String[] id = request.getParameter("id").split(",");
-				System.out.println("lunghezza: "+request.getParameter("tag").split(",").length);
-				for(int i = 0; i<tag.length;i++){
-					System.out.println("tag: "+tag[i]+" i"+i);
-					System.out.println("id: "+id[i]+" i"+i);
-				}
+			
 								
-			}
+			
 	    
 	}
 	private void forward(HttpServletRequest request, HttpServletResponse response, String page)  throws ServletException, IOException {

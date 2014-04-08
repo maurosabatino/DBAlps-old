@@ -5,11 +5,19 @@
 <jsp:setProperty  name="HTMLc" property="*"/>
 <html>
 <head>
+ <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+ <script src="js/jquery-1.11.0.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.js"></script>
+<script src="js/globalize.js"></script>
+<script src="js/globalize.culture.de-DE.js"></script>
+<script src="js/bootstrap.min.js"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Processo</title>
 </head>
 <body>
 <jsp:getProperty name="HTMLc" property="content"/>
+
+
 
 </body>
 </html>

@@ -6,15 +6,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import bean.Danni;
+import bean.EffettiMorfologici;
 import bean.Processo;
+import bean.TipologiaProcesso;
 import controller.ControllerDatabase;
 import controller.ControllerJson;
 
 public class HTMLProcesso {
 	
-	public static String formInserisciProcesso(String path) throws SQLException{
+	public static String formInserisciProcesso(String path,String loc) throws SQLException{
 		StringBuilder sb = new StringBuilder();
-		String loc ="IT";
+		
 		ControllerJson.createJsonProprietaTermiche(path);
 		ControllerJson.createJsonDanni(path);
 		ControllerJson.createJsonEffettiMorfologici(path);
@@ -31,9 +34,6 @@ public class HTMLProcesso {
 		
 		sb.append(scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
 		sb.append(scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
-		sb.append(scriptAutocompleteDanniMultiplo(ControllerJson.getJsonDanni(path, loc), loc));
-		sb.append(scriptAutocompleteEffettiMorfologiciMultiplo(ControllerJson.getJsonEffettiMorfologici(path, loc), loc));
-		sb.append(scriptAutocompleteTipologiaProcesso(ControllerJson.getJsonipologiaProcesso(path, loc), loc));
 		sb.append(scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
 		sb.append(scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
 		sb.append(scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
@@ -55,8 +55,8 @@ public class HTMLProcesso {
 			sb.append("<p>volume specifico<input type=\"number\" name=volumespecifico value=\"12\"></p>");
 			sb.append("<p>classe volume<input type=\"text\" id=\"intervallo\" name=intervallo></p>");
 			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\" />");
-		
-			sb.append("<p> tipologia del processo:<input type=\"text\" id=\"tpnome_IT\" name=\"tpnome_IT\" /></p>");
+				for(TipologiaProcesso tp : ControllerDatabase.prendiTipologiaProcesso())//da fare col json
+			sb.append("<input type=\"checkbox\" name=\"tpnome_IT\" value=\""+tp.getNome_IT()+"\"/> "+tp.getNome_IT()+"");
 		
 			sb.append("<p>dati sull'ubicazione</p>");
 			sb.append("<p>sottobacino:<input type=\"text\" id=\"sottobacino\" name=\"sottobacino\">");
@@ -78,8 +78,14 @@ public class HTMLProcesso {
 			sb.append("<input type=\"hidden\" id=\"idsito\" name=\"idsito\" />");
 		
 			sb.append("<p>effetti morfologici e danni</p>");
-			sb.append("<p> danni:<input type=\"text\" id=\"dtipo_IT\" name=\"dtipo_IT\" /></p>");
-			sb.append("<p> effetti morfologici:<input type=\"text\" id=\"emtipo_IT\" name=\"emtipo_IT\" /></p>");
+			sb.append("<p>danni</p>");
+			for(Danni d:ControllerDatabase.prendiDanni()){
+				sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\""+d.getTipo_IT()+"\"/>"+d.getTipo_IT()+"");
+			}
+			sb.append("<p>effetti morfologici:</p>");
+			for(EffettiMorfologici em:ControllerDatabase.prendiEffettiMOrfologici()){
+				sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\""+em.getTipo_IT()+"\" />"+em.getTipo_IT()+"");
+			}
 		
 			sb.append("<p>dati sulla litologia</p>");
 			sb.append("<p> litologia:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" /></p>");
@@ -176,52 +182,131 @@ public class HTMLProcesso {
 	}
 	
 	
-	public static String modificaProcesso(Processo p){
+	public static String modificaProcesso(Processo p,String path,String loc) throws SQLException{
 		StringBuilder sb = new StringBuilder();
 		Calendar cal = new GregorianCalendar();
 		cal.setTime(p.getData());
 		cal.add(Calendar.MONTH, 1);
-	
+		
+		ControllerJson.createJsonProprietaTermiche(path);
+		ControllerJson.createJsonDanni(path);
+		ControllerJson.createJsonEffettiMorfologici(path);
+		ControllerJson.createJsontipologiaProcesso(path);
+		ControllerJson.craeteJsonstatoFratturazione(path);
+		ControllerJson.CreateJsonClasseVolume(path);
+		ControllerJson.createJsonLitologia(path);
+		ControllerJson.CreateJsonSitoProcesso(path);
+		ControllerJson.CreateJsonLocazioneIdrologica(path);
+		
 		sb.append(scriptData());
-		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">"
-				+ "<p>Nome:<input type=\"text\" name=\"nome\" value=\""+p.getNome()+"\"></p>"
-				+ "<p>Data:</p>"
-				+ "<p> <input type=\"text\" id=\"data\" name=\"data\" value=\""+cal.get(Calendar.YEAR)+"-"+cal.get(Calendar.MONTH)+"-"+cal.get(Calendar.DAY_OF_MONTH)+"\"></p>"
-				+ "<p> <input type=\"time\" id=\"ora\" name=\"ora\" value=\""+cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+"\" > </p>"
-				+ "<p>descrizione:<input type=\"text\" name=\"descrizione\" value=\""+p.getDescrizione()+"\" ></p>"
-				+ "<p>note:<input type=\"text\" name=\"note\" value=\" "+p.getNote()+" \"></p>"
-				+ "<p>superficie:<input type=\"text\" name=\"superficie\" value=\" "+p.getSuperficie()+" \"></p>"
-				+ "<p>larghezza:<input type=\"text\" name=\"larghezza\" value=\""+p.getLarghezza()+"\"></p>"
-				+ "<p>altezza:<input type=\"text\" name=\"altezza\" value=\" "+p.getAltezza()+" \"></p>"
-				+ "<p>volume_specifico<input type=\"number\" name=\"volume_specifico\" value=\" "+p.getVolumeSpecifico()+"\"></p>"
-				+ "<p>modifica ubicazione</p>"
-				+"<p>bacino:<input type=\"text\" name=\"bacino\" value=\""+p.getUbicazione().getLocIdro().getBacino()+" \"></p>"
-				+ "<p>sottobacino:<input type=\"text\" name=\"sottobacino\" value=\""+p.getUbicazione().getLocIdro().getSottobacino()+"\">"
-				+ "<p>comune:<input type=\"text\" name=\"comune\" value=\""+p.getUbicazione().getLocAmm().getComune()+"\"></p>"
-				+ "<p>provncia:<input type=\"text\" name=\"provincia\" value=\""+p.getUbicazione().getLocAmm().getProvincia()+"\"></p>"
-				+ "<p>regione:<input type=\"text\" name=\"regione\" value=\""+p.getUbicazione().getLocAmm().getRegione()+"\"></p> "
-				+ "<p>nazione:<input type=\"text\" name=\"nazione\" value=\""+p.getUbicazione().getLocAmm().getNazione()+"\"></p>"
-				+ "<p>latitudine:<input type=\"text\" name=\"latitudine\" value=\""+p.getUbicazione().getCoordinate().getX()+"\"></p>"
-				+ "<p>longitudine:<input type=\"text\" name=\"longitudine\"value=\""+p.getUbicazione().getCoordinate().getY()+"\"></p>"
-				+ "<p>quota:<input type=\"text\" name=\"quota\" value=\""+p.getUbicazione().getQuota()+"\"></p>"
-				+ "<p>esposizione:<input type=\"text\" name=\"esposizione\" value=\""+p.getUbicazione().getEsposizione()+"\"></p>"
-				+ "<input type=\"hidden\" name=\"operazione\" value=\"modificaProcesso\">"
-				+ "<input type=\"hidden\" name=\"idProcesso\" value=\""+p.getIdProcesso()+"\"/>"
-				+ "<input type=\"submit\" name =\"submit\" value=\"OK\">"
-				+ "</form>");
+		
+		sb.append(scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+		sb.append(scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+		sb.append(scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
+		sb.append(scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
+		sb.append(scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+		sb.append(scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+		sb.append(scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
+		
+	
+
+		if(loc.equals("IT")){
 			
+			sb.append( "<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">");
+			sb.append( "<p>Nome:<input type=\"text\" name=\"nome\" value=\""+p.getNome()+"\"></p>");
+			
+			sb.append( "<p> Data <input type=\"text\" id=\"data\" name=\"data\" value=\""+cal.get(Calendar.YEAR)+"-"+cal.get(Calendar.MONTH)+"-"+cal.get(Calendar.DAY_OF_MONTH)+"\"></p>");
+			sb.append( "<p> Ora <input type=\"time\" id=\"ora\" name=\"ora\" value=\""+cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+"\" > </p>");
+			sb.append( "<p>descrizione:<input type=\"text\" name=\"descrizione\" value=\""+p.getDescrizione()+"\" ></p>");
+			sb.append( "<p>note:<input type=\"text\" name=\"note\" value=\" "+p.getNote()+" \"></p>");
+			sb.append( "<p>superficie:<input type=\"text\" name=\"superficie\" value=\" "+p.getSuperficie()+" \"></p>");
+			sb.append( "<p>larghezza:<input type=\"text\" name=\"larghezza\" value=\""+p.getLarghezza()+"\"></p>");
+			sb.append( "<p>altezza:<input type=\"text\" name=\"altezza\" value=\" "+p.getAltezza()+" \"></p>");
+			sb.append( "<p>volume_specifico<input type=\"number\" name=\"volumespecifico\" value=\" "+p.getVolumeSpecifico()+"\"></p>");
+			sb.append("<p>classe volume<input type=\"text\" id=\"intervallo\" name=intervallo value=\""+p.getClasseVolume().getIntervallo()+"\"></p>");
+			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\"value=\""+p.getClasseVolume().getIdClasseVolume()+"\" />");
+			
+			
+			
+			sb.append("<p> tipologia del processo</p>");
+			for(TipologiaProcesso tp : ControllerDatabase.prendiTipologiaProcesso()){
+				boolean inserito = false;
+				for(TipologiaProcesso tpp : p.getTipologiaProcesso()){
+					if(tp.getNome_IT().equals(tpp.getNome_IT())){
+						sb.append("<input type=\"checkbox\"  name=\"tpnome_IT\" value=\""+tp.getNome_IT()+"\" checked=\"checked\" /> "+tp.getNome_IT()+"");
+						inserito = true;
+					}
+				}
+				if(inserito==false)
+				sb.append("<input type=\"checkbox\" name=\"tpnome_IT\" value=\""+tp.getNome_IT()+"\" /> "+tp.getNome_IT()+"");			
+			}
+			
+			sb.append( "<p>ubicazione</p>");
+			sb.append("<p>sottobacino:<input type=\"text\" id=\"sottobacino\" name=\"sottobacino\" value=\""+p.getUbicazione().getLocIdro().getSottobacino()+"\">");
+			sb.append("<p>bacino:<input type=\"text\"id=\"bacino\" name=\"bacino\" value=\""+p.getUbicazione().getLocIdro().getBacino()+"\"></p>");
+			sb.append("<input  type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\" value=\""+p.getUbicazione().getLocIdro().getIdSottobacino()+"\" />");
+			sb.append("<p>comune:<input type=\"text\" id=\"comune\" name=\"comune\" value=\""+p.getUbicazione().getLocAmm().getComune()+"\" /> </p>");
+			sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" value=\""+p.getUbicazione().getLocAmm().getIdComune()+"\"/>");
+			sb.append("<p>provncia:<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" value=\""+p.getUbicazione().getLocAmm().getProvincia()+"\" /></p>");
+			sb.append("<p>regione:<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" value=\""+p.getUbicazione().getLocAmm().getRegione()+"\" /></p> ");
+			sb.append("<p>nazione:<input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\" value=\""+p.getUbicazione().getLocAmm().getNazione()+"\" /></p>");
+			sb.append( "<p>latitudine:<input type=\"text\" name=\"latitudine\" value=\""+p.getUbicazione().getCoordinate().getX()+"\"></p>");
+			sb.append( "<p>longitudine:<input type=\"text\" name=\"longitudine\"value=\""+p.getUbicazione().getCoordinate().getY()+"\"></p>");
+			sb.append( "<p>quota:<input type=\"text\" name=\"quota\" value=\""+p.getUbicazione().getQuota()+"\"></p>");
+			sb.append( "<p>esposizione:<input type=\"text\" name=\"esposizione\" value=\""+p.getUbicazione().getEsposizione()+"\"></p>");
+		
+			sb.append("<p>dati sul sito</p>");
+			sb.append("<p> caratteristiche sito:<input type=\"text\" id=\"caratteristicaSito_"+loc+"\" name=\"caratteristicaSito_"+loc+"\" value=\""+p.getSitoProcesso().getCaratteristicaSito_IT()+"\" /></p>");
+			sb.append("<input type=\"hidden\" id=\"idsito\" name=\"idsito\" value=\""+p.getSitoProcesso().getIdSito()+"\" />");
+	
+			sb.append("<p>effetti morfologici e danni</p>");
+			sb.append("<p> danni</p>");
+			for(Danni d : ControllerDatabase.prendiDanni()){
+				boolean inserito = false;
+				for(Danni da : p.getDanni()){
+					if(d.getTipo_IT().equals(da.getTipo_IT())){
+						sb.append("<input type=\"checkbox\"  name=\"dtipo_IT\" value=\""+d.getTipo_IT()+"\" checked=\"checked\" /> "+d.getTipo_IT()+"");
+					inserito = true;
+					}
+				}
+				if(inserito==false)
+				sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\""+d.getTipo_IT()+"\" /> "+d.getTipo_IT()+"");
+			}
+			
+			
+			sb.append("<p>effetti morfologici</p>");
+			for(EffettiMorfologici em : ControllerDatabase.prendiEffettiMOrfologici()){
+				boolean inserito = false;
+				for(EffettiMorfologici emp : p.getEffetti()){
+					if(emp.getTipo_IT().equals(em.getTipo_IT())){
+						sb.append("<input type=\"checkbox\"  name=\"emtipo_IT\" value=\""+em.getTipo_IT()+"\" checked=\"checked\" /> "+em.getTipo_IT()+"");
+					inserito = true;
+					}
+				}
+				if(inserito==false)
+				sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\""+em.getTipo_IT()+"\" /> "+em.getTipo_IT()+"");
+			}
+	
+			sb.append("<p>dati sulla litologia</p>");
+			sb.append("<p> litologia:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" value=\""+p.getLitologia().getNomeLitologia_IT()+"\" /></p>");
+			sb.append("<input type=\"hidden\" id=\"idLitologia\" name=\"idLitologia\" value=\""+p.getLitologia().getidLitologia()+"\"/>");
+			sb.append("<p> proprieta termiche:<input type=\"text\" id=\"proprietaTermiche_"+loc+"\" name=\"proprietaTermiche_"+loc+"\" value=\""+p.getProprietaTermiche().getProprieta_termiche_IT()+"\" /></p>");
+			sb.append("<input type=\"hidden\" id=\"idProprietaTermiche\" name=\"idProprietaTermiche\" value=\""+p.getProprietaTermiche().getIdProprieta_termiche()+"\" />");
+			sb.append("<p> stato fratturazione:<input type=\"text\" id=\"statoFratturazione_"+loc+"\" name=\"statoFratturazione_"+loc+"\"  value=\""+p.getStatoFratturazione().getStato_fratturazione_IT()+"\"/></p>");
+			sb.append("<input type=\"hidden\" id=\"idStatoFratturazione\" name=\"idStatoFratturazione\" />");
 		
 		
+			sb.append( "<input type=\"hidden\" name=\"operazione\" value=\"modificaProcesso\">");
+			sb.append( "<input type=\"hidden\" name=\"idProcesso\" value=\""+p.getIdProcesso()+"\"/>");
+			sb.append( "<input type=\"submit\" name =\"submit\" value=\"OK\">");
+			sb.append( "</form>");
+		}
 		return sb.toString();
 	}
 	
 	public static String scriptData(){
 		StringBuilder sb = new StringBuilder();
-		sb.append("<script src=\"js/jquery-1.11.0.js\"></script>"
-				+ "<script src=\"js/jquery-ui-1.10.4.custom.js\"></script>"
-				+ "<script src=\"js/globalize.js\"></script>"
-				+ "<script src=\"js/globalize.culture.de-DE.js\"></script>");
-			sb.append("<script>"
+		sb.append("<script>"
 				+ "$(function() {"
 				+ "$( \"#data\" ).datepicker({"
 				+ "changeMonth: true,"
