@@ -115,8 +115,15 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/processo.jsp");
 		
 		}
+		if(operazione.equals("formCercaProcessi")){
+			String content = HTMLProcesso.formCercaProcessi(path, loc);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
 		else if(operazione.equals("cercaProcesso")){
-			Processo p = ControllerProcesso.creaProcesso(request);
+			Processo p = ControllerProcesso.nuovoProcesso(request, loc);
 			Ubicazione u = ControllerUbicazione.creaUbicazione(request);
 			ArrayList<Processo> ap =ControllerDatabase.ricercaProcesso(p,u);
 			String content = HTMLProcesso.mostraCercaProcessi(ap);

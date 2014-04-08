@@ -28,7 +28,7 @@ public class Processo {
     public Processo() {     
         idProcesso=0;
         nome = "sconosciuto";
-        data = new Timestamp(0);
+        data = Timestamp.valueOf("0001-01-01 00:00:00");
         descrizione = "sconosciuto";
         note = "assente";
         superficie = 0.0;

@@ -58,7 +58,7 @@ public class Ubicazione {
 		return out;
 	}
 	public boolean isEmpty(){
-		if(idUbicazione == 0 &&	locIdr.isEmpty() && locAmm.isEmpty() &&quota ==0.0 && esposizione == "" && coordinate.isEmpty())
+		if(idUbicazione == 0 &&	locIdr.isEmpty() && locAmm.isEmpty() &&quota ==0.0 && (esposizione == "" || esposizione=="sconosciuto")&& coordinate.isEmpty())
 			return true;
 		else return false;
 	}

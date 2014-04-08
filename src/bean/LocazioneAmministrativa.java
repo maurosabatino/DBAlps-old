@@ -49,7 +49,7 @@ public class LocazioneAmministrativa {
 		return out;
 	}
 	public boolean isEmpty(){
-		if(comune == "" && provincia == "" &&	regione == "" &&	nazione == "")
+		if((comune == "" ||comune=="sconosciuto") && (provincia == ""||provincia=="sconosciuto") &&	(regione == "" || regione=="sconosciuto") &&	(nazione == "" || nazione=="sconosciuto"))
 			return true;
 			else return false;
 		

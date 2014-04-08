@@ -15,8 +15,14 @@
 <title>Processo</title>
 </head>
 <body>
-<jsp:getProperty name="HTMLc" property="content"/>
+<jsp:include page="navbar.jsp"></jsp:include>
 
+<jsp:include page="barraLaterale.jsp"></jsp:include>
+<div class="row">
+ <div class="col-md-8 col-md-offset-2">
+<jsp:getProperty name="HTMLc" property="content"/>
+</div>
+</div>
 
 
 </body>

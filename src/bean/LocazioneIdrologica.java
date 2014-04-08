@@ -34,7 +34,7 @@ public class LocazioneIdrologica {
 	}
 	
 	public boolean isEmpty(){
-		if(sottobacino == "" &&	bacino == "")
+		if(idSottobacino==0 && (sottobacino == "" || sottobacino=="sconosciuto") &&	(bacino == "" || bacino=="sconosciuto"))
 			return true;
 		else return false;
 	}

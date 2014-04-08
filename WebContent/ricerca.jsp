@@ -61,11 +61,12 @@
 			<p>superficie:<input type="text" name="superficie" ></p>
 			<p>larghezza:<input type="text" name="larghezza" ></p>
 			<p>altezza:<input type="text" name="altezza" ></p>
-			<p>volume_specifico<input type="number" name=volume_specifico ></p>
+			<p>volume_specifico<input type="number" name=volumespecifico ></p>
 			
 			<p>dati sull'ubicazione</p>
 			<p>bacino:<input type="text" name="bacino"></p>
 			<p>sottobacino:<input type="text" name="sottobacino">
+			<input  type="hidden" id="idSottobacino" name="idSottobacino" />
 			<p>comune:<input type="text" name="comune"></p>
 			<p>idcomune:<input readonly="readonly" type="text" id="idcomune" name="idcomune" /></p>
 			<p>provncia:<input type="text" name="provincia"></p>

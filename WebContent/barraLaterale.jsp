@@ -16,7 +16,7 @@
 <ul class="nav nav-sidebar">
      <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a></li>
      <li><a href="InserisciStazione.jsp">inserisci stazione</a></li>
-     <li><a href="ricerca.jsp"> ricerca processo</a></li>
+     <li><a href="Servlet?operazione=formCercaProcessi"> ricerca processo</a></li>
      <li><a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a></li>
      <li><a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni metereologiche</a></li>
 </ul>

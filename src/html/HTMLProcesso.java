@@ -41,18 +41,29 @@ public class HTMLProcesso {
 		sb.append(scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
 		if(loc.equals("IT")){
 		
-			sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">");
+			sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
 			
-			sb.append("<p>Nome:<input type=\"text\" name=\"nome\" value=\"nome\"></p>");
-			sb.append("<p>Data:</p>");
-			sb.append("<p> <input type=\"text\" id=\"data\" name=\"data\"></p>");
-			sb.append("<p> <input type=\"time\" id=\"ora\" name=\"ora\" > </p>");
-			sb.append("<p>descrizione:<input type=\"text\" name=\"descrizione\" value=\"descrizione\" ></p>");
-			sb.append("<p>note:<input type=\"text\" name=\"note\" value=\"not\"></p>");
-			sb.append("<p>superficie:<input type=\"text\" name=\"superficie\" value=\"12\"></p>");
-			sb.append("<p>larghezza:<input type=\"text\" name=\"larghezza\" value=\"12\"></p>");
-			sb.append("<p>altezza:<input type=\"text\" name=\"altezza\" value=\"12\"></p>");
-			sb.append("<p>volume specifico<input type=\"number\" name=volumespecifico value=\"12\"></p>");
+			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sul Processo</h4>");
+			
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" name=\"nome\" class=\"form-control\" placeholder=\"nome\" value=\"nome\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" id=\"data\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
+			sb.append(" <div class=\"col-xs-6 col-md-4\"> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
+			sb.append("</div>");
+			
+			sb.append("descrizione:<input type=\"text\" name=\"descrizione\" class=\"form-control\" value=\"descrizione\" >");
+			sb.append("note:<input type=\"text\" name=\"note\" class=\"form-control\" value=\"not\">");
+			
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-3\">superficie:<input type=\"text\" name=\"superficie\" class=\"form-control\" value=\"12\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\">larghezza:<input type=\"text\" name=\"larghezza\" class=\"form-control\" value=\"12\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\">altezza:<input type=\"text\" name=\"altezza\" class=\"form-control\" value=\"12\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\">volume specifico<input type=\"number\" name=volumespecifico class=\"form-control\" value=\"12\"></div>");
+			sb.append("</div>");
+			
+			sb.append("</div> </div>");
+			
+			
 			sb.append("<p>classe volume<input type=\"text\" id=\"intervallo\" name=intervallo></p>");
 			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\" />");
 				for(TipologiaProcesso tp : ControllerDatabase.prendiTipologiaProcesso())//da fare col json
@@ -113,15 +124,16 @@ public class HTMLProcesso {
 		/*script per google maps*///centrerei la mappa al centro delle alpi 
 		
 		
-		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> dettagli</th> <th> modifica</th> <th>sottobacino</th></tr>");
+		sb.append("<table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> dettagli</th> <th> modifica</th></tr>");
 		for(Processo p: ap){
 			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+dateFormat.format(p.getData())+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
-					+ " <td>"+p.getUbicazione().getLocAmm().getNazione()+"</td> <td>"+p.getUbicazione().getLocIdro().getIdSottobacino()+"</td>"
+					+ " <td>"+p.getUbicazione().getLocAmm().getNazione()+"</td> "
 					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td>"
 							+ "<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td></tr>");
 		}
 		return sb.toString();
 	}
+	
 	public static String mostraProcesso(int idProcesso) throws SQLException{
 		Processo p = ControllerDatabase.prendiProcesso(idProcesso);
 		StringBuilder sb = new StringBuilder();
@@ -164,16 +176,141 @@ public class HTMLProcesso {
 				+ " </script>");
 		
 		
-		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> </tr>");
+		sb.append("<table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> </tr>");
 		sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td></tr>");
 		sb.append("</table>");
 		sb.append("<div id=\"map-canvas\"/>");
 		return sb.toString();
 	}
-	public static String mostraCercaProcessi(ArrayList<Processo> ap) throws SQLException{
+	
+	public static String formCercaProcessi(String path,String loc) throws SQLException{
+StringBuilder sb = new StringBuilder();
 		
+		ControllerJson.createJsonProprietaTermiche(path);
+		ControllerJson.createJsonDanni(path);
+		ControllerJson.createJsonEffettiMorfologici(path);
+		ControllerJson.createJsontipologiaProcesso(path);
+		ControllerJson.craeteJsonstatoFratturazione(path);
+		ControllerJson.CreateJsonClasseVolume(path);
+		ControllerJson.createJsonLitologia(path);
+		ControllerJson.CreateJsonSitoProcesso(path);
+		ControllerJson.CreateJsonLocazioneIdrologica(path);
+		
+		
+		sb.append(scriptData());
+		
+		
+		sb.append(scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+		sb.append(scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
+		sb.append(scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
+		sb.append(scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+		sb.append(scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+		sb.append(scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
+		sb.append(scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+		if(loc.equals("IT")){
+		
+			sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
+			
+			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sul Processo</h4>");
+			
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" name=\"nome\" class=\"form-control\" placeholder=\"nome\" ></div>");
+			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" id=\"data\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
+			sb.append(" <div class=\"col-xs-6 col-md-4\"> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
+			sb.append("</div>");
+			
+			
+			
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-2\">Superficie<input type=\"text\" name=\"superficie\" class=\"form-control\" ></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\">Larghezza<input type=\"text\" name=\"larghezza\" class=\"form-control\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\">Altezza<input type=\"text\" name=\"altezza\" class=\"form-control\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\">Volume Specifico<input type=\"number\" name=volumespecifico class=\"form-control\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\">classe volume<input type=\"text\" id=\"intervallo\" name=intervallo class=\"form-control\"></div>");
+			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\" />");
+			sb.append("</div>");
+			sb.append("<br><h5> Tipologia Processo </h5>");
+			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\">");
+			
+			sb.append("<p>");
+			for(TipologiaProcesso tp : ControllerDatabase.prendiTipologiaProcesso())
+				sb.append("<input type=\"checkbox\" name=\"tpnome_IT\" value=\""+tp.getNome_IT()+"\"/> "+tp.getNome_IT()+" ");
+			sb.append("</p>");
+			
+			sb.append("</div> </div>");
+			sb.append("</div> </div>");
+			
+			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sull'ubicazione</h4>");
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\"> Sottobacino <input type=\"text\" id=\"sottobacino\" name=\"sottobacino\" class=\"form-control\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\"> Bacino <input readonly=\"readonly\" type=\"text\"id=\"bacino\" name=\"bacino\" class=\"form-control\"></div> ");
+			sb.append("<input type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\"/>");
+			sb.append("</div>");
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-3\">Comune<input type=\"text\" id=\"comune\" name=\"comune\" class=\"form-control\"/></div>");
+			sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" />");
+			sb.append("<div class=\"col-xs-6 col-md-3\">Provncia<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" class=\"form-control\"/></div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\">Regione<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" class=\"form-control\" /> </div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\">Nazione<input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\"class=\"form-control\" /></div>");
+			sb.append("</div>");
+			
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\">Latitudine <input type=\"text\" name=\"latitudine\" class=\"form-control\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\">Longitudine <input type=\"text\" name=\"longitudine\" class=\"form-control\"></div>");
+			sb.append("</div>");
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\">Quota <input type=\"text\" name=\"quota\" class=\"form-control\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\">Esposizione <input type=\"text\" name=\"esposizione\" class=\"form-control\"></div>");
+			sb.append("</div>");
+			
+			
+			sb.append("</div> </div>");
+		
+			sb.append("<p>dati sul sito</p>");
+			sb.append("<p> Caratteristiche Sito <input type=\"text\" id=\"caratteristicaSito_"+loc+"\" name=\"caratteristicaSito_"+loc+"\" /></p>");
+			sb.append("<input type=\"hidden\" id=\"idsito\" name=\"idsito\" />");
+		
+			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\">");
+			sb.append("<h4>Danni</h4>");
+			sb.append("<p>");
+			for(Danni d:ControllerDatabase.prendiDanni()){
+				sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\" "+d.getTipo_IT()+"\"/> "+d.getTipo_IT()+" ");
+			}
+			sb.append("</p>");
+			sb.append("<p>");
+			sb.append("<h4>Effetti Morfologici</h4>");
+			for(EffettiMorfologici em:ControllerDatabase.prendiEffettiMOrfologici()){
+				sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\" "+em.getTipo_IT()+"\" /> "+em.getTipo_IT()+" ");
+			}
+			sb.append("</p>");
+			sb.append("</div> </div>");
+			
+			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sulla litologia</h4>");
+			sb.append("litologia:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" class=\"form-control\"/></p>");
+			sb.append("<input type=\"hidden\" id=\"idLitologia\" name=\"idLitologia\" />");
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\">proprieta termiche<input type=\"text\" id=\"proprietaTermiche_"+loc+"\" name=\"proprietaTermiche_"+loc+"\" class=\"form-control\"/></div>");
+			sb.append("<input type=\"hidden\" id=\"idProprietaTermiche\" name=\"idProprietaTermiche\" />");
+			sb.append("<div class=\"col-xs-6 col-md-6\">stato fratturazione<input type=\"text\" id=\"statoFratturazione_"+loc+"\" name=\"statoFratturazione_"+loc+"\" class=\"form-control\"/></div>");
+			sb.append("<input type=\"hidden\" id=\"idStatoFratturazione\" name=\"idStatoFratturazione\" />");
+			sb.append("</div>");
+			sb.append("</div> </div>");
+			
+			sb.append("descrizione:<input type=\"text\" name=\"descrizione\" class=\"form-control\"  >");
+			sb.append("note:<input type=\"text\" name=\"note\" class=\"form-control\" >");
+			
+			sb.append("<input type=\"hidden\" name=\"operazione\" value=\"cercaProcesso\">");
+			sb.append("<input type=\"submit\" name =\"submit\" value=\"OK\">");
+		
+			sb.append("</form>");
+		}else if(loc.equals("ENG")){
+			//da fare
+		}
+	return sb.toString();
+	}
+	public static String mostraCercaProcessi(ArrayList<Processo> ap) throws SQLException{
 		StringBuilder sb = new StringBuilder();
-		sb.append("<table> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> </tr>");
+		sb.append("<table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th> dettagli</th> </tr>");
 		for(Processo p: ap){
 			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td>"+p.getUbicazione().getLocAmm().getComune()+"</td>"
 					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td></tr>");

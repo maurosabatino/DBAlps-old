@@ -6,8 +6,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
 
 import bean.*;
 
@@ -143,7 +144,7 @@ public class ControllerDatabase {
 		
 		if(!(p.getNome()==null || p.getNome().equals(""))){
 			if(sb.toString().equals("") || sb == null)
-				sb.append(" where nome="+p.getNome()+"");
+				sb.append(" where nome='"+p.getNome()+"'");
 			else
 				sb.append(" and nome="+p.getNome()+"");
 		}
@@ -159,17 +160,52 @@ public class ControllerDatabase {
 			else
 				sb.append(" and larghezza="+p.getLarghezza()+"");
 		}
-		if(!(p.getData()==null)){
+		if(!((p.getData()==null) ||p.getData().equals(Timestamp.valueOf("0001-01-01 00:00:00")))){
 			if(sb.toString().equals("") || sb == null){
 				sb.append(" where data='"+p.getData()+"'");
 			}
 			else
 				sb.append(" and data='"+p.getData()+"'");
 		}
-		//da fare ancora i volumi e le date
-		/*
-		 * 
-		 */
+		if(!(p.getClasseVolume().getIdClasseVolume()==0)){
+			if(sb.toString().equals("") || sb == null){
+				sb.append(" where idclassevolume="+p.getClasseVolume().getIdClasseVolume()+"");
+			}
+			else
+				sb.append(" and idclassevolume="+p.getClasseVolume().getIdClasseVolume()+"");
+			}
+		if(!(p.getLitologia().getidLitologia()==0)){
+			if(sb.toString().equals("") || sb == null){
+				sb.append(" where idlitologia="+p.getLitologia().getidLitologia()+"");
+			}
+			else
+				sb.append(" and idlitologia="+p.getLitologia().getidLitologia()+"");
+		}
+		if(!(p.getProprietaTermiche().getIdProprieta_termiche()==0)){
+			if(sb.toString().equals("") || sb == null){
+				sb.append(" where idproprietatermiche="+p.getProprietaTermiche().getIdProprieta_termiche()+"");
+			}
+			else
+				sb.append(" and idproprietatermiche="+p.getProprietaTermiche().getIdProprieta_termiche()+"");
+		}
+		
+		
+		if(!(p.getStatoFratturazione().getIdStato_fratturazione()==0)){
+			if(sb.toString().equals("") || sb == null){
+				sb.append(" where idstatofratturazione="+p.getStatoFratturazione().getIdStato_fratturazione()+"");
+			}
+			else
+				sb.append(" and idstatofratturazione="+p.getStatoFratturazione().getIdStato_fratturazione()+"");
+		}
+		if(!(p.getSitoProcesso().getIdSito()==0)){
+			if(sb.toString().equals("") || sb == null){
+				sb.append(" where idsito="+p.getSitoProcesso().getIdSito()+"");
+			}
+			else
+				sb.append(" and idsito="+p.getSitoProcesso().getIdSito()+"");
+		}
+		
+		
 		if(sb.toString().equals("") || sb == null)
 		su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
 				+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
@@ -195,6 +231,7 @@ public class ControllerDatabase {
 		
 		if(u.isEmpty()==true){
 			
+			System.out.println("query "+sb.toString());
 		 rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" ");
 		}
 		else {
