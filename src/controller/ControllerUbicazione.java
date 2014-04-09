@@ -20,9 +20,11 @@ public class ControllerUbicazione {
 		coord.setY(y);
 		}
 		u.setCoordinate(coord);
-		u.setEsposizione((String)request.getParameter("esposizione"));
+		if(!(request.getParameter("esposizione").equals("")))
+			u.setEsposizione(request.getParameter("esposizione"));
+		
 		if(!(request.getParameter("quota").equals("")))
-		u.setQuota(Double.parseDouble((String)request.getParameter("quota")));
+			u.setQuota(Double.parseDouble((String)request.getParameter("quota")));
 		if(!(request.getParameter("idcomune").equals(""))){
 			
 			locAmm=ControllerDatabase.prendiLocAmministrativa(Integer.parseInt(request.getParameter("idcomune")));
@@ -32,8 +34,6 @@ public class ControllerUbicazione {
 			
 			locIdro=ControllerDatabase.prendiLocIdrologica(Integer.parseInt(request.getParameter("idSottobacino")));
 		}
-		locIdro.setBacino((String)request.getParameter("bacino"));
-		locIdro.setSottobacino((String)request.getParameter("sottobacino"));
 		u.setLocIdro(locIdro);
 		return u;
 	}

@@ -18,27 +18,17 @@ public class HTMLProcesso {
 	public static String formInserisciProcesso(String path,String loc) throws SQLException{
 		StringBuilder sb = new StringBuilder();
 		
-		ControllerJson.createJsonProprietaTermiche(path);
-		ControllerJson.createJsonDanni(path);
-		ControllerJson.createJsonEffettiMorfologici(path);
-		ControllerJson.createJsontipologiaProcesso(path);
-		ControllerJson.craeteJsonstatoFratturazione(path);
-		ControllerJson.CreateJsonClasseVolume(path);
-		ControllerJson.createJsonLitologia(path);
-		ControllerJson.CreateJsonSitoProcesso(path);
-		ControllerJson.CreateJsonLocazioneIdrologica(path);
+
+		sb.append(HTMLScript.scriptData("data"));
 		
 		
-		sb.append(scriptData());
-		
-		
-		sb.append(scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
-		sb.append(scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
-		sb.append(scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
-		sb.append(scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
-		sb.append(scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
-		sb.append(scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
-		sb.append(scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+		sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+		sb.append(HTMLScript.scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
 		if(loc.equals("IT")){
 		
 			sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
@@ -74,7 +64,7 @@ public class HTMLProcesso {
 			sb.append("<p>bacino:<input type=\"text\"id=\"bacino\" name=\"bacino\"></p>");
 			sb.append("<input  type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\" />");
 		
-			sb.append("<p>comune:<input type=\"text\" id=\"comune\" name=\"comune\" /> </p>");
+			sb.append("<p>comune:<input type=\"text\" id=\"comune\" name=\"comune\" required /> </p>");
 			sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" />");
 			sb.append("<p>provncia:<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" /></p>");
 			sb.append("<p>regione:<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" /></p> ");
@@ -184,29 +174,17 @@ public class HTMLProcesso {
 	}
 	
 	public static String formCercaProcessi(String path,String loc) throws SQLException{
-StringBuilder sb = new StringBuilder();
-		
-		ControllerJson.createJsonProprietaTermiche(path);
-		ControllerJson.createJsonDanni(path);
-		ControllerJson.createJsonEffettiMorfologici(path);
-		ControllerJson.createJsontipologiaProcesso(path);
-		ControllerJson.craeteJsonstatoFratturazione(path);
-		ControllerJson.CreateJsonClasseVolume(path);
-		ControllerJson.createJsonLitologia(path);
-		ControllerJson.CreateJsonSitoProcesso(path);
-		ControllerJson.CreateJsonLocazioneIdrologica(path);
+		StringBuilder sb = new StringBuilder();
+		sb.append(HTMLScript.scriptData("data"));
 		
 		
-		sb.append(scriptData());
-		
-		
-		sb.append(scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
-		sb.append(scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
-		sb.append(scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
-		sb.append(scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
-		sb.append(scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
-		sb.append(scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
-		sb.append(scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+		sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+		sb.append(HTMLScript.scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
 		if(loc.equals("IT")){
 		
 			sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
@@ -274,13 +252,13 @@ StringBuilder sb = new StringBuilder();
 			sb.append("<h4>Danni</h4>");
 			sb.append("<p>");
 			for(Danni d:ControllerDatabase.prendiDanni()){
-				sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\" "+d.getTipo_IT()+"\"/> "+d.getTipo_IT()+" ");
+				sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\""+d.getTipo_IT()+"\"/> "+d.getTipo_IT()+" ");
 			}
 			sb.append("</p>");
 			sb.append("<p>");
 			sb.append("<h4>Effetti Morfologici</h4>");
 			for(EffettiMorfologici em:ControllerDatabase.prendiEffettiMOrfologici()){
-				sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\" "+em.getTipo_IT()+"\" /> "+em.getTipo_IT()+" ");
+				sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\""+em.getTipo_IT()+"\" /> "+em.getTipo_IT()+" ");
 			}
 			sb.append("</p>");
 			sb.append("</div> </div>");
@@ -296,8 +274,10 @@ StringBuilder sb = new StringBuilder();
 			sb.append("</div>");
 			sb.append("</div> </div>");
 			
-			sb.append("descrizione:<input type=\"text\" name=\"descrizione\" class=\"form-control\"  >");
-			sb.append("note:<input type=\"text\" name=\"note\" class=\"form-control\" >");
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><textarea rows=\"4\" cols=\"50\" name=\"descrizione\" class=\"textarea\" > descrizione </textarea></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><textarea rows=\"4\" cols=\"50\" name=\"note\" placeholder=\"note\"> </textarea></div>");
+			sb.append("</div>");
 			
 			sb.append("<input type=\"hidden\" name=\"operazione\" value=\"cercaProcesso\">");
 			sb.append("<input type=\"submit\" name =\"submit\" value=\"OK\">");
@@ -324,26 +304,16 @@ StringBuilder sb = new StringBuilder();
 		Calendar cal = new GregorianCalendar();
 		cal.setTime(p.getData());
 		cal.add(Calendar.MONTH, 1);
+
+		sb.append(HTMLScript.scriptData("data"));
 		
-		ControllerJson.createJsonProprietaTermiche(path);
-		ControllerJson.createJsonDanni(path);
-		ControllerJson.createJsonEffettiMorfologici(path);
-		ControllerJson.createJsontipologiaProcesso(path);
-		ControllerJson.craeteJsonstatoFratturazione(path);
-		ControllerJson.CreateJsonClasseVolume(path);
-		ControllerJson.createJsonLitologia(path);
-		ControllerJson.CreateJsonSitoProcesso(path);
-		ControllerJson.CreateJsonLocazioneIdrologica(path);
-		
-		sb.append(scriptData());
-		
-		sb.append(scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
-		sb.append(scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
-		sb.append(scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
-		sb.append(scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
-		sb.append(scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
-		sb.append(scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
-		sb.append(scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+		sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+		sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
+		sb.append(HTMLScript.scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+		sb.append(HTMLScript.scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
 		
 	
 
@@ -441,335 +411,6 @@ StringBuilder sb = new StringBuilder();
 		return sb.toString();
 	}
 	
-	public static String scriptData(){
-		StringBuilder sb = new StringBuilder();
-		sb.append("<script>"
-				+ "$(function() {"
-				+ "$( \"#data\" ).datepicker({"
-				+ "changeMonth: true,"
-				+ "changeYear: true,"
-				+ "dateFormat: \"yy-mm-dd\"});"
-				+ "});</script>"
-				+"<script>");
-				
-				sb.append("$.widget( \"ui.timespinner\", $.ui.spinner, {"
-				+ "options: {"
-				+ "step: 60 * 1000,"
-				+ "page: 60"
-				+ "},"
-				+ "_parse: function( value ) {"
-				+ "if ( typeof value === \"string\" ) {"
-				+ "if ( Number( value ) == value ) {"
-				+ "return Number( value );"
-				+ "}"
-				+ "return +Globalize.parseDate( value );"
-				+ "}"
-				+ "return value;"
-				+ "},"
-				+ "_format: function( value ) {"
-				+ "return Globalize.format( new Date(value), \"t\" );"
-				+ "}"
-				+ "});"
-				+ "$(function() {"
-				+ "$( \"#ora\" ).timespinner();"
-				+ "var current = $( \"#ora\" ).timespinner( \"value\" );"
-				+ "Globalize.culture( \"de-DE\");"
-				+ "$( \"#ora\" ).timespinner( \"value\", current );"
-				+ "});"
-				+ "</script>");
-		return sb.toString();
-	}
 	
-	/*
-	 * script autocomplete
-	 */
-	public static String scriptAutocompleteLocAmm(String json){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var states ="+json+";");
-    sb.append("$(\"#comune\").autocomplete({");
-    sb.append("source: states,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#comune\" ).val( ui.item.comune);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idcomune').val(ui.item.idComune);");
-    sb.append("$('#provincia').val(ui.item.provincia);	");
-    sb.append("$('#regione').val(ui.item.regione);");
-    sb.append("$('#nazione').val(ui.item.nazione);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	public static String scriptAutocompleteLocIdro(String json){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var idro ="+json+";");
-    sb.append("$(\"#sottobacino\").autocomplete({");
-    sb.append("source: idro,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#sottobacino\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idSottobacino').val(ui.item.idSottobacino);");
-    sb.append("$('#bacino').val(ui.item.bacino);	");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	
-	public static String scriptAutocompleteStatoFratturazione(String json,String loc){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var statoFratturazione ="+json+";");
-    sb.append("$(\"#statoFratturazione_"+loc+"\").autocomplete({");
-    sb.append("source: statoFratturazione,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#statoFratturazione_"+loc+"\" ).val(ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idStatoFratturazione').val(ui.item.idStatoFratturazione);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	
-	public static String scriptAutocompleteProprietaTermiche(String json,String loc){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var proprietaTermiche ="+json+";");
-    sb.append("$(\"#proprietaTermiche_"+loc+"\").autocomplete({");
-    sb.append("source: proprietaTermiche,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#proprietaTermiche_"+loc+"\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idProprietaTermiche').val(ui.item.idProprietaTermiche);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	public static String scriptAutocompleteLitologia(String json,String loc){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var proprietaTermiche ="+json+";");
-    sb.append("$(\"#proprietaTermiche_"+loc+"\").autocomplete({");
-    sb.append("source: proprietaTermiche,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#proprietaTermiche_"+loc+"\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idProprietaTermiche').val(ui.item.idProprietaTermiche);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	
-	public static String scriptAutocompleteClasseVolume(String json){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var classeVolume ="+json+";");
-    sb.append("$(\"#intervallo\").autocomplete({");
-    sb.append("source: classeVolume,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#intervallo\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idclasseVolume').val(ui.item.idClasseVolume);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	
-	public static String scriptAutcompleteLitologia(String json,String loc){
-		StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var litologia ="+json+";");
-    sb.append("$(\"#nomeLitologia_"+loc+"\").autocomplete({");
-    sb.append("source: litologia,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#nomeLitologia_"+loc+"\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idLitologia').val(ui.item.idLitologia);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	public static String scriptAutocompleteSitoProcesso(String json,String loc){
-		StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var sitoProcesso ="+json+";");
-    sb.append("$(\"#caratteristicaSito_"+loc+"\").autocomplete({");
-    sb.append("source: sitoProcesso,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#caratteristicaSito_"+loc+"\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idsito').val(ui.item.idSito);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	
-	
-	/*
-	 * 
-	 * multipli autocomplete
-	 * 
-	 * */
-	
-	public static String scriptAutocompleteDanniMultiplo(String json,String loc){
-		StringBuilder sb = new StringBuilder();
-		sb.append("<script>");
-		sb.append("$(function() {");
-		sb.append("var danni = "+json+";");
-		sb.append("   function split( val ) {");
-		sb.append("    return val.split( /,\\s*/ );");
-		sb.append("   }");
-		sb.append("   function extractLast( term ) {");
-		sb.append("     return split( term ).pop();");
-		sb.append("   }");
-		sb.append("   $( \"#dtipo_IT\" )");
-		sb.append("  .bind( \"keydown\", function( event ) {");
-		sb.append("   if ( event.keyCode === $.ui.keyCode.TAB &&");
-		sb.append("       $( this ).data( \"ui-autocomplete\" ).menu.active ) {");
-		sb.append("      event.preventDefault();");
-		sb.append("    }");
-		sb.append("  })");
-		sb.append("  .autocomplete({");
-		sb.append("   minLength: 0,");
-		sb.append("   source: function( request, response ) {");
-		sb.append("    response( $.ui.autocomplete.filter(");
-		sb.append("      danni, extractLast( request.term ) ) );");
-		sb.append("  },");
-		sb.append("  focus: function() {");   
-		sb.append("    return false;");
-		sb.append("    },");
-		sb.append("   select: function( event, ui ) {");
-		sb.append("      var terms = split( this.value );");
-		sb.append("     terms.pop();");
-		sb.append("     terms.push( ui.item.value );");
-		sb.append("    terms.push(\"\" );");
-		sb.append("    this.value = terms.join( \", \" );");
-		sb.append("    return false;");
-		sb.append("  }");
-		sb.append(" });");
-		sb.append(" });");
-		sb.append(" </script>");
-		return sb.toString();
-	}
-	public static String scriptAutocompleteEffettiMorfologiciMultiplo(String json,String loc){
-		StringBuilder sb = new StringBuilder();
-		sb.append("<script>");
-		sb.append("$(function() {");
-		sb.append("var effettiMorfologici = "+json+";");
-		sb.append("   function split( val ) {");
-		sb.append("    return val.split( /,\\s*/ );");
-		sb.append("   }");
-		sb.append("   function extractLast( term ) {");
-		sb.append("     return split( term ).pop();");
-		sb.append("   }");
-		sb.append("   $( \"#emtipo_IT\" )");
-		sb.append("  .bind( \"keydown\", function( event ) {");
-		sb.append("   if ( event.keyCode === $.ui.keyCode.TAB &&");
-		sb.append("       $( this ).data( \"ui-autocomplete\" ).menu.active ) {");
-		sb.append("      event.preventDefault();");
-		sb.append("    }");
-		sb.append("  })");
-		sb.append("  .autocomplete({");
-		sb.append("   minLength: 0,");
-		sb.append("   source: function( request, response ) {");
-		sb.append("    response( $.ui.autocomplete.filter(");
-		sb.append("      effettiMorfologici, extractLast( request.term ) ) );");
-		sb.append("  },");
-		sb.append("  focus: function() {");   
-		sb.append("    return false;");
-		sb.append("    },");
-		sb.append("   select: function( event, ui ) {");
-		sb.append("      var terms = split( this.value );");
-		sb.append("     terms.pop();");
-		sb.append("     terms.push( ui.item.value );");
-		sb.append("    terms.push(\"\" );");
-		sb.append("    this.value = terms.join( \", \" );");
-		sb.append("    return false;");
-		sb.append("  }");
-		sb.append(" });");
-		sb.append(" });");
-		sb.append(" </script>");
-		return sb.toString();
-	}
-	public static String scriptAutocompleteTipologiaProcesso(String json,String loc){
-		StringBuilder sb = new StringBuilder();
-		sb.append("<script>");
-		sb.append("$(function() {");
-		sb.append("var tipologiaProcesso = "+json+";");
-		sb.append("   function split( val ) {");
-		sb.append("    return val.split( /,\\s*/ );");
-		sb.append("   }");
-		sb.append("   function extractLast( term ) {");
-		sb.append("     return split( term ).pop();");
-		sb.append("   }");
-		sb.append("   $( \"#tpnome_IT\" )");
-		sb.append("  .bind( \"keydown\", function( event ) {");
-		sb.append("   if ( event.keyCode === $.ui.keyCode.TAB &&");
-		sb.append("       $( this ).data( \"ui-autocomplete\" ).menu.active ) {");
-		sb.append("      event.preventDefault();");
-		sb.append("    }");
-		sb.append("  })");
-		sb.append("  .autocomplete({");
-		sb.append("   minLength: 0,");
-		sb.append("   source: function( request, response ) {");
-		sb.append("    response( $.ui.autocomplete.filter(");
-		sb.append("      tipologiaProcesso, extractLast( request.term ) ) );");
-		sb.append("  },");
-		sb.append("  focus: function() {");   
-		sb.append("    return false;");
-		sb.append("    },");
-		sb.append("   select: function( event, ui ) {");
-		sb.append("      var terms = split( this.value );");
-		sb.append("     terms.pop();");
-		sb.append("     terms.push( ui.item.value );");
-		sb.append("    terms.push(\"\" );");
-		sb.append("    this.value = terms.join( \", \" );");
-		sb.append("    return false;");
-		sb.append("  }");
-		sb.append(" });");
-		sb.append(" });");
-		sb.append(" </script>");
-		return sb.toString();
-	}
 	
 }

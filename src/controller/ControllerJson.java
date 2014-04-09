@@ -10,11 +10,14 @@ import java.util.ArrayList;
 import bean.ClasseVolume;
 import bean.Danni;
 import bean.EffettiMorfologici;
+import bean.Ente;
 import bean.Litologia;
 import bean.LocazioneAmministrativa;
 import bean.LocazioneIdrologica;
 import bean.ProprietaTermiche;
+import bean.Sensori;
 import bean.SitoProcesso;
+import bean.SitoStazioneMetereologica;
 import bean.StatoFratturazione;
 import bean.TipologiaProcesso;
 
@@ -308,5 +311,108 @@ public class ControllerJson {
 			e.printStackTrace();
 		}
 		return json;
+	}
+	public static String CreateJsonEnte(String path) throws SQLException{
+		Gson gson=new Gson();
+		ArrayList<Ente> ente=ControllerDatabase.prendiTuttiEnte();
+		String json=gson.toJson(ente);
+		try{
+		path+="json/Ente.json";
+		FileWriter writer=new FileWriter(path);
+		writer.write(json);
+		writer.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		return json;
+	}
+	
+	public static String getJsonEnte(String path){
+		ArrayList<Ente> ente = new ArrayList<Ente>();
+		StringBuilder sb = new StringBuilder();
+		try {
+			path+="json/Ente.json";
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			ente = new Gson().fromJson(br, new TypeToken<ArrayList<Ente>>(){}.getType());
+			sb.append(new Gson().toJson(ente).replaceAll("ente", "label"));
+			} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+	
+	public static String createJsonSitoStazione(String path) throws SQLException{
+		Gson gson=new Gson();
+		ArrayList<SitoStazioneMetereologica> sito=ControllerDatabase.prendiTuttiSitoStazioneMetereologica();
+		String json=gson.toJson(sito);
+		try{
+		path+="json/SitoStazioneMetereologica.json";
+		FileWriter writer=new FileWriter(path);
+		writer.write(json);
+		writer.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		return json;
+	}
+	
+	public static String getJsonSitoStazione(String path,String loc){
+		ArrayList<SitoStazioneMetereologica> sito = new ArrayList<SitoStazioneMetereologica>();
+		StringBuilder sb = new StringBuilder();
+		try {
+			path+="json/SitoStazioneMetereologica.json";
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			sito = new Gson().fromJson(br, new TypeToken<ArrayList<SitoStazioneMetereologica>>(){}.getType());
+			sb.append(new Gson().toJson(sito).replaceAll("caratteristiche_"+loc+"", "label"));
+			} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+	
+	public static String CreateJsonSensori(String path) throws SQLException{
+		Gson gson=new Gson();
+		ArrayList<Sensori> sensori=ControllerDatabase.prendiTuttiSensori();
+		String json=gson.toJson(sensori);
+		try{
+		path+="json/Sensori.json";
+		FileWriter writer=new FileWriter(path);
+		writer.write(json);
+		writer.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+		return json;
+	}
+	
+	public static String getJsonSensori(String path,String loc){
+		ArrayList<Sensori> sensori = new ArrayList<Sensori>();
+		StringBuilder sb = new StringBuilder();
+		try {
+			path+="json/Sensori.json";
+			BufferedReader br = new BufferedReader(new FileReader(path));
+			sensori = new Gson().fromJson(br, new TypeToken<ArrayList<Sensori>>(){}.getType());
+			sb.append(new Gson().toJson(sensori).replaceAll("sensori_"+loc+"", "label"));
+			} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+	
+	public static void creaJson(String path) throws SQLException{
+		System.out.println("creo json");
+		craeteJsonstatoFratturazione(path);
+		createJsonDanni(path);
+		createJsonEffettiMorfologici(path);
+		createJsonLitologia(path);
+		createJsontipologiaProcesso(path);
+		CreateJsonClasseVolume(path);
+		createJsonProprietaTermiche(path);
+		CreateJsonLocazioneAmministrativa(path);
+		CreateJsonLocazioneIdrologica(path);
+		CreateJsonSitoProcesso(path);
+		CreateJsonEnte(path);
+		CreateJsonSensori(path);
+		createJsonSitoStazione(path);
 	}
 }

@@ -56,7 +56,6 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return p;
-		//qui salvo nel db e mi devo andare a ricavare l'id del processo
 	}
 	public static void salvaEffetti(int idProcesso,ArrayList<EffettiMorfologici> em,ArrayList<Danni> d) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -69,8 +68,8 @@ public class ControllerDatabase {
 			st.execute("insert into danni_processo(idprocesso,iddanno) values("+idProcesso+","+da.getIdDanni()+")");
 			
 		}
-		
 	}
+	
 	public static void salvaTipologiaProcesso(int idProcesso,ArrayList<TipologiaProcesso> tp) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -126,6 +125,14 @@ public class ControllerDatabase {
 			p.setLarghezza(rs.getDouble("larghezza"));
 			p.setSuperficie(rs.getDouble("superficie"));
 			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			p.setClasseVolume(prendiClasseVolume(rs.getInt("idclassevolume")));
+			p.setLitologia(prendiLitologia(rs.getInt("idlitologia")));
+			p.setProprietaTermiche(prendiProprietaTermica(rs.getInt("idproprietatermiche")));
+			p.setStatoFratturazione(prendiStatoFratturazione(rs.getInt("idstatofratturazione")));
+			p.setSitoProcesso(prendiSitoProcesso(rs.getInt("idsito")));
+			p.setDanni(prendiDanniProcesso(p.getIdProcesso()));
+			p.setEffetti(prendiEffettiProcesso(p.getIdProcesso()));
+			p.setTipologiaProcesso(prendiCaratteristicheProcesso(p.getIdProcesso()));
 			p.setUbicazione(u);
 			al.add(p);
 		}
@@ -205,53 +212,120 @@ public class ControllerDatabase {
 				sb.append(" and idsito="+p.getSitoProcesso().getIdSito()+"");
 		}
 		
+		if(!(p.getDanni().size()==0)){
+			StringBuilder sd=new StringBuilder();
+			if(sb.toString().equals("")|| sb==null)		
+				sd.append(" where idprocesso in(");
+			else sd.append(" and idprocesso in(");
+			for(int i=0;i<p.getDanni().size();i++){
+				if(i==0)
+					sd.append("select distinct(idprocesso) from danni_processo where iddanno="+p.getDanni().get(i).getIdDanni()+"");
+				else sd.append(" and idprocesso in(select distinct(idprocesso) from danni_processo where iddanno="+p.getDanni().get(i).getIdDanni()+"");
+			}
+			int i=0;
+			while(i!=p.getDanni().size()){
+				sd.append(")");
+				i++;
+			}
+			if(!(sd.toString().equals(""))) sb.append(sd);
+		}
+		if(!(p.getEffetti().size()==0)){
+			StringBuilder se=new StringBuilder();
+			if(sb.toString().equals("")|| sb==null)		
+				se.append(" where idprocesso in(");
+			else se.append(" and idprocesso in(");
+			for(int i=0;i<p.getEffetti().size();i++){
+				if(i==0)
+					se.append("select distinct(idprocesso) from effetti_processo where ideffettimorfologici="+p.getEffetti().get(i).getIdEffettiMorfoligici()+"");
+				else se.append(" and idprocesso in(select distinct(idprocesso) from effetti_processo where ideffettimorfologici="+p.getEffetti().get(i).getIdEffettiMorfoligici()+"");
+			}
+			int i=0;
+			while(i!=p.getEffetti().size()){
+				se.append(")");
+				i++;
+			}	
+			if(!(se.toString().equals(""))) sb.append(se);
+		}
 		
-		if(sb.toString().equals("") || sb == null)
-		su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
-				+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
-		else
-			su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
-					+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
-		if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
+		if(!(p.getTipologiaProcesso().size()==0)){
+			StringBuilder stp=new StringBuilder();
+			if(sb.toString().equals("")|| sb==null)		
+				stp.append(" where idprocesso in(");
+			else stp.append(" and idprocesso in(");
+			for(int i=0;i<p.getTipologiaProcesso().size();i++){
+				if(i==0)
+					stp.append("select distinct(idprocesso) from caratteristiche_processo where idtipologiaprocesso="+p.getTipologiaProcesso().get(i).getIdTipologiaProcesso()+"");
+				else stp.append(" and idprocesso in(select distinct(idprocesso) from caratteristiche_processo where idtipologiaprocesso="+p.getTipologiaProcesso().get(i).getIdTipologiaProcesso()+"");
+			}
+			int i=0;
+			while(i!=p.getTipologiaProcesso().size()){
+				stp.append(")");
+				i++;
+			}
+			if(!(stp.toString().equals(""))) sb.append(stp);
+		}
+		
+		if(!(u.getLocAmm().isEmpty())){
+			if(sb.toString().equals("") || sb == null)
+				su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
+						+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
+				else
+					su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
+							+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
+			if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
+				su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
+			}
+			if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
+				su.append(" and p.nomeprovincia='"+u.getLocAmm().getProvincia()+"'");
+			}
+			if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
+				su.append(" and r.nomeregione ='"+u.getLocAmm().getRegione()+"'");
+			}		
+			if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
+				su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+			}
+			su.append(")");
+		}
+		
+		if(!(u.getLocIdro().isEmpty())){
+			if(sb.toString().equals("") || sb == null){
+				if(su.toString().equals("") || su==null){
+					su.append("where idubicazione in( select idubicazione from ubicazione,bacino b,sottobacino s where s.idbacino=b.idbacino and ubicazione.idsottobacino=s.idsottobacino");
+				}
+			}else{
+				if(!(su.toString().equals("") || su==null)){
+				su.append("and idubicazione in( select idubicazione from ubicazione,bacino b,sottobacino s where s.idbacino=b.idbacino and ubicazione.idsottobacino=s.idsottobacino");
+				}
+			}if(!(su.toString().equals("") || su==null)){
+				su.append("and idubicazione in( select idubicazione from ubicazione,bacino b,sottobacino s where s.idbacino=b.idbacino and ubicazione.idsottobacino=s.idsottobacino");
+			}
 			
-			su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
+			if(!(u.getLocIdro().getBacino()==null || u.getLocIdro().getBacino().equals(""))){
+				su.append(" and b.nomebacino='"+u.getLocIdro().getBacino()+"'");
+			}
+			if(!(u.getLocIdro().getSottobacino()==null || u.getLocIdro().getSottobacino().equals(""))){
+				su.append(" and s.nomesottobacino='"+u.getLocIdro().getSottobacino()+"'");
+			}
+			
+			su.append(")");
 		}
-		if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
-			su.append(" and p.nomeprovincia='"+u.getLocAmm().getProvincia()+"'");
-		}
-		if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
-			su.append(" and r.nomeregione ='"+u.getLocAmm().getRegione()+"'");
-		}		
-		if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
-			su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
-		}
-		su.append(")");
+		
 		
 		ResultSet rs = null;
 		
+		System.out.println("Ubicazione: "+u.isEmpty());
 		if(u.isEmpty()==true){
-			
 			System.out.println("query "+sb.toString());
 		 rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" ");
 		}
 		else {
+			System.out.println("SELECT * FROM processo  "+sb.toString()+" "+su.toString()+" ");
 			rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" "+su.toString()+" ");
 		}
 		while(rs.next()){
-			Processo ps = new Processo();
-			ps.setIdprocesso(rs.getInt("idProcesso"));
-			ps.setNome(rs.getString("nome"));
-			ps.setData(rs.getTimestamp("data"));
-			ps.setDescrizione(rs.getString("descrizione"));
-			ps.setNote(rs.getString("note"));
-			ps.setAltezza(rs.getDouble("altezza"));
-			ps.setLarghezza(rs.getDouble("larghezza"));
-			ps.setSuperficie(rs.getDouble("superficie"));
-			Ubicazione ub = prendiUbicazione(rs.getInt("idUbicazione"));
-			ps.setUbicazione(ub);
+			Processo ps = prendiProcesso(rs.getInt("idProcesso"));
 			al.add(ps);
-		}
-		
+		}	
 		
 		return al;
 	}
@@ -305,9 +379,6 @@ public class ControllerDatabase {
 		st.executeUpdate(""+sb.toString());
 		
 		
-		/*
-		 * modifica di danni,effetti,caratteristiche
-		 */
 		if(!(p.getEffetti().isEmpty()||p.getDanni().isEmpty()||p.getEffetti().size()==0||p.getDanni().size()==0)){
 			st.executeUpdate("delete from danni_processo where idprocesso ="+p.getIdProcesso()+"" );
 			st.executeUpdate("delete from effetti_processo where idprocesso = "+p.getIdProcesso()+"");
@@ -324,9 +395,7 @@ public class ControllerDatabase {
 		}else{
 			st.executeUpdate("delete from caratteristiche_processo where idprocesso = "+p.getIdProcesso()+"" );
 		}
-		/*
-		 * modifica dell'ubicazione
-		 */
+	
 		if(p.getUbicazione()!=null){
 			su.append("update ubicazione set ");
 			if(!(p.getUbicazione().getEsposizione()==null || p.getUbicazione().getEsposizione().equals(""))){
@@ -389,6 +458,37 @@ public class ControllerDatabase {
 		conn.close();
 		return em;
 	}
+	public static int prendiIdEffettiMorfologici(String effetto,String loc) throws SQLException{
+		int i = 0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select idEffettimorfologici from effetti_morfologici where tipo_"+loc+"='"+effetto+"'");
+		while(rs.next()){
+			i = rs.getInt("idEffettimorfologici");
+		}
+		st.close();
+		conn.close();
+		return i;
+	}
+	
+	
+	
+	public static ArrayList<EffettiMorfologici> prendiEffettiProcesso(int idProcesso) throws SQLException{
+		ArrayList<EffettiMorfologici> al = new ArrayList<EffettiMorfologici>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from effetti_morfologici where ideffettimorfologici in( select ideffettimorfologici from effetti_processo where idprocesso="+idProcesso+")");
+		while(rs.next()){
+			EffettiMorfologici em = new EffettiMorfologici();
+			em.setIdEffettiMOrfologici(rs.getInt("ideffettimorfologici"));
+			em.setTipo_IT(rs.getString("tipo_it"));
+			em.setTipo_ENG(rs.getString("tipo_eng"));
+			al.add(em);
+		}
+		st.close();
+		conn.close();
+		return al;
+	}
 	
 	public static ArrayList<Danni> prendiDanni() throws SQLException{
 		ArrayList<Danni> al = new ArrayList<Danni>();
@@ -419,6 +519,34 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return d;
+	}
+	public static int prendiIdDanni(String danno,String loc) throws SQLException{
+		int i = 0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select iddanno from danno where tipo_"+loc+" = '"+danno+"'");
+		while(rs.next()){
+			i = rs.getInt("iddanno");
+		}
+		st.close();
+		conn.close();
+		return i;
+	}
+	public static ArrayList<Danni> prendiDanniProcesso(int idProcesso) throws SQLException{
+		ArrayList<Danni> al = new ArrayList<Danni>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs = st.executeQuery("select * from danno where iddanno in( select iddanno from danni_processo where idprocesso="+idProcesso+")");
+		while(rs.next()){
+			Danni d = new Danni();
+			d.setIdDanni(rs.getInt("iddanno"));
+			d.setTipo_IT(rs.getString("tipo_it"));
+			d.setTipo_ENG(rs.getString("tipo_eng"));
+			al.add(d);
+		}
+		st.close();
+		conn.close();
+		return al;
 	}
 	
 	public static ArrayList<ProprietaTermiche> prendiProprietaTermiche() throws SQLException{
@@ -605,63 +733,7 @@ public class ControllerDatabase {
 		return tp;
 	}
 	
-	public static int prendiIdEffettiMorfologici(String effetto,String loc) throws SQLException{
-		int i = 0;
-		Connection conn = DriverManager.getConnection(url,user,pwd);
-		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("select idEffettimorfologici from effetti_morfologici where tipo_"+loc+"='"+effetto+"'");
-		while(rs.next()){
-			i = rs.getInt("idEffettimorfologici");
-		}
-		st.close();
-		conn.close();
-		return i;
-	}
 	
-	public static int prendiIdDanni(String danno,String loc) throws SQLException{
-		int i = 0;
-		Connection conn = DriverManager.getConnection(url,user,pwd);
-		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("select iddanno from danno where tipo_"+loc+" = '"+danno+"'");
-		while(rs.next()){
-			i = rs.getInt("iddanno");
-		}
-		st.close();
-		conn.close();
-		return i;
-	}
-	public static ArrayList<Danni> prendiDanniProcesso(int idProcesso) throws SQLException{
-		ArrayList<Danni> al = new ArrayList<Danni>();
-		Connection conn = DriverManager.getConnection(url,user,pwd);
-		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("select * from danno where iddanno in( select iddanno from danni_processo where idprocesso="+idProcesso+")");
-		while(rs.next()){
-			Danni d = new Danni();
-			d.setIdDanni(rs.getInt("iddanno"));
-			d.setTipo_IT(rs.getString("tipo_it"));
-			d.setTipo_ENG(rs.getString("tipo_eng"));
-			al.add(d);
-		}
-		st.close();
-		conn.close();
-		return al;
-	}
-	public static ArrayList<EffettiMorfologici> prendiEffettiProcesso(int idProcesso) throws SQLException{
-		ArrayList<EffettiMorfologici> al = new ArrayList<EffettiMorfologici>();
-		Connection conn = DriverManager.getConnection(url,user,pwd);
-		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("select * from effetti_morfologici where ideffettimorfologici in( select ideffettimorfologici from effetti_processo where idprocesso="+idProcesso+")");
-		while(rs.next()){
-			EffettiMorfologici em = new EffettiMorfologici();
-			em.setIdEffettiMOrfologici(rs.getInt("ideffettimorfologici"));
-			em.setTipo_IT(rs.getString("tipo_it"));
-			em.setTipo_ENG(rs.getString("tipo_eng"));
-			al.add(em);
-		}
-		st.close();
-		conn.close();
-		return al;
-	}
 	public static int prendiIdTipologiaProcesso(String tipologiaProcesso,String loc) throws SQLException{
 		int i = 0;
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -700,46 +772,27 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		StringBuilder sb=new StringBuilder();
-		sb.append("1");//idEnte
+		sb.append("'"+s.ente.getIdEnte()+"'");
 		sb.append(",'"+s.getNome()+"'");
 		sb.append(",'"+s.getAggregazioneGiornaliera()+"'");
 		sb.append(","+s.getOraria());
 		sb.append(",'"+s.getNote()+"'");
-		sb.append(",'"+s.getPeriodoFunzionamento()+"'");
-		sb.append(",1");//idsito
+		sb.append(",'"+s.getDataInizio()+"'");
+		sb.append(",'"+s.getDataFine()+"'");
+		sb.append(",'"+s.sito.getIdSitoStazioneMetereologica()+"'");
+		sb.append(","+s.getIdUtente());
 		sb.append(","+s.getUbicazione().getIdUbicazione());
 		
-		 st.executeUpdate("INSERT INTO STAZIONE_METEREOLOGICA(IDENTE,NOME,AGGREGAZIONEGIORNALIERA,ORARIA,NOTE,PERIODOFUNZIONAMENTO,idSitoStazione,IDUBICAZIONE) VALUES( "+sb+")");
-		
-		 ResultSet rs =st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE  idUbicazione="+s.getUbicazione().getIdUbicazione()+" and periodofunzionamento='"+s.getPeriodoFunzionamento()+"' ");
-		while(rs.next()) 
-			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
+		 st.executeUpdate("INSERT INTO STAZIONE_METEREOLOGICA(IDENTE,NOME,AGGREGAZIONEGIORNALIERA,ORARIA,NOTE,datainizio,datafine,idSitoStazione,idutentecreatore,IDUBICAZIONE) VALUES( "+sb+")");
 
+		 ResultSet rs =st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE  idUbicazione="+s.getUbicazione().getIdUbicazione()+" and datainizio='"+s.getDataInizio()+"'and datafine='"+s.getDataFine()+"' ");
+		while(rs.next())
+			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
+		
+		salvaSensoriStazione(s);
 		 st.close(); conn.close();
 	}
-	
-	public static StazioneMetereologica prendiStazioneMetereologica(int idStazioneMetereologica)throws SQLException{
-		Connection conn = DriverManager.getConnection(url,user,pwd);
-		Statement st = conn.createStatement();
-		ResultSet rs=st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE IDstazionemetereologica="+idStazioneMetereologica+"");
-		StazioneMetereologica s=new StazioneMetereologica();
-		while(rs.next()){
-			s.setIdStazioneMetereologica(idStazioneMetereologica);
-			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
-			s.setNote(rs.getString("note"));
-			s.setOraria(rs.getBoolean("oraria"));
-			s.setPeriodoFunzionamento(rs.getString("periodoFunzionamento"));
-			s.setNome(rs.getString("nome"));
-			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
-			s.setUbicazione(u);
-			//s.setIDEnte();
-			//s.setSitoStazione;
-		}
-		
-	    st.close(); conn.close();
-	    return s;
-	}
-	
+
 	public static ArrayList<StazioneMetereologica> prendiTutteStazioniMetereologiche() throws SQLException{
 		ArrayList<StazioneMetereologica> al = new ArrayList<StazioneMetereologica>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -751,16 +804,384 @@ public class ControllerDatabase {
 			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
 			s.setNote(rs.getString("note"));
 			s.setOraria(rs.getBoolean("oraria"));
-			s.setPeriodoFunzionamento(rs.getString("periodoFunzionamento"));
+			s.setDataInizio(rs.getDate("datainizio"));
+			s.setDataFine(rs.getDate("datafine"));
 			s.setNome(rs.getString("nome"));
 			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
 			s.setUbicazione(u);
+			Ente e= prendiEnte(rs.getInt("idente"));
+			s.setEnte(e);
+			SitoStazioneMetereologica sito=prendiSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			s.setSito(sito);
+			s.setIdUtente(rs.getInt("idutentecreatore"));
 			al.add(s);
 		}
 		return al;
-			
+
+	}
+	public static StazioneMetereologica prendiStazioneMetereologica(int idStazioneMetereologica,String loc)throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE IDstazionemetereologica="+idStazioneMetereologica+"");
+		StazioneMetereologica s=new StazioneMetereologica();
+		while(rs.next()){
+			s.setIdStazioneMetereologica(idStazioneMetereologica);
+			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
+			s.setNote(rs.getString("note"));
+			s.setOraria(rs.getBoolean("oraria"));
+			s.setDataInizio(rs.getDate("datainizio"));
+			s.setDataFine(rs.getDate("datafine"));
+			s.setNome(rs.getString("nome"));
+			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			s.setUbicazione(u);
+			Ente e= prendiEnte(rs.getInt("idente"));
+			s.setEnte(e);
+			SitoStazioneMetereologica sito=prendiSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			s.setSito(sito);
+			s.setIdUtente(rs.getInt("idutentecreatore"));
+		}
+		ArrayList<Sensori> sensori=prendiSensori(idStazioneMetereologica,loc);
+		for(int i=0;i<sensori.size();i++){
+			System.out.println("database:"+sensori.get(i).getSensori_IT());
+		}
+		s.setSensori(sensori);
+	    st.close(); conn.close();
+	    return s;
 	}
 	
+	public static Ente prendiEnte(int idente) throws SQLException{
+		Ente e=new Ente();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT * FROM ente WHERE IDente="+idente+"");
+		while(rs.next()){
+			e.setEnte(rs.getString("nome"));
+			e.setIdEnte(rs.getInt("idente"));
+		}
+		return e;
+	}
+	
+	public static SitoStazioneMetereologica prendiSitoStazioneMetereologica(int id) throws SQLException{
+		SitoStazioneMetereologica s=new SitoStazioneMetereologica();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT * FROM sito_Stazione where idsitostazione="+id+" ");
+		while(rs.next()){
+			s.setCaratteristiche_ENG(rs.getString("caratteristiche_eng"));
+			s.setCaratteristiche_IT(rs.getString("caratteristiche_it"));
+			s.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+		}
+		return s;
+	}
+
+	
+	
+	public static void modificaStazioneMetereologica(StazioneMetereologica s,String enteVecchio,int idStazione) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		StringBuilder sb = new StringBuilder();
+		StringBuilder su = new StringBuilder();
+		sb.append("update stazione_metereologica set ");
+		if(!(s.getNome()==null || s.getNome().equals(""))){
+			sb.append("nome = '"+s.getNome()+"',");
+		}
+		if(!(s.getAggregazioneGiornaliera()==null || s.getAggregazioneGiornaliera().equals(""))){
+			sb.append("aggregazionegiornaliera = '"+s.getAggregazioneGiornaliera()+"',");
+		}
+		//ResultSet rs = st.executeQuery("SELECT idente FROM stazione_metereologica where idstazionemetereologica="+s.getIdStazioneMetereologica()+"");
+	/*	while(rs.next()){
+			ente = (rs.getInt("idente"));
+		}*/
+		if(!enteVecchio.equals(s.getEnte().getEnte())) sb.append("note = 'stazione passata da"+enteVecchio+"a "+s.ente.getEnte()+". "+s.getNote()+" ',"); 
+		else   sb.append("note = "+s.getNote()+" ,");
+		if(!(s.getDataInizio()==null)){
+			sb.append("datainizio= '"+s.getDataInizio()+"' ,");
+		}
+		if(!(s.getDataFine()==null)){
+			sb.append("dataFine= '"+s.getDataFine()+"' ,");
+		}
+	
+			sb.append("oraria = '"+s.getOraria()+"',");
+		
+		if(!(s.sito.getIdSitoStazioneMetereologica()==0)){
+			sb.append("idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+",");
+		}
+		if(!(s.ente.getIdEnte()==0)){
+			sb.append("idente ="+s.ente.getIdEnte()+",");   //?
+		}
+		
+		if(!(s.getIdUtente()==0)){
+			sb.append("idutentecreatore="+s.getIdUtente());
+		}
+		
+		sb.append("where idStazioneMetereologica="+idStazione);
+		System.out.println("query: "+sb.toString());
+		st.executeUpdate(""+sb.toString());
+
+		/*
+		 * modifica dell'ubicazione
+		 */
+		if(s.getUbicazione()!=null){
+			su.append("update ubicazione set ");
+			if(!(s.getUbicazione().getEsposizione()==null || s.getUbicazione().getEsposizione().equals(""))){
+				su.append("esposizione = '"+s.getUbicazione().getEsposizione()+"',");
+			}
+			if(!(s.getUbicazione().getQuota()==null || s.getUbicazione().getQuota()==0)){
+				su.append("quota = "+s.getUbicazione().getQuota()+",");
+			}
+			if(!(s.getUbicazione().getCoordinate().getX()==null || s.getUbicazione().getCoordinate().getX()==0)){
+
+			if(!(s.getUbicazione().getCoordinate().getY()==null || s.getUbicazione().getCoordinate().getY()==0))
+
+				su.append("coordinate = 'POINT("+s.getUbicazione().getCoordinate().getX()+" "+s.getUbicazione().getCoordinate().getY()+")',");
+			}
+			if(s.getUbicazione().getLocAmm()!=null){
+				su.append("idcomune ="+s.getUbicazione().getLocAmm().getIdComune()+",");
+			}
+			if(s.getUbicazione().getLocIdro()!=null){
+				su.append("idsottobacino =1");
+			}
+			su.append(" where idubicazione="+s.getUbicazione().getIdUbicazione());
+			System.out.println(su.toString());
+			st.executeUpdate(""+su.toString());
+		}
+		
+		
+		/*
+		 * modifica sensori
+		 */
+		st.executeUpdate("delete from sensore_stazione where idStazionemetereologica="+idStazione+"");
+		for(Sensori i:s.getSensori()){
+			if(i.getIdsensori()!=0){
+				try{
+					st.executeUpdate("INSERT INTO sensore_stazione (idstazionemetereologica,idsensore) VALUES ("+idStazione+","+i.getIdsensori()+")");
+				}catch(SQLException e){System.out.println("sensore esistente");}
+			}			
+		}
+	}
+	
+	public static void salvaSensoriStazione(StazioneMetereologica s) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		for(Sensori i:s.getSensori()){
+			 st.executeUpdate("INSERT INTO sensore_stazione(idsensore,idstazionemetereologica) VALUES( "+i.getIdsensori()+","+s.getIdStazioneMetereologica()+")");
+		}
+	}
+	
+	public static int idSensore(String sensore,String loc) throws SQLException{
+		int id=0;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		
+		ResultSet rs=st.executeQuery("select idsensore from sensore where tipo_"+loc+"='"+sensore+"'");
+		while(rs.next()){
+			id=rs.getInt("idsensore");
+		}
+		return id;
+	}
+	
+	
+	public static ArrayList<StazioneMetereologica> ricercaStazioneMetereologica(StazioneMetereologica s,Ubicazione u) throws SQLException{
+		ArrayList<StazioneMetereologica> al = new ArrayList<StazioneMetereologica>();
+		StringBuilder sb = new StringBuilder();
+		StringBuilder su = new StringBuilder();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		
+		if(!(s.getNome()==null || s.getNome().equals(""))){
+			sb.append(" where nome='"+s.getNome()+"'");
+		}
+		if(!(s.getAggregazioneGiornaliera()==null || s.getAggregazioneGiornaliera().equals(""))){
+			if(sb.toString().equals("") || sb == null)
+				sb.append(" where aggregazionegiornaliera="+s.getAggregazioneGiornaliera()+"");
+			else
+				sb.append(" and aggregazionegiornaliera='"+s.getAggregazioneGiornaliera()+"'");
+		}
+	/*	if(!(s.getDataInizio()==null)){
+			if(sb.toString().equals("") || sb == null)
+			sb.append("where datainizio= '"+s.getDataInizio()+"' ");
+			else sb.append("and datainzio='"+s.getDataInizio()+"'");
+		}
+		if(!(s.getDataFine()==null)){
+			if(sb.toString().equals("") || sb == null)
+				sb.append("where datafine= '"+s.getDataFine()+"' ");
+				else sb.append("and datafine='"+s.getDataFine()+"'");
+		}
+	*/	
+			if(sb.toString().equals("") || sb == null)
+			sb.append("where oraria = "+s.getOraria()+"");
+			else sb.append("and oraria="+s.getOraria()+"");
+	
+		if(!(s.sito.getIdSitoStazioneMetereologica()==0)){
+			if(sb.toString().equals("") || sb == null)
+			sb.append(" where idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
+			else sb.append(" and idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
+
+		}
+		if(!(s.ente.getIdEnte()==0)){
+			if(sb.toString().equals("") || sb == null)
+			sb.append("where idente="+s.ente.getIdEnte()+"");   //?
+			else sb.append("and idente="+s.ente.getIdEnte()+"");   //?
+		}
+		StringBuilder se=new StringBuilder();
+		for(int i=0;i<s.getSensori().size();i++){
+			System.out.println("sensori "+s.getSensori().get(i).getSensori_IT());
+		}
+		if(!(s.getSensori().size()==0)){
+			System.out.println("1");
+			if(sb.toString().equals("")|| sb==null)		
+				se.append(" where idstazionemetereologica in(");
+			else se.append(" and idstazionemetereologica in(");
+			for(int i=0;i<s.getSensori().size();i++){
+				System.out.println(""+s.getSensori().get(i).getSensori_IT());
+				if(i==0)
+					se.append("select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
+				else se.append(" and idstazionemetereologica in(select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
+			}
+			int i=0;
+			while(i!=s.getSensori().size()){
+				se.append(")");
+				i++;
+			}
+			
+		}
+		if(!(se.toString().equals(""))) sb.append(se);
+		
+		if(sb.toString().equals("") || sb == null){
+			System.out.println("sb vuota");
+					su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
+				+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
+		}else{
+			System.out.println("sb piena");
+
+			su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
+					+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
+		}if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
+			System.out.println("comune= "+u.getLocAmm().getComune());
+			su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
+		}
+		if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
+			su.append(" and p.nomeprovincia='"+u.getLocAmm().getProvincia()+"'");
+		}
+		if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
+			su.append(" and r.nomeregione ='"+u.getLocAmm().getRegione()+"'");
+		}
+		if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
+			su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+		}
+		if(!( u.getCoordinate().getX()==0)){
+			su.append(" and st_x(coordinate) ='"+u.getCoordinate().getX()+"'");
+		}
+		if(!( u.getCoordinate().getY()==0)){
+			su.append(" and st_y(coordinate) ='"+u.getCoordinate().getY()+"'");
+		}
+		su.append(")");
+
+		ResultSet rs = null;
+
+		if(u.isEmpty()==true){
+			System.out.println("1-SELECT * FROM stazione_metereologica  "+sb.toString());
+		 rs = st.executeQuery("SELECT * FROM stazione_metereologica  "+sb.toString()+" ");
+		}
+		else {
+			System.out.println("2-SELECT * FROM stazione_metereologica  "+sb.toString()+" "+su.toString()+" ");
+			rs = st.executeQuery("SELECT * FROM stazione_metereologica "+sb.toString()+" "+su.toString()+" ");
+		}
+		while(rs.next()){
+			StazioneMetereologica sm = new StazioneMetereologica();
+			sm.setIdStazioneMetereologica(rs.getInt("idStazionemetereologica"));
+			sm.setNome(rs.getString("nome"));
+			sm.setDataInizio(rs.getTimestamp("datainizio"));
+			sm.setDataFine(rs.getTimestamp("datafine"));
+			sm.setNote(rs.getString("note"));
+			sm.setAggregazioneGiornaliera(rs.getString("aggregazionegiornaliera"));
+			sm.setOraria(rs.getBoolean("oraria"));
+			sm.sito.setIdSitoStazioneMetereologica(rs.getInt("idSitoStazione"));
+			sm.ente.setIdEnte(rs.getInt("idente"));
+			Ubicazione ub = prendiUbicazione(rs.getInt("idUbicazione"));
+			sm.setUbicazione(ub);
+			al.add(sm);
+		}
+
+
+		return al;
+	}
+	
+	public static ArrayList<Sensori> prendiSensori(int idStazione,String loc) throws SQLException{
+		ArrayList<Sensori> sensori=new ArrayList<Sensori>();
+		
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("select tipo_"+loc+",idsensore from sensore where idsensore in(select idsensore from sensore_stazione where idstazionemetereologica="+idStazione+")");
+		while(rs.next()){
+			Sensori s=new Sensori();
+			if(loc.equals("IT")) s.setSensori_IT((rs.getString("tipo_it")));
+			else s.setSensori_ENG((rs.getString("tipo_eng")));
+			
+			s.setIdsensori(rs.getInt("idsensore"));
+			sensori.add(s);
+		}
+		return sensori;
+		
+	}
+	
+	public static String prendiNome(int id) throws SQLException{
+		String nome="";
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("select nome from stazione_metereologica where idstazionemetereologica="+id+"");
+		while(rs.next()){
+			nome=rs.getString("nome");
+		}
+		return nome;
+	}
+	
+	public static ArrayList<SitoStazioneMetereologica> prendiTuttiSitoStazioneMetereologica() throws SQLException{
+		ArrayList<SitoStazioneMetereologica> sito=new ArrayList<SitoStazioneMetereologica>();
+				Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT * FROM sito_Stazione ");
+		while(rs.next()){
+			SitoStazioneMetereologica s=new SitoStazioneMetereologica();
+			s.setCaratteristiche_ENG(rs.getString("caratteristiche_eng"));
+			s.setCaratteristiche_IT(rs.getString("caratteristiche_it"));
+			s.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			sito.add(s);
+		}
+		return sito;
+	}
+	
+	public static ArrayList<Ente>  prendiTuttiEnte() throws SQLException{
+		ArrayList<Ente> ente=new ArrayList<Ente>();
+
+		
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT * FROM ente ");
+		while(rs.next()){
+			Ente e=new Ente();
+			e.setEnte(rs.getString("nome"));
+			e.setIdEnte(rs.getInt("idente"));
+			ente.add(e);
+		}
+		return ente;
+	}
+	
+	public static ArrayList<Sensori> prendiTuttiSensori() throws SQLException{
+		ArrayList<Sensori> sensori=new ArrayList<Sensori>();
+		
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT * FROM sensore ");
+		while(rs.next()){
+			Sensori s=new Sensori();
+			s.setSensori_ENG((rs.getString("tipo_eng")));
+			s.setSensori_IT((rs.getString("tipo_it")));
+			s.setIdsensori(rs.getInt("idsensore"));
+			sensori.add(s);
+		}
+		return sensori;
+	}
 	
 	/*
 	 * ubicazione
@@ -835,6 +1256,8 @@ public class ControllerDatabase {
 				locAmm.setNazione(rs.getString("nomenazione"));
 				localizAmm.add(locAmm);
 		}
+		st.close();
+		conn.close();
 		return localizAmm;
 	}
 	
@@ -921,5 +1344,39 @@ public class ControllerDatabase {
 			id = (rs.getInt("idUbicazione"));
 		}
 		return id;
+	}
+	
+	/*
+	 * utente
+	 */
+	
+	public static Utente salvaUtente(Utente u) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		st.executeUpdate("insert into utente(nome,cognome,username,password,ruolo,email,datacreazione) values "
+				+ "('"+u.getNome()+"','"+u.getCognome()+"','"+u.getUsername()+"','"+u.getPassword()+"','"+u.getRuolo()+"','"+u.getEmail()+"','"+u.getDataCreazione()+"')");
+		ResultSet rs=st.executeQuery("Select idutente from utente where username='"+u.getUsername()+"' and email='"+u.getEmail()+"' ");
+		while(rs.next()){
+			u.setIdUtente((rs.getInt("idutente")));
+
+		}
+		return u;
+	}
+	
+	public static Utente prendiUtente(Utente u) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("select * from utente where idutente="+u.getIdUtente()+"");
+		while(rs.next()){
+			u.setCognome(rs.getString("cognome"));
+			u.setDataCreazione(rs.getTimestamp("datacreazione"));
+			u.setDataUltimoAccesso(rs.getTimestamp("dataultimoaccesso"));
+			u.setEmail(rs.getString("email"));
+			u.setNome(rs.getString("nome"));
+			u.setPassword(rs.getString("password"));
+			u.setRuolo(rs.getString("ruolo"));
+			u.setUsername(rs.getString("username"));
+		}
+		return u;
 	}
 	}

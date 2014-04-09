@@ -4,6 +4,7 @@
 
 <jsp:useBean id="HTMLc" class="bean.HTMLContent" scope="request" />
 <jsp:setProperty  name="HTMLc" property="*"/>
+
 <html>
 
 <head>
@@ -12,5 +13,6 @@
 </head>
 <body>
 <jsp:getProperty name="HTMLc" property="content"/>
+
 </body>
 </html>

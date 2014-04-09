@@ -1,39 +1,42 @@
 package bean;
 
 import java.sql.Connection;
+import java.util.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
 import bean.Ubicazione;
 
 public class StazioneMetereologica {
 	public int idStazioneMetereologica;
-	public int idEnte;
-	public int idUbicazione;
-	public Ubicazione ubicazioneS;
+	public SitoStazioneMetereologica sito;
+	public Ente ente;
+	public ArrayList<Sensori> sensori;
+	public Ubicazione ubicazione;
 	public String nome;
 	public String aggregazioneGiornaliera;
 	public String note;
-	public String periodoFunzionamento;
-	//public ArrayList<String> sensori;
-	//public Sito sito;
+	public Date dataInizio;
+	public Date dataFine;
 	public boolean oraria;
+	public int idUtente;
 	
 	
 	public StazioneMetereologica(){
 		idStazioneMetereologica=0;
-		idEnte=0;
-		ubicazioneS=null;
+		sito=new SitoStazioneMetereologica();
+		ubicazione=new Ubicazione();
 		nome="";
+		ente=new Ente();
+		sensori=new ArrayList<Sensori>() ;
 		aggregazioneGiornaliera="";
 	    note="";
-		periodoFunzionamento="";
-		oraria=false;
-		//sito=null;
-	//	sensori=null;
-		
+		dataInizio=new Date(0);
+		dataFine=new Date(0);
+		oraria=false;		
 	}
 	
 	public void setIdStazioneMetereologica(int stazione){
@@ -43,25 +46,19 @@ public class StazioneMetereologica {
 		return idStazioneMetereologica;
 	}
 	
-	public void setIdEnte(int ente){
-		idEnte=ente;
+	public void setSito(SitoStazioneMetereologica sito){
+		this.sito=sito;
 	}
-	public int getIdEnte(){
-		return idEnte;
+	public SitoStazioneMetereologica getSito(){
+		return sito;
 	}
 	
-	/*public void setIdUbicazione( int ubicazione){
-		idUbicazione=ubicazione;
-	}
-	public int getIdUbicazione(){
-		return idUbicazione;
-	}
-	*/
+	
 	public void setUbicazione(Ubicazione ubicazione){
-		this.ubicazioneS=ubicazione;
+		this.ubicazione=ubicazione;
 	}
 	public Ubicazione getUbicazione(){
-		return ubicazioneS;
+		return ubicazione;
 	}
 	
 	
@@ -79,12 +76,6 @@ public class StazioneMetereologica {
 		return nome;
 	}
 	
-	public void setPeriodoFunzionamento(String periodo){
-		periodoFunzionamento=periodo;
-	}
-	public String getPeriodoFunzionamento(){
-		return periodoFunzionamento;
-	}
 	
 	public void setOraria(boolean oraria){
 		this.oraria=oraria;
@@ -92,14 +83,7 @@ public class StazioneMetereologica {
 	public boolean getOraria(){
 		return oraria;
 	}	
-	/*
-	public void setSito(Sito sito){
-		this.sito=sito;
-	}
-	public String getSito(){
-		return sito;
-	}
-	*/
+	
 	public void setNote(String note){
 		this.note=note;
 	}
@@ -110,13 +94,44 @@ public class StazioneMetereologica {
 	public String getVisualizza(){
 		
 		String out="";
-		out+="<p>quota: "+ubicazioneS.getQuota()+"</p> <p> nome "+getNome()+"";
+		out+="<p>quota: "+ubicazione.getQuota()+"</p> <p> nome "+getNome()+"";
 	
 		return out;
 	}
 	
-	/*
-	 * sensori
-	 */
+	public Date getDataInizio(){
+		return dataInizio;
+	}
+	public void setDataInizio(Date data){
+		this.dataInizio=data;
+	}
 	
+	public Date getDataFine(){
+		return dataFine;
+	}
+	public void setDataFine(Date data){
+		this.dataFine=data;
+	}
+	
+	public void setEnte(Ente ente){
+		this.ente=ente;
+	}
+	public Ente getEnte(){
+		return ente;
+	}
+	
+	public void setSensori(ArrayList<Sensori> sensori){
+		this.sensori=sensori;
+	}
+	public ArrayList<Sensori> getSensori(){
+		return sensori;
+	}
+
+	public int getIdUtente() {
+		return idUtente;
+	}
+
+	public void setIdUtente(int idUtente) {
+		this.idUtente = idUtente;
+	}
 }

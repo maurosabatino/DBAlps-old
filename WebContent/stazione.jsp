@@ -6,6 +6,10 @@
 
 <html>
 <head>
+<script src="js/jquery-1.10.2.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.js"></script>
+<script src="js/globalize.js"></script>
+<script src="js/globalize.culture.de-DE.js"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Insert title here</title>
 </head>

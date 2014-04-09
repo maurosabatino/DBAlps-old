@@ -15,10 +15,15 @@
 <div class="col-sm-3 col-md-2 sidebar">
 <ul class="nav nav-sidebar">
      <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a></li>
-     <li><a href="InserisciStazione.jsp">inserisci stazione</a></li>
      <li><a href="Servlet?operazione=formCercaProcessi"> ricerca processo</a></li>
      <li><a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a></li>
      <li><a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni metereologiche</a></li>
+	 <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzioneFrequenzaCumulativa con media mobile su deltaT</a></li>
+     <li><a href="Servlet?operazione=scegliStazioniT"> distribuzioneFrequenzaCumulativa su temperature</a></li>
+     <li><a href="Servlet?operazione=scegliStazioniPrecipitazioni"> distribuzioneFrequenzaCumulativa con media mobile su precipitazioni</a></li>
+     <li><a href="Servlet?operazione=formInserisciStazione"> inserisci stazione</a></li>
+     <li><a href="Servlet?operazione=mostraStazioniMaps"> mostra stazioni su mappa</a></li>
+     <li><a href="Servlet?operazione=formRicercaStazione"> ricerca stazione</a></li>
 </ul>
 
 </div>

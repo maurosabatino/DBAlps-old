@@ -125,8 +125,8 @@ public class ControllerDatiClimatici {
 		return a;
 	}
 	
-	public static void lettoreCSVT() throws ParseException, IOException, SQLException{
-		String csvFile = "/Users/daler/Desktop/prova2.csv";
+	public static void lettoreCSVT(int idstazione) throws ParseException, IOException, SQLException{
+		String csvFile = "/Users/mauro/Desktop/prova2.csv";
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy =";";
@@ -150,7 +150,7 @@ public class ControllerDatiClimatici {
 				System.out.println("data: "+dbFormat.format(d));
 				if(!med[1].equals("NaN")) t=(Double.parseDouble(med[1]));
 				else  t=-9999;
-				st.executeUpdate("INSERT INTO temperatura_avg(idstazionemetereologica,temperaturaavg,data) values(4,"+t+",'"+dbFormat.format(d)+"')");
+				st.executeUpdate("INSERT INTO temperatura_avg(idstazionemetereologica,temperaturaavg,data) values("+idstazione+","+t+",'"+dbFormat.format(d)+"')");
 			}	
 			st.close(); conn.close();
 		} catch (FileNotFoundException e) {
@@ -230,7 +230,7 @@ public class ControllerDatiClimatici {
 	}
 	
 	
-	public static ArrayList<Double> prendiTDelta(Timestamp t,int limite) throws SQLException{// limite = intervallo a dx/sx es 15 su aggregazione 30 giorni
+	public static ArrayList<Double> prendiTDelta(Timestamp t,int limite, int id) throws SQLException{// limite = intervallo a dx/sx es 15 su aggregazione 30 giorni
 		String url = "jdbc:postgresql://localhost:5432/DBAlps";
 		String user = "admin";
 		String pwd = "dbalps";
@@ -239,7 +239,7 @@ public class ControllerDatiClimatici {
 		ArrayList<Double> tem= new ArrayList<Double>();
 		int limiteinf=dataLimite(t,-limite);
 		int limitesup=dataLimite(t,limite);
-		ResultSet rs =st.executeQuery("SELECT temperaturaavg FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+"");
+		ResultSet rs =st.executeQuery("SELECT temperaturaavg FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+"");
 		while(rs.next()){
 			tem.add(rs.getDouble("temperaturaavg"));
 		}
@@ -307,13 +307,37 @@ public class ControllerDatiClimatici {
 		return data;
 	}
 	
+	public static int annoRiferimento(Timestamp t, int id) throws SQLException{
+		int anno=0;
+		String url = "jdbc:postgresql://localhost:5432/DBAlps";
+		String user = "admin";
+		String pwd = "dbalps";
+		Calendar cal=new GregorianCalendar();
+		cal.setTime(t);
+		anno=cal.get(Calendar.YEAR);
+		System.out.println("anno:"+anno);
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ArrayList<Double> tem= new ArrayList<Double>();
+		ResultSet rs=st.executeQuery("select count(distinct date_part('year',data) ) from temperatura_avg where date_part('year',data)<"+anno+" and idstazionemetereologica="+id+"" );
+		while(rs.next()) anno=rs.getInt("count");
+		anno=anno+1;
+		return anno;
+	}
+	
+	public static void incrementoTempo(Timestamp t){
+		
+	}
+	
 	public static void main(String[] args) throws ParseException, IOException, SQLException{
 		
 		Timestamp date = new Timestamp(0);
 		date = date.valueOf(("2013-09-30 00:00:00"));
 		//------------temperature---------------------//
 				
-		//lettoreCSV();
+		lettoreCSVT(1);
+		System.out.println("mauro culo \n mauro culo");
+		//System.out.println(""+annoRiferimento(date,4));
 	/*	double Trif=0;
 				int cont=0;
 		ArrayList<Double> temperature=prendiT(30,9,2013);
@@ -355,7 +379,7 @@ public class ControllerDatiClimatici {
 		//----------------------------precipitazioni--------------------------//
 	
 		//lettoreCSVPrec();
-				double precrif=0;
+	/*			double precrif=0;
 			     ArrayList<Double> precipitazioni=prendiPrecipitazioni(date,45);
 			     System.out.println("1");
 			     ArrayList<Double> somma=mediaMobilePrecipitazioni(precipitazioni,7,91,21);
@@ -367,12 +391,12 @@ public class ControllerDatiClimatici {
 			  /*	 for(int i=0;i<somma.size();i++){
 			  		System.out.println("som "+somma.get(i));
 			  	 }*/
-			  	 System.out.println("precipitazioni di riferimento"+precrif);
+	/*		  	 System.out.println("precipitazioni di riferimento"+precrif);
 			     System.out.println("precipitazioni "+precipitazioni.size());
 			     System.out.println("somma "+somma.size());
 			     System.out.println("pro "+pro.size());
 			     System.out.println("interpolazione"+interpolazione(somma, pro,precrif));
-
+*/
 
 	}
 }

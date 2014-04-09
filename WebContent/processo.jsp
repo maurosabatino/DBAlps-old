@@ -6,6 +6,7 @@
 <html>
 <head>
  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+ <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"/>
  <script src="js/jquery-1.11.0.js"></script>
 <script src="js/jquery-ui-1.10.4.custom.js"></script>
 <script src="js/globalize.js"></script>
