@@ -17,17 +17,17 @@ public class HTMLElaborazioni {
 		//cambiare inserimenti metodi controller dati climatici
 		double deltarif=0;
 		double interpolazione=0;
-		int limite=45;
 		for(int i=0;i<id.length;i++){
 			int idStazione=Integer.parseInt(id[i]);
 			int anno=ControllerDatiClimatici.annoRiferimento(t, idStazione);
 			Grafici gra=new Grafici();
-			ArrayList<Double> temperature = ControllerDatiClimatici.prendiTDelta(t, limite,idStazione);
+			ArrayList<Double> temperature = ControllerDatiClimatici.prendiTDelta(t, aggregazione,idStazione);
 			ArrayList<Double> deltaT=ControllerDatiClimatici.mediaMobileDeltaT(temperature,finestra,aggregazione*2+1,21);
 			deltarif=deltaT.get(deltaT.size()-1);
 			deltaT.remove(deltaT.size()-1);
 			String nome=ControllerDatabase.prendiNome(idStazione);
 			ArrayList<Double> probabilita=ControllerDatiClimatici.distribuzioneFrequenzaCumulativa(deltaT);
+			System.out.println("interpolazione:"+ControllerDatiClimatici.interpolazione(deltaT, probabilita,deltarif));
 			 interpolazione=ControllerDatiClimatici.interpolazione(deltaT, probabilita,deltarif);
 			 gra.setInterpolazione(interpolazione);
 			 gra.setNome(nome);
@@ -37,6 +37,8 @@ public class HTMLElaborazioni {
 			 
 			 g.add(gra);
 		}
+		
+		for(Grafici ga:g) System.out.println(""+ga.getRiferimento());
 		
 		String titolo="DeltaT";
 		String unita="(°C)";
@@ -50,8 +52,9 @@ public class HTMLElaborazioni {
 		ArrayList<Grafici> g=new ArrayList<Grafici>();
 		for(int i=0;i<id.length;i++){
 			int idStazione=Integer.parseInt(id[i]);
+			System.out.println("idstazione"+idStazione);
 			Grafici gra=new Grafici();
-			ArrayList<Double> temperature=ControllerDatiClimatici.prendiT(t);
+			ArrayList<Double> temperature=ControllerDatiClimatici.prendiT(t,idStazione,aggregazione-1);
 			double Triferimento=temperature.get(temperature.size()-1);
 			temperature.remove(temperature.size()-1);
 			ArrayList<Double> probabilita=ControllerDatiClimatici.distribuzioneFrequenzaCumulativa(temperature);
@@ -80,8 +83,8 @@ public class HTMLElaborazioni {
 			int idStazione=Integer.parseInt(id[i]);
 			double precrif=0;
 			int anno=ControllerDatiClimatici.annoRiferimento(t, idStazione);
-			ArrayList<Double> precipitazioni=ControllerDatiClimatici.prendiPrecipitazioni(t,aggregazione);
-			ArrayList<Double> somma=ControllerDatiClimatici.mediaMobilePrecipitazioni(precipitazioni,finestra,aggregazione,anno);
+			ArrayList<Double> precipitazioni=ControllerDatiClimatici.prendiPrecipitazioni(t,aggregazione,idStazione);
+			ArrayList<Double> somma=ControllerDatiClimatici.mediaMobilePrecipitazioni(precipitazioni,finestra,aggregazione*2+1,anno);
 			precrif=somma.get(somma.size()-1);
 			somma.remove(somma.size()-1);	
 			ArrayList<Double> pro=ControllerDatiClimatici.distribuzioneFrequenzaCumulativa(somma);
@@ -111,11 +114,11 @@ public class HTMLElaborazioni {
 				"		    $('#container').highcharts({" +
 				"		        title: {" +
 				"		            text: '"+titolo+"'," +
-			//	"		            x: -20 " +
+		
 				"		        }," +
 				"		        subtitle: {" +
 				"		            text: 'elaborazioni '," +
-			//	"		            x: -20" +
+		
 				"		        }," +
 				"		        xAxis: {" +
 				"					title: {" +
@@ -175,7 +178,6 @@ public class HTMLElaborazioni {
 					"symbol: 'circle'},"+
 					
 					"          color:'red',"+
-				//	"data: [["+riferimento+", 0],["+riferimento+",1], ["+riferimento+", "+interpolazione+"]]" );
 				"data: [["+g.getRiferimento()+","+g.getInterpolazione()+"]]}," );
 		}
 			sb.append(		"]" );

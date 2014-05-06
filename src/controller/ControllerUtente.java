@@ -1,31 +1,33 @@
 package controller;
 
-import java.util.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import javax.servlet.http.HttpServletRequest;
 
-import bean.Processo;
-import bean.Utente;
+import bean.partecipante.*;
+
 
 public class ControllerUtente {
 
-	public static Utente creazioneUtente(HttpServletRequest request) throws ParseException{
-		Utente utente=new Utente();
-		System.out.println("data"+data());
-		utente.setDataCreazione(Timestamp.valueOf(data()));
-		utente.setNome(request.getParameter("nome"));
-		utente.setCognome(request.getParameter("cognome"));
-		utente.setEmail(request.getParameter("email"));
-		utente.setUsername(request.getParameter("username"));
-		utente.setPassword(request.getParameter("password"));
-		utente.setRuolo(request.getParameter("ruolo"));
-		return utente;
+	public static Partecipante creazioneUtente(HttpServletRequest request) throws ParseException{
+		Partecipante partecipante = new PartecipanteConcreto();
+		switch(request.getParameter("ruolo")){
+		case "amministratore" : partecipante = new Amministratore(partecipante); break;
+		case "avanzato" : partecipante = new UtenteAvanzato(partecipante); break;
+		case "base" : partecipante = new UtenteBase(partecipante); break;
+		}
+		partecipante.setDataCreazione(Timestamp.valueOf(data()));
+		partecipante.setNome(request.getParameter("nome"));
+		partecipante.setCognome(request.getParameter("cognome"));
+		partecipante.setEmail(request.getParameter("email"));
+		partecipante.setUsername(request.getParameter("username"));
+		partecipante.setPassword(request.getParameter("password"));
+		partecipante.setRuolo(request.getParameter("ruolo"));
+		return partecipante;
 	}
 	public static String data(){
 		Calendar cal = new GregorianCalendar();
@@ -38,9 +40,9 @@ public class ControllerUtente {
 	    return (anno+"-"+mese+"-"+giorno+" "+ora+":"+min+":"+sec);
 	}
 	
-	public static Utente nuovoUtente(HttpServletRequest request) throws ParseException, SQLException{
-		Utente utente=creazioneUtente(request);
-		utente=ControllerDatabase.salvaUtente(utente);
-		return utente;
+	public static Partecipante nuovoUtente(HttpServletRequest request) throws ParseException, SQLException{
+		Partecipante partecipante=creazioneUtente(request);
+		partecipante=ControllerDatabase.salvaUtente(partecipante);
+		return partecipante;
 	}
 }

@@ -159,6 +159,7 @@ ideffettimorfologici integer references effetti_morfologici(ideffettimorfologici
 )
 
 create table if not exists danni_processo(
+iddanniprocesso serial not null primary key,
 idprocesso integer references processo(idprocesso),
 iddanno integer references danno(iddanno)
 )

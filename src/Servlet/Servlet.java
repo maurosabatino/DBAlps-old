@@ -3,39 +3,72 @@ package Servlet;
 import html.HTMLElaborazioni;
 import html.HTMLProcesso;
 import html.HTMLStazioneMetereologica;
+import html.HTMLUtente;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
+
+
+import javax.websocket.Session;
+
+import org.apache.commons.fileupload.DiskFileUpload;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUpload;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import bean.HTMLContent;
+import bean.Processo;
+import bean.StazioneMetereologica;
+import bean.Ubicazione;
+import bean.partecipante.Partecipante;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import controller.ControllerDatabase;
 import controller.ControllerJson;
 import controller.ControllerProcesso;
-import controller.ControllerUbicazione;
 import controller.ControllerStazioneMetereologica;
+import controller.ControllerUbicazione;
 import controller.ControllerUtente;
-import bean.HTMLContent;
-import bean.LocazioneAmministrativa;
-import bean.LocazioneIdrologica;
-import bean.Processo;
-import bean.StazioneMetereologica;
-import bean.Ubicazione;
-import bean.Utente;
+
+
 
 /**
  * Servlet implementation class Servlet
  */
 @WebServlet("/Servlet")
+@MultipartConfig
 public class Servlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
@@ -58,6 +91,9 @@ public class Servlet extends HttpServlet {
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -72,20 +108,26 @@ public class Servlet extends HttpServlet {
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
-	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, ParseException {
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		
-		String operazione = (String) request.getParameter("operazione");
+		String operazione = request.getParameter("operazione");
 		String path = getServletContext().getRealPath("/");
 		System.out.println(path);
+		HttpSession session = request.getSession();
 		String loc = "IT";//oggetto sessione
 		
+		System.out.println("operazione eseguita: "+operazione);
 		/*
 		 * Processo
 		 */
 		if(operazione.equals("formInserisciProcesso")){
-			String content = HTMLProcesso.formInserisciProcesso(path,loc);
+			Partecipante part = (Partecipante)session.getAttribute("partecipante");
+			String content = HTMLProcesso.formInserisciProcesso(path,loc,part);
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
@@ -105,6 +147,7 @@ public class Servlet extends HttpServlet {
 		
 		}
 		else if(operazione.equals("mostraProcesso")){
+			System.out.println("stampa");
 			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
 			String content = HTMLProcesso.mostraProcesso(idProcesso);
 			HTMLContent c = new HTMLContent();
@@ -319,18 +362,56 @@ public class Servlet extends HttpServlet {
 		}
 		
 		//utente
-		else if(operazione.equals("inserisciUtente")){
-			Utente utente=ControllerUtente.nuovoUtente(request);
-			utente=ControllerDatabase.prendiUtente(utente);
-	/*		String content=HTMLUtente.creazioneUtente(utente);
-			HTMLContent c=new HTMLContent();
-			c.setContent(content);*/
-			request.setAttribute("HTMLc",utente);
-			forward(request,response,"/visualizzautente.jsp");
+		else if(operazione.equals("formCreaUtente")){
+			String content = HTMLUtente.creaUtente();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/utente.jsp");
 		}
-	    
+		else if(operazione.equals("inserisciUtente")){
+			Partecipante utente=ControllerUtente.nuovoUtente(request);
+			String content ="<h2> l'utente "+utente.getUsername()+" è stato creato correttamente</h2>";
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/utente.jsp");
+		}
+		else if(operazione.equals("formLogin")){
+			String content = HTMLUtente.login();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/utente.jsp");
+		}
+		else if(operazione.equals("login")){
+			String username = request.getParameter("username");
+			String password = request.getParameter("password");
+			if(ControllerDatabase.login(username, password)){
+				System.out.println("login corretto");
+				HTMLContent c = new HTMLContent();
+				Partecipante utente=ControllerDatabase.prendiUtente(username);
+				session.setAttribute("partecipante", utente);
+				String content = HTMLUtente.visualizzaUtente(utente);
+				c.setContent(content);
+				request.setAttribute("HTMLc",c);
+				forward(request,response,"/utente.jsp");
+			}else{
+				String content ="<h2>spiacente, il login non è corretto</h2>";
+				HTMLContent c = new HTMLContent();
+				c.setContent(content);
+				request.setAttribute("HTMLc",c);
+				forward(request,response,"/utente.jsp");
+			}
+		}
+		else if(operazione.equals("logout")){
+			response.setHeader("Cache-Control", "no-cache, no-store");
+			response.setHeader("Pragma", "no-cache");
+			request.getSession().invalidate();
+			response.sendRedirect(request.getContextPath() + "/index.jsp");
+		}
+		
 	}
-			
 								
 			
 	    
@@ -339,6 +420,9 @@ public class Servlet extends HttpServlet {
 		        ServletContext sc = getServletContext();
 		        RequestDispatcher rd = sc.getRequestDispatcher(page);
 		        rd.forward(request,response);
-		  }
+	}
+	
+
+
 
 }

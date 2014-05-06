@@ -9,15 +9,21 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+
+import javax.servlet.http.Part;
 
 import bean.*;
+import bean.partecipante.Amministratore;
+import bean.partecipante.Partecipante;
+import bean.partecipante.PartecipanteConcreto;
+import bean.partecipante.UtenteAvanzato;
+import bean.partecipante.UtenteBase;
 
 public class ControllerDatabase {
 	static String url = "jdbc:postgresql://localhost:5432/DBAlps";
 	static String user = "admin";
 	static String pwd = "dbalps";
-	
-	
 	
 	/**
 	 * Processo
@@ -29,7 +35,7 @@ public class ControllerDatabase {
 		StringBuilder sb = new StringBuilder();
 		sb.append(""+p.getUbicazione().getIdUbicazione());
 		sb.append(","+p.getSitoProcesso().getIdSito()+"");
-		sb.append(",'"+p.getNome()+"'");
+		sb.append(",'"+p.getNome().replaceAll("'", "''")+"'");
 		sb.append(",'"+p.getData()+"'");
 		sb.append(",'"+p.getDescrizione()+"'");
 		sb.append(",'"+p.getNote()+"'");
@@ -53,6 +59,7 @@ public class ControllerDatabase {
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return p;
@@ -68,6 +75,8 @@ public class ControllerDatabase {
 			st.execute("insert into danni_processo(idprocesso,iddanno) values("+idProcesso+","+da.getIdDanni()+")");
 			
 		}
+		st.close();
+		conn.close();
 	}
 	
 	public static void salvaTipologiaProcesso(int idProcesso,ArrayList<TipologiaProcesso> tp) throws SQLException{
@@ -77,6 +86,8 @@ public class ControllerDatabase {
 			System.out.println("tip"+pt.getIdTipologiaProcesso());
 			st.executeUpdate("insert into caratteristiche_processo(idprocesso,idtipologiaProcesso) values("+idProcesso+","+pt.getIdTipologiaProcesso()+")");
 		}
+		st.close();
+		conn.close();
 	}
 	
 	
@@ -84,7 +95,20 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		Processo p = new Processo();
-		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idProcesso="+idProcesso+" ");
+		Ubicazione u = new Ubicazione();
+		Coordinate coord = new Coordinate();
+		LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+		LocazioneIdrologica locIdro = new LocazioneIdrologica();
+		StringBuilder sb = new StringBuilder();
+		sb.append("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y, l.nome_it as lito_it,l.nome_eng as lito_eng,pt.nome_it as pt_it,pt.nome_eng as pt_eng,sf.nome_it as sf_it,sf.nome_eng as sf_eng ");
+		sb.append(" from processo proc, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,");
+		sb.append(" litologia l,proprieta_termiche pt, stato_fratturazione sf, sito_processo sp,classi_volume cv");
+		sb.append(" where proc.idubicazione = u.idubicazione and proc.idprocesso="+idProcesso+"");
+		sb.append(" and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and");
+		sb.append(" b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and ");
+		sb.append(" proc.idlitologia = l.idlitologia and pt.idproprietatermiche=proc.idproprietatermiche and sp.idsitoprocesso=proc.idsito and proc.idclassevolume=cv.idclassevolume");
+		
+		ResultSet rs = st.executeQuery(sb.toString());
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 			p.setNome(rs.getString("nome"));
@@ -95,17 +119,53 @@ public class ControllerDatabase {
 			p.setLarghezza(rs.getDouble("larghezza"));
 			p.setSuperficie(rs.getDouble("superficie"));
 			p.setVolumeSpecifico(rs.getDouble("volumespecifico"));
-			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
-			p.setClasseVolume(prendiClasseVolume(rs.getInt("idclassevolume")));
-			p.setLitologia(prendiLitologia(rs.getInt("idlitologia")));
-			p.setProprietaTermiche(prendiProprietaTermica(rs.getInt("idproprietatermiche")));
-			p.setStatoFratturazione(prendiStatoFratturazione(rs.getInt("idstatofratturazione")));
-			p.setSitoProcesso(prendiSitoProcesso(rs.getInt("idsito")));
+			coord.setX(rs.getDouble("x"));
+			coord.setY(rs.getDouble("y"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			u.setCoordinate(coord);
+			u.setLocAmm(locAmm);
+			u.setLocIdro(locIdro);
+			u.setEsposizione(rs.getString("esposizione"));
+			u.setQuota(rs.getDouble("quota"));
+			p.setUbicazione(u);
+			ClasseVolume cv = new ClasseVolume();
+			cv.setIdClasseVolume(rs.getInt("idclassevolume"));
+			cv.setIntervallo(rs.getString("intervallo"));
+			p.setClasseVolume(cv);
+			Litologia l = new Litologia();
+			l.setIdLitologia(rs.getInt("idlitologia"));
+			l.setNomeLitologia_IT(rs.getString("lito_it"));
+			l.setNomeLitologia_ENG(rs.getString("lito_eng"));
+			p.setLitologia(l);
+			ProprietaTermiche pt = new ProprietaTermiche();
+			pt.setIdProprietaTermiche(rs.getInt("idproprietatermiche"));
+			pt.setProprietaTermiche_IT(rs.getString("pt_it"));
+			pt.setProprietaTermiche_ENG(rs.getString("pt_eng"));
+			p.setProprietaTermiche(pt);
+			StatoFratturazione sf = new StatoFratturazione();
+			sf.setIdStatoFratturazione(rs.getInt("idstatofratturazione"));
+			sf.setStatoFratturazione_IT(rs.getString("sf_it"));
+			sf.setStatoFratturazione_ENG(rs.getString("sf_eng"));
+			p.setStatoFratturazione(sf);
+			SitoProcesso sp = new SitoProcesso();
+			sp.setIdSito(rs.getInt("idsito"));
+			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_it"));
+			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
 			p.setDanni(prendiDanniProcesso(idProcesso));
 			p.setEffetti(prendiEffettiProcesso(idProcesso));
 			p.setTipologiaProcesso(prendiCaratteristicheProcesso(idProcesso));
 			p.setUbicazione(u);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return p;
 	}
 	
@@ -113,9 +173,21 @@ public class ControllerDatabase {
 		ArrayList<Processo> al = new ArrayList<Processo>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("SELECT * FROM processo");
+		StringBuilder sb = new StringBuilder();
+		sb.append("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y, l.nome_it as lito_it,l.nome_eng as lito_eng,pt.nome_it as pt_it,pt.nome_eng as pt_eng,sf.nome_it as sf_it,sf.nome_eng as sf_eng ");
+		sb.append(" from processo proc, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,");
+		sb.append(" litologia l,proprieta_termiche pt, stato_fratturazione sf, sito_processo sp,classi_volume cv");
+		sb.append(" where proc.idubicazione = u.idubicazione ");
+		sb.append(" and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and");
+		sb.append(" b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and ");
+		sb.append(" proc.idlitologia = l.idlitologia and pt.idproprietatermiche=proc.idproprietatermiche and sp.idsitoprocesso=proc.idsito and proc.idclassevolume=cv.idclassevolume");
+		ResultSet rs = st.executeQuery(sb.toString());
 		while(rs.next()){
 			Processo p = new Processo();
+			Ubicazione u = new Ubicazione();
+			Coordinate coord = new Coordinate();
+			LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+			LocazioneIdrologica locIdro = new LocazioneIdrologica();
 			p.setIdprocesso(rs.getInt("idProcesso"));
 			p.setNome(rs.getString("nome"));
 			p.setData(rs.getTimestamp("data"));
@@ -124,18 +196,55 @@ public class ControllerDatabase {
 			p.setAltezza(rs.getDouble("altezza"));
 			p.setLarghezza(rs.getDouble("larghezza"));
 			p.setSuperficie(rs.getDouble("superficie"));
-			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
-			p.setClasseVolume(prendiClasseVolume(rs.getInt("idclassevolume")));
-			p.setLitologia(prendiLitologia(rs.getInt("idlitologia")));
-			p.setProprietaTermiche(prendiProprietaTermica(rs.getInt("idproprietatermiche")));
-			p.setStatoFratturazione(prendiStatoFratturazione(rs.getInt("idstatofratturazione")));
-			p.setSitoProcesso(prendiSitoProcesso(rs.getInt("idsito")));
-			p.setDanni(prendiDanniProcesso(p.getIdProcesso()));
-			p.setEffetti(prendiEffettiProcesso(p.getIdProcesso()));
-			p.setTipologiaProcesso(prendiCaratteristicheProcesso(p.getIdProcesso()));
+			p.setVolumeSpecifico(rs.getDouble("volumespecifico"));
+			coord.setX(rs.getDouble("x"));
+			coord.setY(rs.getDouble("y"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			u.setCoordinate(coord);
+			u.setLocAmm(locAmm);
+			u.setLocIdro(locIdro);
+			u.setEsposizione(rs.getString("esposizione"));
+			u.setQuota(rs.getDouble("quota"));
+			p.setUbicazione(u);
+			ClasseVolume cv = new ClasseVolume();
+			cv.setIdClasseVolume(rs.getInt("idclassevolume"));
+			cv.setIntervallo(rs.getString("intervallo"));
+			p.setClasseVolume(cv);
+			Litologia l = new Litologia();
+			l.setIdLitologia(rs.getInt("idlitologia"));
+			l.setNomeLitologia_IT(rs.getString("lito_it"));
+			l.setNomeLitologia_ENG(rs.getString("lito_eng"));
+			p.setLitologia(l);
+			ProprietaTermiche pt = new ProprietaTermiche();
+			pt.setIdProprietaTermiche(rs.getInt("idproprietatermiche"));
+			pt.setProprietaTermiche_IT(rs.getString("pt_it"));
+			pt.setProprietaTermiche_ENG(rs.getString("pt_eng"));
+			p.setProprietaTermiche(pt);
+			StatoFratturazione sf = new StatoFratturazione();
+			sf.setIdStatoFratturazione(rs.getInt("idstatofratturazione"));
+			sf.setStatoFratturazione_IT(rs.getString("sf_it"));
+			sf.setStatoFratturazione_ENG(rs.getString("sf_eng"));
+			p.setStatoFratturazione(sf);
+			SitoProcesso sp = new SitoProcesso();
+			sp.setIdSito(rs.getInt("idsito"));
+			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_it"));
+			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
+			p.setDanni(prendiDanniProcesso(rs.getInt("idprocesso")));
+			p.setEffetti(prendiEffettiProcesso(rs.getInt("idprocesso")));
+			p.setTipologiaProcesso(prendiCaratteristicheProcesso(rs.getInt("idprocesso")));
 			p.setUbicazione(u);
 			al.add(p);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return al;
 	}
 	
@@ -146,77 +255,40 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		if(!(p.getAltezza()==null || p.getAltezza()==0)){
-			sb.append(" where altezza="+p.getAltezza()+"");
+			sb.append(" and altezza="+p.getAltezza()+"");
 		}
 		
 		if(!(p.getNome()==null || p.getNome().equals(""))){
-			if(sb.toString().equals("") || sb == null)
-				sb.append(" where nome='"+p.getNome()+"'");
-			else
 				sb.append(" and nome="+p.getNome()+"");
 		}
 		if(!(p.getSuperficie()==null || p.getSuperficie()==0)){
-			if(sb.toString().equals("") || sb == null)
-				sb.append(" where superficie="+p.getSuperficie()+"");
-			else
 				sb.append(" and superficie="+p.getSuperficie()+"");
 		}
 		if(!(p.getLarghezza()==null || p.getLarghezza()==0)){
-			if(sb.toString().equals("") || sb == null)
-				sb.append(" where larghezza="+p.getLarghezza()+"");
-			else
 				sb.append(" and larghezza="+p.getLarghezza()+"");
 		}
 		if(!((p.getData()==null) ||p.getData().equals(Timestamp.valueOf("0001-01-01 00:00:00")))){
-			if(sb.toString().equals("") || sb == null){
-				sb.append(" where data='"+p.getData()+"'");
-			}
-			else
 				sb.append(" and data='"+p.getData()+"'");
 		}
 		if(!(p.getClasseVolume().getIdClasseVolume()==0)){
-			if(sb.toString().equals("") || sb == null){
-				sb.append(" where idclassevolume="+p.getClasseVolume().getIdClasseVolume()+"");
-			}
-			else
 				sb.append(" and idclassevolume="+p.getClasseVolume().getIdClasseVolume()+"");
 			}
 		if(!(p.getLitologia().getidLitologia()==0)){
-			if(sb.toString().equals("") || sb == null){
-				sb.append(" where idlitologia="+p.getLitologia().getidLitologia()+"");
-			}
-			else
 				sb.append(" and idlitologia="+p.getLitologia().getidLitologia()+"");
 		}
 		if(!(p.getProprietaTermiche().getIdProprieta_termiche()==0)){
-			if(sb.toString().equals("") || sb == null){
-				sb.append(" where idproprietatermiche="+p.getProprietaTermiche().getIdProprieta_termiche()+"");
-			}
-			else
 				sb.append(" and idproprietatermiche="+p.getProprietaTermiche().getIdProprieta_termiche()+"");
 		}
-		
-		
 		if(!(p.getStatoFratturazione().getIdStato_fratturazione()==0)){
-			if(sb.toString().equals("") || sb == null){
-				sb.append(" where idstatofratturazione="+p.getStatoFratturazione().getIdStato_fratturazione()+"");
-			}
-			else
 				sb.append(" and idstatofratturazione="+p.getStatoFratturazione().getIdStato_fratturazione()+"");
 		}
 		if(!(p.getSitoProcesso().getIdSito()==0)){
-			if(sb.toString().equals("") || sb == null){
-				sb.append(" where idsito="+p.getSitoProcesso().getIdSito()+"");
-			}
-			else
 				sb.append(" and idsito="+p.getSitoProcesso().getIdSito()+"");
 		}
 		
 		if(!(p.getDanni().size()==0)){
 			StringBuilder sd=new StringBuilder();
-			if(sb.toString().equals("")|| sb==null)		
-				sd.append(" where idprocesso in(");
-			else sd.append(" and idprocesso in(");
+			sd.append(" and idprocesso in(");
 			for(int i=0;i<p.getDanni().size();i++){
 				if(i==0)
 					sd.append("select distinct(idprocesso) from danni_processo where iddanno="+p.getDanni().get(i).getIdDanni()+"");
@@ -231,9 +303,7 @@ public class ControllerDatabase {
 		}
 		if(!(p.getEffetti().size()==0)){
 			StringBuilder se=new StringBuilder();
-			if(sb.toString().equals("")|| sb==null)		
-				se.append(" where idprocesso in(");
-			else se.append(" and idprocesso in(");
+			se.append(" and idprocesso in(");
 			for(int i=0;i<p.getEffetti().size();i++){
 				if(i==0)
 					se.append("select distinct(idprocesso) from effetti_processo where ideffettimorfologici="+p.getEffetti().get(i).getIdEffettiMorfoligici()+"");
@@ -249,9 +319,7 @@ public class ControllerDatabase {
 		
 		if(!(p.getTipologiaProcesso().size()==0)){
 			StringBuilder stp=new StringBuilder();
-			if(sb.toString().equals("")|| sb==null)		
-				stp.append(" where idprocesso in(");
-			else stp.append(" and idprocesso in(");
+			stp.append(" and idprocesso in(");
 			for(int i=0;i<p.getTipologiaProcesso().size();i++){
 				if(i==0)
 					stp.append("select distinct(idprocesso) from caratteristiche_processo where idtipologiaprocesso="+p.getTipologiaProcesso().get(i).getIdTipologiaProcesso()+"");
@@ -266,12 +334,6 @@ public class ControllerDatabase {
 		}
 		
 		if(!(u.getLocAmm().isEmpty())){
-			if(sb.toString().equals("") || sb == null)
-				su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
-						+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
-				else
-					su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
-							+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
 			if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
 				su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
 			}
@@ -284,49 +346,96 @@ public class ControllerDatabase {
 			if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
 				su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
 			}
-			su.append(")");
 		}
 		
 		if(!(u.getLocIdro().isEmpty())){
-			if(sb.toString().equals("") || sb == null){
-				if(su.toString().equals("") || su==null){
-					su.append("where idubicazione in( select idubicazione from ubicazione,bacino b,sottobacino s where s.idbacino=b.idbacino and ubicazione.idsottobacino=s.idsottobacino");
-				}
-			}else{
-				if(!(su.toString().equals("") || su==null)){
-				su.append("and idubicazione in( select idubicazione from ubicazione,bacino b,sottobacino s where s.idbacino=b.idbacino and ubicazione.idsottobacino=s.idsottobacino");
-				}
-			}if(!(su.toString().equals("") || su==null)){
-				su.append("and idubicazione in( select idubicazione from ubicazione,bacino b,sottobacino s where s.idbacino=b.idbacino and ubicazione.idsottobacino=s.idsottobacino");
-			}
-			
 			if(!(u.getLocIdro().getBacino()==null || u.getLocIdro().getBacino().equals(""))){
 				su.append(" and b.nomebacino='"+u.getLocIdro().getBacino()+"'");
 			}
 			if(!(u.getLocIdro().getSottobacino()==null || u.getLocIdro().getSottobacino().equals(""))){
 				su.append(" and s.nomesottobacino='"+u.getLocIdro().getSottobacino()+"'");
 			}
-			
-			su.append(")");
 		}
 		
-		
 		ResultSet rs = null;
-		
-		System.out.println("Ubicazione: "+u.isEmpty());
+		StringBuilder query = new StringBuilder();
+		query.append("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y, l.nome_it as lito_it,l.nome_eng as lito_eng,pt.nome_it as pt_it,pt.nome_eng as pt_eng,sf.nome_it as sf_it,sf.nome_eng as sf_eng ");
+		query.append(" from processo proc, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,");
+		query.append(" litologia l,proprieta_termiche pt, stato_fratturazione sf, sito_processo sp,classi_volume cv");
+		query.append(" where proc.idubicazione = u.idubicazione ");
+		query.append(" and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and");
+		query.append(" b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and ");
+		query.append(" proc.idlitologia = l.idlitologia and pt.idproprietatermiche=proc.idproprietatermiche and sp.idsitoprocesso=proc.idsito and proc.idclassevolume=cv.idclassevolume");
 		if(u.isEmpty()==true){
 			System.out.println("query "+sb.toString());
-		 rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" ");
+		 rs = st.executeQuery(""+query.toString()+" "+sb.toString()+" ");
 		}
 		else {
 			System.out.println("SELECT * FROM processo  "+sb.toString()+" "+su.toString()+" ");
-			rs = st.executeQuery("SELECT * FROM processo  "+sb.toString()+" "+su.toString()+" ");
+			rs = st.executeQuery(""+query.toString()+"  "+sb.toString()+" "+su.toString()+" ");
 		}
 		while(rs.next()){
-			Processo ps = prendiProcesso(rs.getInt("idProcesso"));
+			Processo ps = new Processo();
+			Ubicazione ubi = new Ubicazione();
+			Coordinate coord = new Coordinate();
+			LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+			LocazioneIdrologica locIdro = new LocazioneIdrologica();
+			ps.setIdprocesso(rs.getInt("idProcesso"));
+			ps.setNome(rs.getString("nome"));
+			ps.setData(rs.getTimestamp("data"));
+			ps.setDescrizione(rs.getString("descrizione"));
+			ps.setNote(rs.getString("note"));
+			ps.setAltezza(rs.getDouble("altezza"));
+			ps.setLarghezza(rs.getDouble("larghezza"));
+			ps.setSuperficie(rs.getDouble("superficie"));
+			ps.setVolumeSpecifico(rs.getDouble("volumespecifico"));
+			coord.setX(rs.getDouble("x"));
+			coord.setY(rs.getDouble("y"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			ubi.setCoordinate(coord);
+			ubi.setLocAmm(locAmm);
+			ubi.setLocIdro(locIdro);
+			ubi.setEsposizione(rs.getString("esposizione"));
+			ubi.setQuota(rs.getDouble("quota"));
+			ps.setUbicazione(ubi);
+			ClasseVolume cv = new ClasseVolume();
+			cv.setIdClasseVolume(rs.getInt("idclassevolume"));
+			cv.setIntervallo(rs.getString("intervallo"));
+			ps.setClasseVolume(cv);
+			Litologia l = new Litologia();
+			l.setIdLitologia(rs.getInt("idlitologia"));
+			l.setNomeLitologia_IT(rs.getString("lito_it"));
+			l.setNomeLitologia_ENG(rs.getString("lito_eng"));
+			ps.setLitologia(l);
+			ProprietaTermiche pt = new ProprietaTermiche();
+			pt.setIdProprietaTermiche(rs.getInt("idproprietatermiche"));
+			pt.setProprietaTermiche_IT(rs.getString("pt_it"));
+			pt.setProprietaTermiche_ENG(rs.getString("pt_eng"));
+			ps.setProprietaTermiche(pt);
+			StatoFratturazione sf = new StatoFratturazione();
+			sf.setIdStatoFratturazione(rs.getInt("idstatofratturazione"));
+			sf.setStatoFratturazione_IT(rs.getString("sf_it"));
+			sf.setStatoFratturazione_ENG(rs.getString("sf_eng"));
+			ps.setStatoFratturazione(sf);
+			SitoProcesso sp = new SitoProcesso();
+			sp.setIdSito(rs.getInt("idsito"));
+			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_it"));
+			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
+			ps.setDanni(prendiDanniProcesso(rs.getInt("idprocesso")));
+			ps.setEffetti(prendiEffettiProcesso(rs.getInt("idprocesso")));
+			ps.setTipologiaProcesso(prendiCaratteristicheProcesso(rs.getInt("idprocesso")));
 			al.add(ps);
 		}	
-		
+		rs.close();
+		st.close();
+		conn.close();
 		return al;
 	}
 	
@@ -420,6 +529,9 @@ public class ControllerDatabase {
 			
 			st.executeUpdate(""+su.toString());
 		}
+
+		st.close();
+		conn.close();
 		
 	}
 	
@@ -439,6 +551,7 @@ public class ControllerDatabase {
 			em.setTipo_ENG(rs.getString("tipo_eng"));
 			al.add(em);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -454,6 +567,7 @@ public class ControllerDatabase {
 			em.setTipo_IT(rs.getString("tipo_it"));
 			em.setTipo_ENG(rs.getString("tipo_eng"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return em;
@@ -466,6 +580,7 @@ public class ControllerDatabase {
 		while(rs.next()){
 			i = rs.getInt("idEffettimorfologici");
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return i;
@@ -485,6 +600,7 @@ public class ControllerDatabase {
 			em.setTipo_ENG(rs.getString("tipo_eng"));
 			al.add(em);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -502,6 +618,7 @@ public class ControllerDatabase {
 			d.setTipo_ENG(rs.getString("tipo_eng"));
 			al.add(d);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -516,6 +633,7 @@ public class ControllerDatabase {
 			d.setTipo_IT(rs.getString("tipo_it"));
 			d.setTipo_ENG(rs.getString("tipo_eng"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return d;
@@ -528,6 +646,7 @@ public class ControllerDatabase {
 		while(rs.next()){
 			i = rs.getInt("iddanno");
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return i;
@@ -544,6 +663,7 @@ public class ControllerDatabase {
 			d.setTipo_ENG(rs.getString("tipo_eng"));
 			al.add(d);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -561,6 +681,7 @@ public class ControllerDatabase {
 			pt.setProprietaTermiche_ENG(rs.getString("nome_eng"));
 			al.add(pt);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -575,6 +696,7 @@ public class ControllerDatabase {
 			pt.setProprietaTermiche_IT(rs.getString("nome_it"));
 			pt.setProprietaTermiche_ENG(rs.getString("nome_eng"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return pt;
@@ -606,6 +728,7 @@ public class ControllerDatabase {
 			sf.setStatoFratturazione_IT(rs.getString("nome_it"));
 			sf.setStatoFratturazione_ENG(rs.getString("nome_ENG"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return sf;
@@ -622,6 +745,7 @@ public class ControllerDatabase {
 			l.setNomeLitologia_ENG(rs.getString("nome_ENG"));
 			al.add(l);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -636,6 +760,7 @@ public class ControllerDatabase {
 			l.setNomeLitologia_IT(rs.getString("nome_IT"));
 			l.setNomeLitologia_ENG(rs.getString("nome_ENG"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return l;
@@ -653,6 +778,7 @@ public class ControllerDatabase {
 			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
 			al.add(sp);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -667,6 +793,7 @@ public class ControllerDatabase {
 			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_IT"));
 			sp.setCaratteristicaSito_ENG(rs.getString("caratteristica_eng"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return sp;
@@ -683,6 +810,7 @@ public class ControllerDatabase {
 			cv.setIntervallo(rs.getString("intervallo"));
 			al.add(cv);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -697,6 +825,7 @@ public class ControllerDatabase {
 			cv.setIdClasseVolume(rs.getInt("idclassevolume"));
 			cv.setIntervallo(rs.getString("intervallo"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return cv;
@@ -714,6 +843,7 @@ public class ControllerDatabase {
 			tp.setNome_ENG(rs.getString("nome_eng"));
 			al.add(tp);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -728,6 +858,7 @@ public class ControllerDatabase {
 			tp.setNome_IT(rs.getString("nome_it"));
 			tp.setNome_ENG(rs.getString("nome_eng"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return tp;
@@ -742,6 +873,7 @@ public class ControllerDatabase {
 		while(rs.next()){
 			i = rs.getInt("idtipologiaprocesso");
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return i;
@@ -759,6 +891,7 @@ public class ControllerDatabase {
 			tp.setNome_ENG(rs.getString("nome_eng"));
 			al.add(tp);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return al;
@@ -790,16 +923,24 @@ public class ControllerDatabase {
 			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
 		
 		salvaSensoriStazione(s);
-		 st.close(); conn.close();
+		rs.close();
+		st.close();
+		conn.close();
 	}
 
 	public static ArrayList<StazioneMetereologica> prendiTutteStazioniMetereologiche() throws SQLException{
 		ArrayList<StazioneMetereologica> al = new ArrayList<StazioneMetereologica>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("SELECT * FROM stazione_metereologica");
+		ResultSet rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss where staz.idubicazione = u.idubicazione"
+				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
+				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione");
 		while(rs.next()){
 			StazioneMetereologica s=new StazioneMetereologica();
+			Ubicazione u = new Ubicazione();
+			Coordinate coord = new Coordinate();
+			LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+			LocazioneIdrologica locIdro = new LocazioneIdrologica();
 			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
 			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
 			s.setNote(rs.getString("note"));
@@ -807,23 +948,52 @@ public class ControllerDatabase {
 			s.setDataInizio(rs.getDate("datainizio"));
 			s.setDataFine(rs.getDate("datafine"));
 			s.setNome(rs.getString("nome"));
-			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			coord.setX(rs.getDouble("x"));
+			coord.setY(rs.getDouble("y"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			u.setCoordinate(coord);
+			u.setLocAmm(locAmm);
+			u.setLocIdro(locIdro);
+			u.setEsposizione(rs.getString("esposizione"));
+			u.setQuota(rs.getDouble("quota"));
 			s.setUbicazione(u);
-			Ente e= prendiEnte(rs.getInt("idente"));
+			Ente e = new Ente();
+			e.setIdEnte(rs.getInt("idente"));
+			e.setEnte(rs.getString("enome"));
 			s.setEnte(e);
-			SitoStazioneMetereologica sito=prendiSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			SitoStazioneMetereologica sito = new SitoStazioneMetereologica();
+			sito.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			sito.setCaratteristiche_IT(rs.getString("caratteristiche_it"));
+			sito.setCaratteristiche_ENG(rs.getString("caratteristiche_eng"));
 			s.setSito(sito);
 			s.setIdUtente(rs.getInt("idutentecreatore"));
 			al.add(s);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return al;
 
 	}
 	public static StazioneMetereologica prendiStazioneMetereologica(int idStazioneMetereologica,String loc)throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		ResultSet rs=st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE IDstazionemetereologica="+idStazioneMetereologica+"");
+		ResultSet rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss  "
+				+ "where  staz.idstazionemetereologica="+idStazioneMetereologica+"  and staz.idubicazione = u.idubicazione"
+				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
+				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione");
 		StazioneMetereologica s=new StazioneMetereologica();
+		Ubicazione u = new Ubicazione();
+		Coordinate coord = new Coordinate();
+		LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+		LocazioneIdrologica locIdro = new LocazioneIdrologica();
 		while(rs.next()){
 			s.setIdStazioneMetereologica(idStazioneMetereologica);
 			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
@@ -832,20 +1002,38 @@ public class ControllerDatabase {
 			s.setDataInizio(rs.getDate("datainizio"));
 			s.setDataFine(rs.getDate("datafine"));
 			s.setNome(rs.getString("nome"));
-			Ubicazione u = prendiUbicazione(rs.getInt("idUbicazione"));
+			coord.setX(rs.getDouble("x"));
+			coord.setY(rs.getDouble("y"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			u.setCoordinate(coord);
+			u.setLocAmm(locAmm);
+			u.setLocIdro(locIdro);
+			u.setEsposizione(rs.getString("esposizione"));
+			u.setQuota(rs.getDouble("quota"));
 			s.setUbicazione(u);
-			Ente e= prendiEnte(rs.getInt("idente"));
+			Ente e = new Ente();
+			e.setIdEnte(rs.getInt("idente"));
+			e.setEnte(rs.getString("enome"));
 			s.setEnte(e);
-			SitoStazioneMetereologica sito=prendiSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			SitoStazioneMetereologica sito = new SitoStazioneMetereologica();
+			sito.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			sito.setCaratteristiche_IT(rs.getString("caratteristiche_it"));
+			sito.setCaratteristiche_ENG(rs.getString("caratteristiche_eng"));
 			s.setSito(sito);
 			s.setIdUtente(rs.getInt("idutentecreatore"));
 		}
 		ArrayList<Sensori> sensori=prendiSensori(idStazioneMetereologica,loc);
-		for(int i=0;i<sensori.size();i++){
-			System.out.println("database:"+sensori.get(i).getSensori_IT());
-		}
 		s.setSensori(sensori);
-	    st.close(); conn.close();
+		rs.close();
+		st.close();
+		conn.close();
 	    return s;
 	}
 	
@@ -858,6 +1046,9 @@ public class ControllerDatabase {
 			e.setEnte(rs.getString("nome"));
 			e.setIdEnte(rs.getInt("idente"));
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return e;
 	}
 	
@@ -871,6 +1062,9 @@ public class ControllerDatabase {
 			s.setCaratteristiche_IT(rs.getString("caratteristiche_it"));
 			s.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return s;
 	}
 
@@ -958,6 +1152,8 @@ public class ControllerDatabase {
 				}catch(SQLException e){System.out.println("sensore esistente");}
 			}			
 		}
+		st.close();
+		conn.close();
 	}
 	
 	public static void salvaSensoriStazione(StazioneMetereologica s) throws SQLException{
@@ -966,6 +1162,8 @@ public class ControllerDatabase {
 		for(Sensori i:s.getSensori()){
 			 st.executeUpdate("INSERT INTO sensore_stazione(idsensore,idstazionemetereologica) VALUES( "+i.getIdsensori()+","+s.getIdStazioneMetereologica()+")");
 		}
+		st.close();
+		conn.close();
 	}
 	
 	public static int idSensore(String sensore,String loc) throws SQLException{
@@ -977,6 +1175,9 @@ public class ControllerDatabase {
 		while(rs.next()){
 			id=rs.getInt("idsensore");
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return id;
 	}
 	
@@ -989,13 +1190,11 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		
 		if(!(s.getNome()==null || s.getNome().equals(""))){
-			sb.append(" where nome='"+s.getNome()+"'");
+			sb.append(" and staz.nome='"+s.getNome()+"'");
 		}
 		if(!(s.getAggregazioneGiornaliera()==null || s.getAggregazioneGiornaliera().equals(""))){
-			if(sb.toString().equals("") || sb == null)
-				sb.append(" where aggregazionegiornaliera="+s.getAggregazioneGiornaliera()+"");
-			else
-				sb.append(" and aggregazionegiornaliera='"+s.getAggregazioneGiornaliera()+"'");
+			
+				sb.append(" and staz.aggregazionegiornaliera='"+s.getAggregazioneGiornaliera()+"'");
 		}
 	/*	if(!(s.getDataInizio()==null)){
 			if(sb.toString().equals("") || sb == null)
@@ -1008,32 +1207,26 @@ public class ControllerDatabase {
 				else sb.append("and datafine='"+s.getDataFine()+"'");
 		}
 	*/	
-			if(sb.toString().equals("") || sb == null)
+		
+		
+		/*	
+		 * bisogna decidere come gestire l'oraria se come intero o booleano
+		 * if(sb.toString().equals("") || sb == null)
 			sb.append("where oraria = "+s.getOraria()+"");
 			else sb.append("and oraria="+s.getOraria()+"");
+			*/
 	
 		if(!(s.sito.getIdSitoStazioneMetereologica()==0)){
-			if(sb.toString().equals("") || sb == null)
-			sb.append(" where idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
-			else sb.append(" and idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
+			 sb.append(" and staz.idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
 
 		}
 		if(!(s.ente.getIdEnte()==0)){
-			if(sb.toString().equals("") || sb == null)
-			sb.append("where idente="+s.ente.getIdEnte()+"");   //?
-			else sb.append("and idente="+s.ente.getIdEnte()+"");   //?
+			sb.append("and idente="+s.ente.getIdEnte()+"");   
 		}
 		StringBuilder se=new StringBuilder();
-		for(int i=0;i<s.getSensori().size();i++){
-			System.out.println("sensori "+s.getSensori().get(i).getSensori_IT());
-		}
 		if(!(s.getSensori().size()==0)){
-			System.out.println("1");
-			if(sb.toString().equals("")|| sb==null)		
-				se.append(" where idstazionemetereologica in(");
-			else se.append(" and idstazionemetereologica in(");
+			 se.append(" and idstazionemetereologica in(");
 			for(int i=0;i<s.getSensori().size();i++){
-				System.out.println(""+s.getSensori().get(i).getSensori_IT());
 				if(i==0)
 					se.append("select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
 				else se.append(" and idstazionemetereologica in(select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
@@ -1047,17 +1240,7 @@ public class ControllerDatabase {
 		}
 		if(!(se.toString().equals(""))) sb.append(se);
 		
-		if(sb.toString().equals("") || sb == null){
-			System.out.println("sb vuota");
-					su.append("where idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
-				+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
-		}else{
-			System.out.println("sb piena");
-
-			su.append(" and idubicazione in(SELECT idubicazione FROM ubicazione u,comune c, provincia p, regione r, nazione n   "
-					+ "where  u.idcomune=c.idcomune and c.idprovincia=p.idprovincia and p.idregione=r.idregione and n.idnazione=r.idnazione");
-		}if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
-			System.out.println("comune= "+u.getLocAmm().getComune());
+		if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
 			su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
 		}
 		if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
@@ -1075,35 +1258,67 @@ public class ControllerDatabase {
 		if(!( u.getCoordinate().getY()==0)){
 			su.append(" and st_y(coordinate) ='"+u.getCoordinate().getY()+"'");
 		}
-		su.append(")");
+	
 
 		ResultSet rs = null;
 
 		if(u.isEmpty()==true){
 			System.out.println("1-SELECT * FROM stazione_metereologica  "+sb.toString());
-		 rs = st.executeQuery("SELECT * FROM stazione_metereologica  "+sb.toString()+" ");
+		 rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss where staz.idubicazione = u.idubicazione"
+				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
+				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione "+sb.toString()+" ");
 		}
 		else {
 			System.out.println("2-SELECT * FROM stazione_metereologica  "+sb.toString()+" "+su.toString()+" ");
-			rs = st.executeQuery("SELECT * FROM stazione_metereologica "+sb.toString()+" "+su.toString()+" ");
+			rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss where staz.idubicazione = u.idubicazione"
+				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
+				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione "+sb.toString()+" "+su.toString()+" ");
 		}
 		while(rs.next()){
-			StazioneMetereologica sm = new StazioneMetereologica();
-			sm.setIdStazioneMetereologica(rs.getInt("idStazionemetereologica"));
-			sm.setNome(rs.getString("nome"));
-			sm.setDataInizio(rs.getTimestamp("datainizio"));
-			sm.setDataFine(rs.getTimestamp("datafine"));
+			StazioneMetereologica sm=new StazioneMetereologica();
+			Ubicazione ubi = new Ubicazione();
+			Coordinate coord = new Coordinate();
+			LocazioneAmministrativa locAmm = new LocazioneAmministrativa();
+			LocazioneIdrologica locIdro = new LocazioneIdrologica();
+			sm.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
+			sm.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
 			sm.setNote(rs.getString("note"));
-			sm.setAggregazioneGiornaliera(rs.getString("aggregazionegiornaliera"));
 			sm.setOraria(rs.getBoolean("oraria"));
-			sm.sito.setIdSitoStazioneMetereologica(rs.getInt("idSitoStazione"));
-			sm.ente.setIdEnte(rs.getInt("idente"));
-			Ubicazione ub = prendiUbicazione(rs.getInt("idUbicazione"));
-			sm.setUbicazione(ub);
+			sm.setDataInizio(rs.getDate("datainizio"));
+			sm.setDataFine(rs.getDate("datafine"));
+			sm.setNome(rs.getString("nome"));
+			coord.setX(rs.getDouble("x"));
+			coord.setY(rs.getDouble("y"));
+			locAmm.setIdComune(rs.getInt("idcomune"));
+			locAmm.setComune(rs.getString("nomecomune"));
+			locAmm.setProvincia(rs.getString("nomeprovincia"));
+			locAmm.setRegione(rs.getString("nomeregione"));
+			locAmm.setNazione(rs.getString("nomenazione"));
+			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
+			locIdro.setBacino(rs.getString("nomebacino"));
+			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			ubi.setCoordinate(coord);
+			ubi.setLocAmm(locAmm);
+			ubi.setLocIdro(locIdro);
+			ubi.setEsposizione(rs.getString("esposizione"));
+			ubi.setQuota(rs.getDouble("quota"));
+			sm.setUbicazione(ubi);
+			Ente e = new Ente();
+			e.setIdEnte(rs.getInt("idente"));
+			e.setEnte(rs.getString("enome"));
+			sm.setEnte(e);
+			SitoStazioneMetereologica sito = new SitoStazioneMetereologica();
+			sito.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
+			sito.setCaratteristiche_IT(rs.getString("caratteristiche_it"));
+			sito.setCaratteristiche_ENG(rs.getString("caratteristiche_eng"));
+			sm.setSito(sito);
+			sm.setIdUtente(rs.getInt("idutentecreatore"));
 			al.add(sm);
 		}
 
-
+		rs.close();
+		st.close();
+		conn.close();
 		return al;
 	}
 	
@@ -1121,6 +1336,9 @@ public class ControllerDatabase {
 			s.setIdsensori(rs.getInt("idsensore"));
 			sensori.add(s);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return sensori;
 		
 	}
@@ -1133,6 +1351,9 @@ public class ControllerDatabase {
 		while(rs.next()){
 			nome=rs.getString("nome");
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return nome;
 	}
 	
@@ -1148,6 +1369,9 @@ public class ControllerDatabase {
 			s.setIdSitoStazioneMetereologica(rs.getInt("idsitostazione"));
 			sito.add(s);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return sito;
 	}
 	
@@ -1164,6 +1388,9 @@ public class ControllerDatabase {
 			e.setIdEnte(rs.getInt("idente"));
 			ente.add(e);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return ente;
 	}
 	
@@ -1180,6 +1407,9 @@ public class ControllerDatabase {
 			s.setIdsensori(rs.getInt("idsensore"));
 			sensori.add(s);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return sensori;
 	}
 	
@@ -1203,6 +1433,7 @@ public class ControllerDatabase {
 		while(rs.next()){
 			u.setIdUbicazione(rs.getInt("idUbicazione"));
 		}
+		rs.close();
 		st.close();
 		conn.close();		
 		return u;
@@ -1221,6 +1452,7 @@ public class ControllerDatabase {
 			u.setEsposizione(rs.getString("esposizione"));
 			u.setQuota(rs.getDouble("quota"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return u;
@@ -1238,10 +1470,12 @@ public class ControllerDatabase {
 			locAmm.setRegione(rs.getString("nomeregione"));
 			locAmm.setNazione(rs.getString("nomenazione"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return locAmm;
 	}
+	
 	public static ArrayList<LocazioneAmministrativa> prendiLocAmministrativaAll() throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -1256,6 +1490,7 @@ public class ControllerDatabase {
 				locAmm.setNazione(rs.getString("nomenazione"));
 				localizAmm.add(locAmm);
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return localizAmm;
@@ -1272,6 +1507,7 @@ public class ControllerDatabase {
 			locIdro.setBacino(rs.getString("nomebacino"));
 			locIdro.setSottobacino(rs.getString("nomesottobacino"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return locIdro;
@@ -1288,8 +1524,12 @@ public class ControllerDatabase {
 			locIdro.setSottobacino(rs.getString("nomesottobacino"));
 			locIdrologica.add(locIdro);
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return locIdrologica;
 	}
+	
 	
 	public static Coordinate prendiCoordinate(int idUbicazione) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
@@ -1300,6 +1540,7 @@ public class ControllerDatabase {
 			coord.setX(rs.getDouble("x"));
 			coord.setY(rs.getDouble("y"));
 		}
+		rs.close();
 		st.close();
 		conn.close();
 		return coord;
@@ -1318,6 +1559,9 @@ public class ControllerDatabase {
 			locAmm.setNazione(rs.getString("nomenazione"));
 			locAmm.setIdComune(rs.getInt("idcomune"));
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return locAmm;
 		
 	}
@@ -1332,6 +1576,9 @@ public class ControllerDatabase {
 			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
 			locIdro.setSottobacino(rs.getString("nomesottobacino"));
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return locIdro;
 	}
 	
@@ -1343,6 +1590,9 @@ public class ControllerDatabase {
 		while(rs.next()){
 			id = (rs.getInt("idUbicazione"));
 		}
+		rs.close();
+		st.close();
+		conn.close();
 		return id;
 	}
 	
@@ -1350,33 +1600,89 @@ public class ControllerDatabase {
 	 * utente
 	 */
 	
-	public static Utente salvaUtente(Utente u) throws SQLException{
+	public static Partecipante salvaUtente(Partecipante p) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		st.executeUpdate("insert into utente(nome,cognome,username,password,ruolo,email,datacreazione) values "
-				+ "('"+u.getNome()+"','"+u.getCognome()+"','"+u.getUsername()+"','"+u.getPassword()+"','"+u.getRuolo()+"','"+u.getEmail()+"','"+u.getDataCreazione()+"')");
-		ResultSet rs=st.executeQuery("Select idutente from utente where username='"+u.getUsername()+"' and email='"+u.getEmail()+"' ");
+				+ "('"+p.getNome()+"','"+p.getCognome()+"','"+p.getUsername()+"','"+p.getPassword()+"','"+p.getRuolo()+"','"+p.getEmail()+"','"+p.getDataCreazione()+"')");
+		ResultSet rs=st.executeQuery("Select idutente from utente where username='"+p.getUsername()+"' and email='"+p.getEmail()+"' ");
 		while(rs.next()){
-			u.setIdUtente((rs.getInt("idutente")));
+			p.setIdUtente((rs.getInt("idutente")));
 
 		}
-		return u;
+		rs.close();
+		st.close();
+		conn.close();
+		return p;
 	}
 	
-	public static Utente prendiUtente(Utente u) throws SQLException{
+	public static Partecipante prendiUtente(String username) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		ResultSet rs=st.executeQuery("select * from utente where idutente="+u.getIdUtente()+"");
+		Partecipante p = new PartecipanteConcreto();
+		System.out.println("username dal metodo db: "+username);
+		ResultSet rs=st.executeQuery("select * from utente where username='"+username+"'");
+		System.out.println("query : select * from utente where username='"+username+"'");
 		while(rs.next()){
-			u.setCognome(rs.getString("cognome"));
-			u.setDataCreazione(rs.getTimestamp("datacreazione"));
-			u.setDataUltimoAccesso(rs.getTimestamp("dataultimoaccesso"));
-			u.setEmail(rs.getString("email"));
-			u.setNome(rs.getString("nome"));
-			u.setPassword(rs.getString("password"));
-			u.setRuolo(rs.getString("ruolo"));
-			u.setUsername(rs.getString("username"));
+			switch(rs.getString("ruolo")){
+			case "amministratore" : p = new Amministratore(p); break;
+			case "avanzato" : p = new UtenteAvanzato(p); break;
+			case "base" : p = new UtenteBase(p); break;
+			}
+			System.out.println("sono nel db");
+			p.setCognome(rs.getString("cognome"));
+			p.setDataCreazione(rs.getTimestamp("datacreazione"));
+		//p.setDataUltimoAccesso(rs.getTimestamp("dataultimoaccesso"));
+			p.setEmail(rs.getString("email"));
+			p.setNome(rs.getString("nome"));
+			p.setPassword(rs.getString("password"));
+			p.setRuolo(rs.getString("ruolo"));
+			p.setUsername(rs.getString("username"));
+			System.out.println("username dal db: "+p.getUsername());
 		}
-		return u;
+		rs.close();
+		st.close();
+		conn.close();
+		return p;
 	}
+	
+	public static boolean login(String username,String password) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("select * from utente where username='"+username+"' and password='"+password+"'");
+		System.out.println("query: select * from utente where username='"+username+"' and password='"+username+"'");
+		if(!(rs.next())){
+			rs.close();
+			st.close();
+			conn.close();
+			return false;
+		}
+		else{
+			rs.close();
+			st.close();
+			conn.close();
+			return true;
+		}
+		
 	}
+	
+	/*
+	 * dati climatici
+	 */
+	public static void salvaTemperatureAvg(int idStazione,ArrayList<Double> dati,Calendar dataInizio,Calendar dataFine) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		for(Double d:dati){
+			while(dataInizio.before(dataFine)){
+				st.executeUpdate("INSERT INTO temperatura_avg(idstazionemetereologica,temperaturaavg,data) values("+idStazione+","+d+",'"+dateFormat(dataInizio)+"')");
+				dataInizio.add(Calendar.DAY_OF_MONTH, 1);
+			}
+		}
+		st.close();
+		conn.close();
+	}
+	public static String dateFormat(Calendar cal){
+		String data = ""+cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH)+1) + "-" + cal.get(Calendar.DAY_OF_MONTH)+" 00:00:00.00";
+		return data;
+	}
+}

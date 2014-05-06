@@ -1,6 +1,90 @@
 package html;
 
+import bean.Processo;
+
 public class HTMLScript {
+	public static String dialogMaps(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<script>");
+		sb.append("var map;");
+		sb.append("var coords = new Object();");
+		sb.append("coords.lat = 45.57560020947792;");
+		sb.append("coords.lng = 9.613037109375;");
+		sb.append("$(document).ready(function() {");
+		sb.append(" $( \"#map_container\" ).dialog({");
+		sb.append("autoOpen:false,");
+		sb.append("width: 800,");
+		sb.append("height: 555,");
+		sb.append("resizeStop: function(event, ui) {google.maps.event.trigger(map, 'resize') },");
+		sb.append("open: function(event, ui) {google.maps.event.trigger(map, 'resize'); },");   
+		sb.append("buttons: {");
+		sb.append("\"conferma\": function(){");
+		sb.append(" document.getElementById(\"latitudine\").value = document.getElementById(\"lati\").value;");
+		sb.append("document.getElementById(\"longitudine\").value = document.getElementById(\"long\").value;");
+		sb.append("$( this ).dialog(\"close\" );");
+		sb.append("}");
+		sb.append("}");
+		sb.append("}); "); 
+		sb.append("$( \"#showMap\" ).click(function() {");           
+		sb.append("$( \"#map_container\" ).dialog( \"open\" );");
+		sb.append("map.setCenter(new google.maps.LatLng(coords.lat, coords.lng), 10);");
+		sb.append("google.maps.event.addListener(map, \"rightclick\", function(event) {");
+		sb.append(" var lat = event.latLng.lat();");
+		sb.append("var lng = event.latLng.lng();");
+		sb.append("document.getElementById(\"lati\").value = lat;");
+		sb.append("document.getElementById(\"long\").value = lng;");        	    
+		sb.append("});");
+		sb.append("return false;");
+		sb.append("});");      
+		sb.append("$(  \"input:submit,input:button, a, button\", \"#controls\" ).button();");
+		sb.append("initialize();");
+		sb.append("});");
+		sb.append("function initialize() {");      
+		sb.append("var latlng = new google.maps.LatLng(coords.lat, coords.lng);");
+		sb.append("var myOptions = {");
+		sb.append("zoom: 6,");
+		sb.append("center: latlng,");
+		sb.append("mapTypeId: google.maps.MapTypeId.SATELLITE");
+		sb.append("};");
+		sb.append(" map = new google.maps.Map(document.getElementById(\"map_canvas\"),  myOptions);");
+		sb.append(" }"); 
+		sb.append("</script>");
+		return sb.toString();
+	}
+	
+	public static String mostraMappaProcesso(Processo p){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<script type=\"text/javascript\"");
+		sb.append("src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyD2ZrcNbP1btezQE5gYgeA7_1IY0J8odCQ&sensor=false\">");
+		sb.append("</script>");
+		sb.append(" <script type=\"text/javascript\">");
+		sb.append("function initialize() {");
+		sb.append("var myLatlng = new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+");");
+		sb.append("var mapOptions = {");
+		sb.append("center: new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+"),");
+		sb.append("zoom: 8,");
+		sb.append("mapTypeId: google.maps.MapTypeId.SATELLITE");
+		sb.append("};");
+		sb.append("var map = new google.maps.Map(document.getElementById(\"mappa\"),");
+		sb.append("mapOptions);");
+		sb.append("var marker = new google.maps.Marker({");
+		sb.append("position: myLatlng,");
+		sb.append("title:\""+p.getNome()+"\"");
+		sb.append("});");
+		sb.append("marker.setMap(map);");
+		sb.append("var contentString ='<p>nome processo:"+p.getNome()+"</p>'+");
+		sb.append("'<p>coordinate: "+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+"</p>';");
+		sb.append("var infowindow = new google.maps.InfoWindow({");
+		sb.append("content: contentString");
+		sb.append("});");
+		sb.append("google.maps.event.addListener(marker, 'click', function() {");
+		sb.append("infowindow.open(map,marker);");
+		sb.append("});");
+		sb.append("}");
+		sb.append("google.maps.event.addDomListener(window, 'load', initialize);");
+		sb.append("</script>");
+		return sb.toString();
+	}
 	public static String scriptData(String nome){
 		StringBuilder sb = new StringBuilder();
 		sb.append("<script>"

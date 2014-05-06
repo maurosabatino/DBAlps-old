@@ -1,35 +1,39 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
-<!DOCTYPE html >
-
-<jsp:useBean id="HTMLc" class="bean.HTMLContent" scope="request" />
-<jsp:setProperty  name="HTMLc" property="*"/>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Insert title here</title>
+</head>
  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
  <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"/>
    <link rel="stylesheet" type="text/css" href="css/sidebar.css"/>
-   <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.10.4.custom.css">
  <script src="js/jquery-1.11.0.js"></script>
  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD2ZrcNbP1btezQE5gYgeA7_1IY0J8odCQ&sensor=false"> </script>
 <script src="js/jquery-ui-1.10.4.custom.js"></script>
 <script src="js/globalize.js"></script>
 <script src="js/globalize.culture.de-DE.js"></script>
 <script src="js/bootstrap.min.js"></script>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Processo</title>
-</head>
 <body>
-<jsp:include page="navbar.jsp"></jsp:include>
 
-<jsp:include page="barraLaterale.jsp"></jsp:include>
+<jsp:include page="/navbar.jsp"></jsp:include>
+
+<jsp:include page="/barraLaterale.jsp"></jsp:include>
 
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-<jsp:getProperty name="HTMLc" property="content"/>
+
+<div class="row"><h2>Nome Del Processo </h2></div>
+
+<div class="row"><h2><small> Data e Ora</small></h2> </div>
+
+<div class="row">
+<dl class="dl-horizontal">
+  <dt>Descrizione</dt>
+  <dd>una descrizione del processo</dd>
+</dl>
 </div>
-
-
+</div>
 
 </body>
 </html>

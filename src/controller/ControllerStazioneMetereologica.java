@@ -5,16 +5,12 @@ import bean.Sensori;
 import bean.SitoStazioneMetereologica;
 import bean.StazioneMetereologica;
 import bean.Ubicazione;
-import bean.Utente;
-
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,17 +20,11 @@ public class ControllerStazioneMetereologica {
 	public static StazioneMetereologica creaStazioneMetereologica(HttpServletRequest request) throws ParseException{
 		StazioneMetereologica s=new StazioneMetereologica();
 		s.setNome(request.getParameter("nome"));
-		String data="";
+	
 		String ora="00:00:00";
 		s.setAggregazioneGiornaliera(request.getParameter("aggregazioneGiornaliera"));
 		s.setNote(request.getParameter("note"));
-	/*	Timestamp inizio=Timestamp.valueOf(request.getParameter("datainizio"));
-		Calendar cal=new GregorianCalendar();
-		cal.setTime(inizio);
-		if(cal.get(Calendar.DAY_OF_MONTH)<10)
-			data=""+cal.get(Calendar.YEAR)+"-"+cal.get(Calendar.MONTH)+"0-"+cal.get(Calendar.DAY_OF_MONTH);
-		else data=
-		s.setDataInizio(Timestamp.valueOf(data));*/
+	
 		if(!(request.getParameter("datainizio").equals(""))){
 			String dataInizio = request.getParameter("datainizio");
 			s.setDataInizio(Timestamp.valueOf(""+dataInizio+" "+ora+""));
@@ -62,16 +52,9 @@ public class ControllerStazioneMetereologica {
 			s.setEnte(ente);
 		}
 		if(!(request.getParameterValues("tipo_"+loc+"")==null)){
-			System.out.println("sensori!");
 			s.setSensori(creaSensori(request,loc));
 		}
-
-		
-		
-		s.setIdUtente(1);
-		
-		
-		
+		s.setIdUtente(1);	
 		return s;
 	}
 	
@@ -79,7 +62,7 @@ public class ControllerStazioneMetereologica {
 			SitoStazioneMetereologica s=new SitoStazioneMetereologica();
 		   s.setIdSitoStazioneMetereologica(Integer.parseInt(request.getParameter("idsitostazione")));
 		   if(loc.equals("IT")) s.setCaratteristiche_IT(request.getParameter("caratteristiche_it"));
-		   else s.setCaratteristiche_ENG(request.getParameter("caratteristiche_it"));
+		   else s.setCaratteristiche_ENG(request.getParameter("caratteristiche_eng"));
 		   return s;
 	}
 	
@@ -93,8 +76,6 @@ public class ControllerStazioneMetereologica {
 	public static ArrayList<Sensori> creaSensori(HttpServletRequest request,String loc) throws SQLException{
 		ArrayList<Sensori> sensori=new ArrayList<Sensori>();
 		int n=0;
-		String[] tipo_it;
-		String[] tipo_eng;
 		String[] sensoriScelti= request.getParameterValues("tipo_IT");
 		int idsensore=0;
 				

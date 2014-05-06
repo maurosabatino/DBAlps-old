@@ -8,11 +8,24 @@
 <html>
 
 <head>
+ <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+ <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"/>
+   <link rel="stylesheet" type="text/css" href="sidebar.css"/>
+ <script src="js/jquery-1.11.0.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.js"></script>
+<script src="js/globalize.js"></script>
+<script src="js/globalize.culture.de-DE.js"></script>
+<script src="js/bootstrap.min.js"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
+<title>Elaborazioni</title>
 </head>
 <body>
-<jsp:getProperty name="HTMLc" property="content"/>
+<jsp:include page="navbar.jsp"></jsp:include>
 
+<jsp:include page="barraLaterale.jsp"></jsp:include>
+
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+<jsp:getProperty name="HTMLc" property="content"/>
+</div>
 </body>
 </html>

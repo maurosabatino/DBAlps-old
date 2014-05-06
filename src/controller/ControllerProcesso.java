@@ -1,6 +1,13 @@
 package controller;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -11,8 +18,23 @@ import java.text.ParseException;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+
+
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import bean.ClasseVolume;
 import bean.Danni;
@@ -219,5 +241,72 @@ public class ControllerProcesso {
 		}
 			return t;
 	}
+	
+	public static void fileInput(HttpServletRequest request, String path) throws IllegalStateException, IOException, ServletException{
+		final Part filePart = request.getPart("file");
+    final String fileName = getFileName(filePart);
+    OutputStream out = null;
+    InputStream filecontent = null;
+    
+    try {
+    	System.out.println(path);
+    	File file = new File (path + File.separator+ fileName);
+    	out = new FileOutputStream(file);
+    	filecontent = filePart.getInputStream();
+    	int read = 0;
+    	final byte[] bytes = new byte[1024];
+    	while ((read = filecontent.read(bytes)) != -1) {
+    		out.write(bytes, 0, read);
+    	}
+    
+    } catch (FileNotFoundException fne) {
+    	
+    } finally {
+    	if (out != null) {
+    		out.close();
+    	}
+    	if (filecontent != null) {
+    		filecontent.close();
+    	}
+    }	
+	}
+	
+	private static String getFileName(final Part part) {
+    final String partHeader = part.getHeader("content-disposition");
+    for (String content : part.getHeader("content-disposition").split(";")) {
+        if (content.trim().startsWith("filename")) {
+        	return content.substring(
+        			content.indexOf('=') + 1).trim().replace("\"", "");
+        }
+    }
+    return null;	
+	}
+
+	
+	public static void fileMultiplo(HttpServletRequest request) throws Exception{
+		 ServletFileUpload uploadHandler = new ServletFileUpload(new DiskFileItemFactory());
+		 JsonArray json = new JsonArray();
+		 try {
+       List<FileItem> items = uploadHandler.parseRequest(request);
+       for (FileItem item : items) {
+           if (!item.isFormField()) {
+                   File file = new File(request.getServletContext().getRealPath("/")+"imgs/", item.getName());
+                   item.write(file);
+                   JsonObject jsono = new JsonObject();
+                   jsono.addProperty("name", item.getName());
+                   jsono.addProperty("size", item.getSize());
+                   jsono.addProperty("url", "UploadServlet?getfile=" + item.getName());
+                   jsono.addProperty("thumbnail_url", "UploadServlet?getthumb=" + item.getName());
+                   jsono.addProperty("delete_url", "UploadServlet?delfile=" + item.getName());
+                   jsono.addProperty("delete_type", "GET");
+                   json.add(jsono);
+                   System.out.println(json.toString());
+           }
+       }
+   } catch (FileUploadException e) {
+           throw new RuntimeException(e);
+   }
+	}
 }
+
 

@@ -10,100 +10,115 @@ import bean.Danni;
 import bean.EffettiMorfologici;
 import bean.Processo;
 import bean.TipologiaProcesso;
+import bean.partecipante.Partecipante;
+import bean.partecipante.Role;
 import controller.ControllerDatabase;
 import controller.ControllerJson;
 
 public class HTMLProcesso {
 	
-	public static String formInserisciProcesso(String path,String loc) throws SQLException{
+	public static String formInserisciProcesso(String path,String loc,Partecipante part) throws SQLException{
 		StringBuilder sb = new StringBuilder();
+		if(part!=null && (part.hasRole(Role.AMMINISTRATORE) || part.hasRole(Role.AVANZATO))){
+			sb.append(HTMLScript.scriptData("data"));
+			sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+			sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
+			sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
+			sb.append(HTMLScript.scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+			sb.append(HTMLScript.scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+			sb.append(HTMLScript.scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
+			sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+			sb.append(HTMLScript.dialogMaps());
+			if(loc.equals("IT")){
 		
-
-		sb.append(HTMLScript.scriptData("data"));
-		
-		
-		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
-		sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
-		sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
-		sb.append(HTMLScript.scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
-		sb.append(HTMLScript.scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
-		sb.append(HTMLScript.scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc),loc));
-		sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
-		if(loc.equals("IT")){
-		
-			sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
+				sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
 			
-			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sul Processo</h4>");
+				sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sul Processo</h4>");
+				
+				sb.append("<div class=\"row\">");
+				sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" name=\"nome\" class=\"form-control\" placeholder=\"nome\" value=\"nome\"></div>");
+				sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" id=\"data\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
+				sb.append(" <div class=\"col-xs-6 col-md-4\"> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
+				sb.append("</div>");
+				
+				sb.append("descrizione:<input type=\"text\" name=\"descrizione\" class=\"form-control\" value=\"descrizione\" >");
+				sb.append("note:<input type=\"text\" name=\"note\" class=\"form-control\" value=\"not\">");
 			
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" name=\"nome\" class=\"form-control\" placeholder=\"nome\" value=\"nome\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" id=\"data\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
-			sb.append(" <div class=\"col-xs-6 col-md-4\"> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
-			sb.append("</div>");
+				sb.append("<div class=\"row\">");
+				sb.append("<div class=\"col-xs-6 col-md-3\">superficie:<input type=\"text\" name=\"superficie\" class=\"form-control\" value=\"12\"></div>");
+				sb.append("<div class=\"col-xs-6 col-md-3\">larghezza:<input type=\"text\" name=\"larghezza\" class=\"form-control\" value=\"12\"></div>");
+				sb.append("<div class=\"col-xs-6 col-md-3\">altezza:<input type=\"text\" name=\"altezza\" class=\"form-control\" value=\"12\"></div>");
+				sb.append("<div class=\"col-xs-6 col-md-3\">volume specifico<input type=\"number\" name=volumespecifico class=\"form-control\" value=\"12\"></div>");
+				sb.append("</div>");
 			
-			sb.append("descrizione:<input type=\"text\" name=\"descrizione\" class=\"form-control\" value=\"descrizione\" >");
-			sb.append("note:<input type=\"text\" name=\"note\" class=\"form-control\" value=\"not\">");
-			
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-3\">superficie:<input type=\"text\" name=\"superficie\" class=\"form-control\" value=\"12\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-3\">larghezza:<input type=\"text\" name=\"larghezza\" class=\"form-control\" value=\"12\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-3\">altezza:<input type=\"text\" name=\"altezza\" class=\"form-control\" value=\"12\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-3\">volume specifico<input type=\"number\" name=volumespecifico class=\"form-control\" value=\"12\"></div>");
-			sb.append("</div>");
-			
-			sb.append("</div> </div>");
+				sb.append("</div> </div>");
 			
 			
-			sb.append("<p>classe volume<input type=\"text\" id=\"intervallo\" name=intervallo></p>");
-			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\" />");
+				sb.append("<p>classe volume<input type=\"text\" id=\"intervallo\" name=intervallo></p>");
+				sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\" />");
 				for(TipologiaProcesso tp : ControllerDatabase.prendiTipologiaProcesso())//da fare col json
-			sb.append("<input type=\"checkbox\" name=\"tpnome_IT\" value=\""+tp.getNome_IT()+"\"/> "+tp.getNome_IT()+"");
+					sb.append("<input type=\"checkbox\" name=\"tpnome_IT\" value=\""+tp.getNome_IT()+"\"/> "+tp.getNome_IT()+"");
 		
-			sb.append("<p>dati sull'ubicazione</p>");
-			sb.append("<p>sottobacino:<input type=\"text\" id=\"sottobacino\" name=\"sottobacino\">");
-			sb.append("<p>bacino:<input type=\"text\"id=\"bacino\" name=\"bacino\"></p>");
-			sb.append("<input  type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\" />");
+				sb.append("<p>dati sull'ubicazione</p>");
+				sb.append("<p>sottobacino:<input type=\"text\" id=\"sottobacino\" name=\"sottobacino\">");
+				sb.append("<p>bacino:<input type=\"text\"id=\"bacino\" name=\"bacino\"></p>");
+				sb.append("<input  type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\" />");
 		
-			sb.append("<p>comune:<input type=\"text\" id=\"comune\" name=\"comune\" required /> </p>");
-			sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" />");
-			sb.append("<p>provncia:<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" /></p>");
-			sb.append("<p>regione:<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" /></p> ");
-			sb.append("<p>nazione:<input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\" /></p>");
-			sb.append("<p>latitudine:<input type=\"text\" name=\"latitudine\" value=\"12\"></p>");
-			sb.append("<p>longitudine:<input type=\"text\" name=\"longitudine\"value=\"14\"></p>");
-			sb.append("<p>quota:<input type=\"text\" name=\"quota\" value=\"12\"></p>");
-			sb.append("<p>esposizione:<input type=\"text\" name=\"esposizione\" value=\"nord\"></p>");
+				sb.append("<p>comune:<input type=\"text\" id=\"comune\" name=\"comune\" required /> </p>");
+				sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" />");
+				sb.append("<p>provncia:<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" /></p>");
+				sb.append("<p>regione:<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" /></p> ");
+				sb.append("<p>nazione:<input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\" /></p>");
+			
+				sb.append("<div id=\"controls\">");
+				sb.append("<input type=\"button\" name=\"showMap\" value=\"Mappa\" id=\"showMap\" />");
+				sb.append("latitudine:<input type=\"text\" name=\"latitudine\" id=\"latitudine\">");
+				sb.append("longitudine:<input type=\"text\" name=\"longitudine\" id=\"longitudine\">");
+				sb.append("</div>");
+			
+				sb.append(" <div id=\"map_container\" title=\"Location Map\">");    
+				sb.append("<div id=\"map_canvas\" style=\"width:100%;height:80%;\"></div>");
+				sb.append("<div class=\"row\">");
+				sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"lati\">Latitudine</label><input type=\"text\" id =\"lati\"name=\"lati\" class=\"form-control\" placeholder=\"latitudine\"></div>");
+				sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"long\">Longitudine</label><input type=\"text\" id=\"long\" name=\"long\" class=\"form-control\"  placeholder=\"longitudine\"></div>");
+				sb.append("</div>");
+				sb.append("</div>");
+				sb.append("<p>quota:<input type=\"text\" name=\"quota\" value=\"12\"></p>");
+				sb.append("<p>esposizione:<input type=\"text\" name=\"esposizione\" value=\"nord\"></p>");
 		
-			sb.append("<p>dati sul sito</p>");
-			sb.append("<p> caratteristiche sito:<input type=\"text\" id=\"caratteristicaSito_"+loc+"\" name=\"caratteristicaSito_"+loc+"\" /></p>");
-			sb.append("<input type=\"hidden\" id=\"idsito\" name=\"idsito\" />");
+				sb.append("<p>dati sul sito</p>");
+				sb.append("<p> caratteristiche sito:<input type=\"text\" id=\"caratteristicaSito_"+loc+"\" name=\"caratteristicaSito_"+loc+"\" /></p>");
+				sb.append("<input type=\"hidden\" id=\"idsito\" name=\"idsito\" />");
 		
-			sb.append("<p>effetti morfologici e danni</p>");
-			sb.append("<p>danni</p>");
-			for(Danni d:ControllerDatabase.prendiDanni()){
-				sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\""+d.getTipo_IT()+"\"/>"+d.getTipo_IT()+"");
+				sb.append("<p>effetti morfologici e danni</p>");
+				sb.append("<p>danni</p>");
+				for(Danni d:ControllerDatabase.prendiDanni()){
+					sb.append("<input type=\"checkbox\" name=\"dtipo_IT\" value=\""+d.getTipo_IT()+"\"/>"+d.getTipo_IT()+"");
+				}
+				sb.append("<p>effetti morfologici:</p>");
+				for(EffettiMorfologici em:ControllerDatabase.prendiEffettiMOrfologici()){
+					sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\""+em.getTipo_IT()+"\" />"+em.getTipo_IT()+"");
+				}
+		
+				sb.append("<p>dati sulla litologia</p>");
+				sb.append("<p> litologia:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" /></p>");
+				sb.append("<input type=\"hidden\" id=\"idLitologia\" name=\"idLitologia\" />");
+				sb.append("<p> proprieta termiche:<input type=\"text\" id=\"proprietaTermiche_"+loc+"\" name=\"proprietaTermiche_"+loc+"\" /></p>");
+				sb.append("<input type=\"hidden\" id=\"idProprietaTermiche\" name=\"idProprietaTermiche\" />");
+				sb.append("<p> stato fratturazione:<input type=\"text\" id=\"statoFratturazione_"+loc+"\" name=\"statoFratturazione_"+loc+"\" /></p>");
+				sb.append("<input type=\"hidden\" id=\"idStatoFratturazione\" name=\"idStatoFratturazione\" />");
+		
+				sb.append("<input type=\"hidden\" name=\"operazione\" value=\"inserisciProcesso\">");
+				sb.append("<input type=\"submit\" name =\"submit\" value=\"OK\">");
+		
+				sb.append("</form>");
+			}else if(loc.equals("ENG")){
+				//da fare
 			}
-			sb.append("<p>effetti morfologici:</p>");
-			for(EffettiMorfologici em:ControllerDatabase.prendiEffettiMOrfologici()){
-				sb.append("<input type=\"checkbox\" name=\"emtipo_IT\" value=\""+em.getTipo_IT()+"\" />"+em.getTipo_IT()+"");
-			}
-		
-			sb.append("<p>dati sulla litologia</p>");
-			sb.append("<p> litologia:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" /></p>");
-			sb.append("<input type=\"hidden\" id=\"idLitologia\" name=\"idLitologia\" />");
-			sb.append("<p> proprieta termiche:<input type=\"text\" id=\"proprietaTermiche_"+loc+"\" name=\"proprietaTermiche_"+loc+"\" /></p>");
-			sb.append("<input type=\"hidden\" id=\"idProprietaTermiche\" name=\"idProprietaTermiche\" />");
-			sb.append("<p> stato fratturazione:<input type=\"text\" id=\"statoFratturazione_"+loc+"\" name=\"statoFratturazione_"+loc+"\" /></p>");
-			sb.append("<input type=\"hidden\" id=\"idStatoFratturazione\" name=\"idStatoFratturazione\" />");
-		
-			sb.append("<input type=\"hidden\" name=\"operazione\" value=\"inserisciProcesso\">");
-			sb.append("<input type=\"submit\" name =\"submit\" value=\"OK\">");
-		
-			sb.append("</form>");
-		}else if(loc.equals("ENG")){
-			//da fare
+		}else{
+			sb.append("<h1> spiacente non hai i permessi adeguati per accedere a questa pagina</h1>");
 		}
-	return sb.toString();
+		return sb.toString();
 	}
 	
 	public static String mostraTuttiProcessi() throws SQLException{
@@ -114,62 +129,29 @@ public class HTMLProcesso {
 		/*script per google maps*///centrerei la mappa al centro delle alpi 
 		
 		
-		sb.append("<table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> dettagli</th> <th> modifica</th></tr>");
+		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> dettagli</th> <th> modifica</th></tr>");
 		for(Processo p: ap){
-			sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+dateFormat.format(p.getData())+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>"
-					+ " <td>"+p.getUbicazione().getLocAmm().getNazione()+"</td> "
-					+ "<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td>"
-							+ "<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td></tr>");
+			sb.append("<tr> <td>"+p.getNome()+" </td> <td> "+dateFormat.format(p.getData())+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>");
+			sb.append("<td>"+p.getUbicazione().getLocAmm().getNazione()+"</td> ");
+			sb.append("<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td>");
+			sb.append("<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td></tr>");
 		}
+		sb.append("</table></div>");
 		return sb.toString();
 	}
 	
 	public static String mostraProcesso(int idProcesso) throws SQLException{
+		System.out.println("devo premdere");
 		Processo p = ControllerDatabase.prendiProcesso(idProcesso);
+		System.out.println("sono denntro e ho preso il processo: "+p.getNome());
 		StringBuilder sb = new StringBuilder();
 		
-		//script per google maps
-		sb.append("<style type=\"text/css\">"
-				+ "html { height: 100% }"
-				+ "body { height: 100%; margin: 0; padding: 0 }"
-				+ "#map-canvas { height: 100% }"
-				+ " </style>");
-		sb.append("<script type=\"text/javascript\""
-				+ "src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyD2ZrcNbP1btezQE5gYgeA7_1IY0J8odCQ&sensor=false\">"
-				+ "</script>"
-				+ " <script type=\"text/javascript\">"
-				+ "function initialize() {"
-				+ "var myLatlng = new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+");"
-				+ "var mapOptions = {"
-					+ "center: new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+"),"
-					+ "zoom: 8,"
-					+ "mapTypeId: google.maps.MapTypeId.SATELLITE"
-					+ "};"
-				+ "var map = new google.maps.Map(document.getElementById(\"map-canvas\"),"
-					+ "mapOptions);"
-				+ "var marker = new google.maps.Marker({"
-					+ "position: myLatlng,"
-					+ "title:\""+p.getNome()+"\""
-					+ "});"
-				+ "marker.setMap(map);"
-				+ "var contentString ='<p>nome processo:"+p.getNome()+"</p>'+"
-						+ "'<p>coordinate: "+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+"</p>';"
-						
-				+ "var infowindow = new google.maps.InfoWindow({"
-					+ "content: contentString"
-					+ "});"
-				+ "google.maps.event.addListener(marker, 'click', function() {"
-					+ " infowindow.open(map,marker);"
-					+ "});"
-				+ "}"
-				+ "google.maps.event.addDomListener(window, 'load', initialize);"
-				+ " </script>");
+		sb.append(HTMLScript.mostraMappaProcesso(p));
 		
-		
-		sb.append("<table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> </tr>");
+		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> </tr>");
 		sb.append(" <tr> <td>"+p.getNome()+" </td> <td> "+p.getData()+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td></tr>");
-		sb.append("</table>");
-		sb.append("<div id=\"map-canvas\"/>");
+		sb.append("</table></div>");
+		sb.append("<div id=\"mappa\"/>");
 		return sb.toString();
 	}
 	
@@ -192,22 +174,26 @@ public class HTMLProcesso {
 			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sul Processo</h4>");
 			
 			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" name=\"nome\" class=\"form-control\" placeholder=\"nome\" ></div>");
-			sb.append("<div class=\"col-xs-6 col-md-4\"> <input type=\"text\" id=\"data\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
-			sb.append(" <div class=\"col-xs-6 col-md-4\"> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
+			sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"nome\">Nome Del Processo</label> <input type=\"text\" name=\"nome\" id=\"nome\" class=\"form-control\" placeholder=\"nome\" ></div>");
+			sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"data\">Data</label> <input type=\"text\" id=\"text\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
+			sb.append(" <div class=\"col-xs-6 col-md-4\"><label for=\"ora\">Ora</label> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
 			sb.append("</div>");
 			
 			
 			
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-2\">Superficie<input type=\"text\" name=\"superficie\" class=\"form-control\" ></div>");
-			sb.append("<div class=\"col-xs-6 col-md-2\">Larghezza<input type=\"text\" name=\"larghezza\" class=\"form-control\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-2\">Altezza<input type=\"text\" name=\"altezza\" class=\"form-control\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-2\">Volume Specifico<input type=\"number\" name=volumespecifico class=\"form-control\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-2\">classe volume<input type=\"text\" id=\"intervallo\" name=intervallo class=\"form-control\"></div>");
-			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\" />");
+			sb.append("<br><div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-2\"><label for=\"superficie\">Superficie</label><input type=\"text\" name=\"superficie\" id=\"superficie\" class=\"form-control\"placeholder=\"Superficie\" ></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\"><label for=\"larghezza\">Larghezza</label><input type=\"text\" name=\"larghezza\" id=\"larghezza\" class=\"form-control\" placeholder=\"Larghezza\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\"><label for=\"altezza\">Altezza</label><input type=\"text\" name=\"altezza\" id=\"altezza\" class=\"form-control\" placeholder=\"Altezza\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\"><label for=\"volumeSpecifico\">Volume Specifico</label><input type=\"number\" name=volumespecifico id=\"volumeSpecifico\"class=\"form-control\" placeholder=\"Volume\" ></div>");
+			sb.append("<div class=\"col-xs-6 col-md-2\"><label for=\"intervallo\">Classe Volume</label><input type=\"text\" id=\"intervallo\" name=intervallo class=\"form-control\" placeholder=\"Intervallo\"></div>");
+			sb.append("<input type=\"hidden\" id=\"idclasseVolume\" name=\"idclasseVolume\"  />");
 			sb.append("</div>");
-			sb.append("<br><h5> Tipologia Processo </h5>");
+			sb.append("<br><div class=\"wrapper\">");
+			sb.append("<div class=\"content-main\"><label for=\"descrizione\">Descrizione</label></div>");
+			sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"descrizione\" id=\"descrizione\" class=\"textarea\" placeholder=\"Descrizione\">  </textarea></div>");
+			sb.append("</div>");
+			sb.append("<br><h4>Tipologia Processo</h4>");
 			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\">");
 			
 			sb.append("<p>");
@@ -216,29 +202,29 @@ public class HTMLProcesso {
 			sb.append("</p>");
 			
 			sb.append("</div> </div>");
-			sb.append("</div> </div>");
+			
 			
 			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sull'ubicazione</h4>");
 			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-6\"> Sottobacino <input type=\"text\" id=\"sottobacino\" name=\"sottobacino\" class=\"form-control\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-6\"> Bacino <input readonly=\"readonly\" type=\"text\"id=\"bacino\" name=\"bacino\" class=\"form-control\"></div> ");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"sottobacino\">Sottobacino</label><input type=\"text\" id=\"sottobacino\" name=\"sottobacino\" class=\"form-control\" placeholder=\"Sottobacino\"/></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"bacino\">Bacino</label><input readonly=\"readonly\" type=\"text\"id=\"bacino\" name=\"bacino\" class=\"form-control\" placeholder=\"Bacino\"/></div> ");
 			sb.append("<input type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\"/>");
 			sb.append("</div>");
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-3\">Comune<input type=\"text\" id=\"comune\" name=\"comune\" class=\"form-control\"/></div>");
+			sb.append("<br><div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"comune\">Comune</label><input type=\"text\" id=\"comune\" name=\"comune\" class=\"form-control\"placeholder=\"Comune\"/></div>");
 			sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" />");
-			sb.append("<div class=\"col-xs-6 col-md-3\">Provncia<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" class=\"form-control\"/></div>");
-			sb.append("<div class=\"col-xs-6 col-md-3\">Regione<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" class=\"form-control\" /> </div>");
-			sb.append("<div class=\"col-xs-6 col-md-3\">Nazione<input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\"class=\"form-control\" /></div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"provincia\">Provincia</label><input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" class=\"form-control\"placeholder=\"Provincia\"/></div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"regione\">Regione</label><input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" class=\"form-control\" placeholder=\"Regione\" /> </div>");
+			sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"nazione\">Nazione</label><input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\"class=\"form-control\" placeholder=\"Nazione\" /></div>");
 			sb.append("</div>");
 			
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-6\">Latitudine <input type=\"text\" name=\"latitudine\" class=\"form-control\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-6\">Longitudine <input type=\"text\" name=\"longitudine\" class=\"form-control\"></div>");
+			sb.append("<br><div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"latitudine\">Latitudine</label><input type=\"text\" id=\"latitudine\"name=\"latitudine\" class=\"form-control\" placeholder=\"Latitudine\"/></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"longitudine\">Longitudine</label><input type=\"text\" id=\"longitudine\" name=\"longitudine\" class=\"form-control\" placeholder=\"Longitudine\"/></div>");
 			sb.append("</div>");
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-6\">Quota <input type=\"text\" name=\"quota\" class=\"form-control\"></div>");
-			sb.append("<div class=\"col-xs-6 col-md-6\">Esposizione <input type=\"text\" name=\"esposizione\" class=\"form-control\"></div>");
+			sb.append("<br><div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"quota\">Quota</label> <input type=\"text\" id=\"quota\"name=\"quota\" class=\"form-control\" placeholder=\"Quota\"/></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"esposizione\">Esposizione</label> <input type=\"text\" id=\"esposizione\" name=\"esposizione\" class=\"form-control\" placeholder=\"Esposizione\" /></div>");
 			sb.append("</div>");
 			
 			
@@ -264,24 +250,24 @@ public class HTMLProcesso {
 			sb.append("</div> </div>");
 			
 			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sulla litologia</h4>");
-			sb.append("litologia:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" class=\"form-control\"/></p>");
+			sb.append("<label for=\"nomeLitologia_"+loc+"\">Litologia</label>:<input type=\"text\" id=\"nomeLitologia_"+loc+"\" name=\"nomeLitologia_"+loc+"\" class=\"form-control\" placeholder=\"Litologia\"/></p>");
 			sb.append("<input type=\"hidden\" id=\"idLitologia\" name=\"idLitologia\" />");
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-6\">proprieta termiche<input type=\"text\" id=\"proprietaTermiche_"+loc+"\" name=\"proprietaTermiche_"+loc+"\" class=\"form-control\"/></div>");
+			sb.append("<br><div class=\"row\">");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"proprietaTermiche_"+loc+"\">Proprietà Termiche</label><input type=\"text\" id=\"proprietaTermiche_"+loc+"\" name=\"proprietaTermiche_"+loc+"\" class=\"form-control\" placeholder=\"Proprietà Termiche\"/></div>");
 			sb.append("<input type=\"hidden\" id=\"idProprietaTermiche\" name=\"idProprietaTermiche\" />");
-			sb.append("<div class=\"col-xs-6 col-md-6\">stato fratturazione<input type=\"text\" id=\"statoFratturazione_"+loc+"\" name=\"statoFratturazione_"+loc+"\" class=\"form-control\"/></div>");
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"statoFratturazione_"+loc+"\">Stato Fratturazione</label><input type=\"text\" id=\"statoFratturazione_"+loc+"\" name=\"statoFratturazione_"+loc+"\" class=\"form-control\" placeholder=\"Stato Fratturazione\"/></div>");
 			sb.append("<input type=\"hidden\" id=\"idStatoFratturazione\" name=\"idStatoFratturazione\" />");
 			sb.append("</div>");
 			sb.append("</div> </div>");
 			
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-xs-6 col-md-6\"><textarea rows=\"4\" cols=\"50\" name=\"descrizione\" class=\"textarea\" > descrizione </textarea></div>");
-			sb.append("<div class=\"col-xs-6 col-md-6\"><textarea rows=\"4\" cols=\"50\" name=\"note\" placeholder=\"note\"> </textarea></div>");
+			sb.append("<br><div class=\"wrapper\">");
+			sb.append("<div class=\"content-main\"><label for=\"note\">Note</label></div>");
+			sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"note\" id=\"note\" class=\"textarea\" placeholder=\"Note\">  </textarea></div>");
 			sb.append("</div>");
 			
 			sb.append("<input type=\"hidden\" name=\"operazione\" value=\"cercaProcesso\">");
 			sb.append("<input type=\"submit\" name =\"submit\" value=\"OK\">");
-		
+			sb.append("</div> </div>");
 			sb.append("</form>");
 		}else if(loc.equals("ENG")){
 			//da fare
