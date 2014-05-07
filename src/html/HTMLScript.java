@@ -498,4 +498,29 @@ public class HTMLScript {
     sb.append("</script>");
  	return sb.toString();
 	}
+	public static String scriptControlloInserimento(String controllo){
+		StringBuilder sb = new StringBuilder();
+		sb.append("if (modulo."+controllo+".value == \"\") {");
+		sb.append("alert(\"Campo -"+controllo+"- mancante.Modulo non spedito.\");");
+		sb.append("modulo."+controllo+".focus();");
+		sb.append("return false;");
+		sb.append("}");
+	 	return sb.toString();
+	}
+	
+	public static String scriptFilter(){
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("<script src=\"js/jquery-1.10.2.js\"></script>");
+		sb.append("<script src=\"js/jquery.filtertable.js\"></script>");
+		sb.append("<script>");
+
+
+		sb.append("$(document).ready(function() {");
+		sb.append("$('table').filterTable();");
+		sb.append("});");
+		sb.append("</script>");
+	 	return sb.toString();
+
+	}
 }

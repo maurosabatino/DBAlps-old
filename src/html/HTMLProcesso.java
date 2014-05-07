@@ -9,6 +9,7 @@ import java.util.GregorianCalendar;
 import bean.Danni;
 import bean.EffettiMorfologici;
 import bean.Processo;
+import bean.StazioneMetereologica;
 import bean.TipologiaProcesso;
 import bean.partecipante.Partecipante;
 import bean.partecipante.Role;
@@ -394,6 +395,41 @@ public class HTMLProcesso {
 			sb.append( "<input type=\"submit\" name =\"submit\" value=\"OK\">");
 			sb.append( "</form>");
 		}
+		return sb.toString();
+	}
+	
+	public static String mostraCerchioProcesso(int id,String loc) throws SQLException{
+		StringBuilder sb=new StringBuilder();
+
+		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">"+
+				"raggio<input type=\"text\" name=\"raggio\" > <br>"+
+				"<input type=\"hidden\" name=\"operazione\" value=\"mostraStazioniRaggio\">"+
+				"  <input type=\"hidden\" name=\"id\" value=\""+id+"\"  />"+
+				"<input type=\"submit\" name =\"submit\" value=\"OK\">"+
+					"</form>");
+		return sb.toString();
+	}
+	
+	public static String mostraStazioniRaggio(Processo p,String loc,int raggio) throws SQLException{
+		StringBuilder sb=new StringBuilder();
+		double x=p.getUbicazione().getCoordinate().getX();
+		double y=p.getUbicazione().getCoordinate().getY();
+		ArrayList<StazioneMetereologica> s=ControllerDatabase.prendiStazionidaRaggio(x,y,p,raggio);
+		sb.append("<table class=\"table\"> <tr> <th>distanza</th> <th>quota</th> <th>nome</th> </tr>");
+		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">");
+		for(StazioneMetereologica stazione: s){
+			sb.append(" <tr> <td>"+stazione.getDistanzaProcesso()+" </td> <td>"+stazione.getUbicazione().getQuota()+"</td> <td>"+stazione.getNome()+" </td> <td> <input type=\"checkbox\" name=\"id\" value=\""+stazione.getIdStazioneMetereologica()+"\" > </td></tr>");
+		}
+		sb.append("</table>");
+		sb.append("<div class=\"row\">");
+		sb.append("<input type=\"hidden\" name=\"idProcesso\" value=\""+p.getIdProcesso()+"\">");
+		sb.append("<div class=\"col-xs-6 col-md-4\"><input type=\"submit\" name =\"operazione\" value=\"scegliTemperature\"> </div>");
+
+		sb.append("<div class=\"col-xs-6 col-md-4\"><input type=\"submit\" name =\"operazione\" value=\"scegliDeltaT\"> </div>" );
+
+		sb.append("<div class=\"col-xs-6 col-md-4\"><input type=\"submit\" name =\"operazione\" value=\"scegliPrecipitazioni\"> </div>");
+		sb.append("</div>");
+		sb.append("</form>");
 		return sb.toString();
 	}
 	

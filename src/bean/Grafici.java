@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Grafici {
 	ArrayList<Double> x;
 	ArrayList<Double> y;
+	ArrayList<String> categorie;
 	String nome;
 	double interpolazione;
 	double riferimento;
@@ -38,6 +39,12 @@ public class Grafici {
 	}
 	public void setRiferimento(double riferimento) {
 		this.riferimento = riferimento;
+	}
+	public ArrayList<String> getCategorie() {
+		return categorie;
+	}
+	public void setCategorie(ArrayList<String> categorie) {
+		this.categorie = categorie;
 	}
 	
 	

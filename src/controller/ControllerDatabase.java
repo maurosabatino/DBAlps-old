@@ -1439,6 +1439,26 @@ public class ControllerDatabase {
 		conn.close();
 		return sensori;
 	}
+	public static ArrayList<StazioneMetereologica> prendiStazionidaRaggio(double x,double y,Processo p,int r) throws SQLException{
+		ArrayList<StazioneMetereologica> s=new ArrayList<StazioneMetereologica>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs=st.executeQuery("SELECT *,st_distance((select coordinate from ubicazione where idubicazione="+p.getUbicazione().getIdUbicazione()+"),ubicazione.coordinate) as distance FROM ubicazione,stazione_metereologica WHERE ST_DWithin((select coordinate from ubicazione where idubicazione="+p.getUbicazione().getIdUbicazione()+"), ubicazione.coordinate,"+r+")=true and ubicazione.idubicazione=stazione_metereologica.idubicazione");
+		while(rs.next()){
+			StazioneMetereologica stazione=new StazioneMetereologica();
+			stazione.setIdStazioneMetereologica(rs.getInt("idstazionemetereologica"));
+			stazione.setDistanzaProcesso(rs.getDouble("distance"));
+			stazione.setNome(rs.getString("nome"));
+			//completare
+			Ubicazione ub = prendiUbicazione(rs.getInt("idUbicazione"));
+			stazione.setUbicazione(ub);
+			s.add(stazione);
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		return s;
+	}
 	
 	/*
 	 * ubicazione
@@ -1796,5 +1816,172 @@ public class ControllerDatabase {
 	public static String dateFormat(Calendar cal){
 		String data = ""+cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH)+1) + "-" + cal.get(Calendar.DAY_OF_MONTH)+" 00:00:00.00";
 		return data;
+	}
+	
+	/*
+	 * query climatiche
+	 */
+
+	public static ArrayList<Double> prendiSommaPrecipitazioniMese(String id,String anno,boolean a) throws SQLException{//ok
+		ArrayList<Double> dati=new ArrayList<Double>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		if(a==true)  rs=st.executeQuery("select sum(quantita),month from (select sum(quantita) as quantita,EXTRACT(month FROM data) as month from precipitazione" +
+				"				 where idstazionemetereologica="+id+" and quantita<>-9999 and EXTRACT(year FROM data)="+anno+" " +
+				"				 group by EXTRACT(month FROM data),EXTRACT(year FROM data) having (count(quantita)>20) " +
+				"				 order by EXTRACT(month FROM data), EXTRACT(year FROM data) ) as media group by month");
+		else  	 rs=st.executeQuery("select sum(quantita),month from (select sum(quantita) as quantita,EXTRACT(month FROM data) as month from precipitazione" +
+				"				 where idstazionemetereologica="+id+" and quantita<>-9999 " +
+				"				 group by EXTRACT(month FROM data),EXTRACT(year FROM data) having (count(quantita)>20) " +
+				"				 order by EXTRACT(month FROM data), EXTRACT(year FROM data) ) as media group by month");
+
+		while(rs.next()){
+			double d=rs.getInt("sum");
+			dati.add(d);
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		return dati;
+	}
+	public static Grafici prendiSommaPrecipitazioniAnnoMensile(String id) throws SQLException{
+		Grafici g=new Grafici();
+		ArrayList<Double> precipitazioni=new ArrayList<Double>();
+		ArrayList<String> anni=new ArrayList<String>();
+
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		rs=st.executeQuery("select sum(quantita),EXTRACT(Year FROM data) as anni from precipitazione where idstazionemetereologica="+id+"  and quantita<>-9999 group by EXTRACT(Year FROM data) order by EXTRACT(year FROM data)");
+
+		while(rs.next()){
+			precipitazioni.add(rs.getDouble("count"));
+			anni.add(String.valueOf(rs.getDouble("anni")));
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		g.setCategorie(anni);
+		g.setY(precipitazioni);
+		return g;
+	}
+	
+	public static ArrayList<Double> prendiPrecipitazioniMeseMensile(String id,String anno,String mese) throws SQLException{
+		ArrayList<Double> precipitazioni=new ArrayList<Double>();
+
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		rs=st.executeQuery("select quantita from precipitazione where quantita<>-9999 and idstazionemetereologica="+id+" and EXTRACT(Year FROM data)="+anno+" and EXTRACT(month FROM data)="+mese+" order by EXTRACT(day FROM data)");
+
+		while(rs.next()){
+			precipitazioni.add(rs.getDouble("quantita"));
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		
+		return precipitazioni;
+	}
+	
+	public static ArrayList<Double> prendiPrecipitazioniTrimestreMensile(String id,String anno,String mese) throws SQLException{
+		ArrayList<Double> precipitazioni=new ArrayList<Double>();
+		int mesefinale=Integer.parseInt(mese)+2;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		rs=st.executeQuery("select distinct EXTRACT(MONTH FROM data),sum(quantita) from precipitazione" +
+						   " where quantita<>-9999 and idstazionemetereologica="+id+" and (EXTRACT(MONTH FROM data) )::int BETWEEN "+mese+" AND "+mesefinale+" and extract(year from data)="+anno+"" +
+						   "  group by(EXTRACT(MONTH FROM data)) order by  EXTRACT(MONTH FROM data)");
+
+		while(rs.next()){
+			precipitazioni.add(rs.getDouble("sum"));
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		
+		return precipitazioni;
+	}
+	
+	public static ArrayList<Double> prendiTemperatureAnno(String id,String anno, boolean a,String tipo) throws SQLException{
+			Connection conn = DriverManager.getConnection(url,user,pwd);
+			Statement st = conn.createStatement();
+			ArrayList<Double> tem= new ArrayList<Double>();
+		
+			ResultSet rs;
+			
+			if(a){
+				rs =st.executeQuery("SELECT avg(temperatura"+tipo+") as "+tipo+",EXTRACT(MONTH FROM data) FROM temperatura_"+tipo+" WHERE extract(year FROM data)="+anno+" and idstazionemetereologica="+id+" and temperatura"+tipo+"<>-9999 group by EXTRACT(MONTH FROM data) order by EXTRACT(MONTH FROM data)");
+			} else 	rs =st.executeQuery("SELECT avg(temperatura"+tipo+") as "+tipo+",EXTRACT(MONTH FROM data) FROM temperatura_"+tipo+" WHERE  idstazionemetereologica="+id+" and temperatura"+tipo+"<>-9999 group by EXTRACT(MONTH FROM data) order by EXTRACT(MONTH FROM data)");
+			while(rs.next()){
+				tem.add(rs.getDouble(""+tipo+""));
+				
+			}
+			
+			rs.close();
+			st.close();
+			return tem;
+		
+	}
+	
+	public static ArrayList<Double> prendiMM(String id,String anno, boolean a,String tipo) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ArrayList<Double> tem= new ArrayList<Double>();
+	
+		ResultSet rs;
+		
+		if(a){
+			rs =st.executeQuery("SELECT "+tipo+"(temperatura"+tipo+") as "+tipo+",EXTRACT(MONTH FROM data) FROM temperatura_"+tipo+" WHERE extract(year FROM data)="+anno+" and idstazionemetereologica="+id+" and temperatura"+tipo+"<>-9999 group by EXTRACT(MONTH FROM data) order by  EXTRACT(MONTH FROM data) ");
+
+		} else 	rs =st.executeQuery("SELECT "+tipo+"(temperatura"+tipo+") as "+tipo+",EXTRACT(MONTH FROM data) FROM temperatura_"+tipo+" WHERE  idstazionemetereologica="+id+" and temperatura"+tipo+"<>-9999 group by EXTRACT(MONTH FROM data) order by  EXTRACT(MONTH FROM data) ");
+
+		while(rs.next()){
+			tem.add(rs.getDouble(""+tipo+""));
+			
+		}
+		
+		rs.close();
+		st.close();
+		return tem;
+	}
+	
+	
+	public static ArrayList<Double> prendiPrecipitazioniTrimestreGiornaliero(String id,String anno,String mese) throws SQLException{
+		ArrayList<Double> precipitazioni=new ArrayList<Double>();
+		int mesefinale=Integer.parseInt(mese)+2;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		rs=st.executeQuery("select quantita,data from precipitazione where idstazionemetereologica="+id+" and (EXTRACT(MONTH FROM data))::int BETWEEN "+mese+" AND "+mesefinale+" and extract(year from data)="+anno+"");
+
+		while(rs.next()){
+			if(rs.getDouble("quantita")==-9999) precipitazioni.add(0.0);
+			else precipitazioni.add(rs.getDouble("quantita"));
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		
+		return precipitazioni;
+	}
+	
+	public static ArrayList<Double> prendiSommaPrecipitazioniMeseGiornaliero(String id,String anno) throws SQLException{//ok
+		ArrayList<Double> dati=new ArrayList<Double>();
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		  rs=st.executeQuery("select quantita,data from precipitazione where idstazionemetereologica="+id+" and  extract(year from data)="+anno+"");
+		
+		while(rs.next()){
+			if(rs.getDouble("quantita")==-9999) dati.add(0.0);
+			else dati.add(rs.getDouble("quantita"));
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		return dati;
 	}
 }

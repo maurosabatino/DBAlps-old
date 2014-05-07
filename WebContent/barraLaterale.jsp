@@ -3,6 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="css/sidebar.css"/>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title></title>
 
@@ -26,6 +27,7 @@
  <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzione deltaT</a></li>
  <li><a href="Servlet?operazione=scegliStazioniT"> distribuzione temperature</a></li>
  <li><a href="Servlet?operazione=scegliStazioniPrecipitazioni"> distribuzione precipitazioni</a></li>
+ <li><a href="Servlet?operazione=query"> interrogazione db</a></li>
 <%} %>
 <%if(part!=null&&(part.hasRole(Role.AVANZATO))){ %>
 <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a></li>
@@ -37,6 +39,7 @@
       <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzione deltaT</a></li>
      <li><a href="Servlet?operazione=scegliStazioniT"> distribuzione temperature</a></li>
      <li><a href="Servlet?operazione=scegliStazioniPrecipitazioni"> distribuzione precipitazioni</a></li>
+     <li><a href="Servlet?operazione=query"> interrogazione db</a></li>
 <%} %>
 <%if(part!=null&&(part.hasRole(Role.BASE))){ %>
 <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a></li>
@@ -48,6 +51,7 @@
       <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzione deltaT</a></li>
      <li><a href="Servlet?operazione=scegliStazioniT"> distribuzione temperature</a></li>
      <li><a href="Servlet?operazione=scegliStazioniPrecipitazioni"> distribuzione precipitazioni</a></li>
+     <li><a href="Servlet?operazione=query"> interrogazione db</a></li>
 <%} %>
 <%if(part==null){ %>
 <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci Segnalazione</a></li>

@@ -24,6 +24,8 @@ public class StazioneMetereologica {
 	public boolean oraria;
 	public int idUtente;
 	
+	public double distanzaProcesso;
+	
 	
 	public StazioneMetereologica(){
 		idStazioneMetereologica=0;
@@ -36,7 +38,9 @@ public class StazioneMetereologica {
 	    note="";
 		dataInizio=new Date(0);
 		dataFine=new Date(0);
-		oraria=false;		
+		oraria=false;
+		
+		distanzaProcesso=-1;
 	}
 	
 	public void setIdStazioneMetereologica(int stazione){
@@ -133,5 +137,13 @@ public class StazioneMetereologica {
 
 	public void setIdUtente(int idUtente) {
 		this.idUtente = idUtente;
+	}
+
+	public double getDistanzaProcesso() {
+		return distanzaProcesso;
+	}
+
+	public void setDistanzaProcesso(double distanzaProcesso) {
+		this.distanzaProcesso = distanzaProcesso;
 	}
 }

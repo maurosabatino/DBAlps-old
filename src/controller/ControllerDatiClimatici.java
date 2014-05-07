@@ -107,8 +107,6 @@ public class ControllerDatiClimatici {
 					deltarif=dati.get(inf+finestra-1)-dati.get(inf);
 					deltarif=arrotonda(deltarif);
 				}else {
-					if(inf>7000)
-					System.out.println("indice: "+inf);
 					if(dati.get(inf)!=-9999 && dati.get(inf+finestra-1)!=-9999){
 						 deltaT=dati.get(inf+finestra-1)-dati.get(inf);
 						 deltaT=arrotonda(deltaT);
@@ -128,7 +126,7 @@ public class ControllerDatiClimatici {
 	}
 	
 	public static void lettoreCSVT(int idstazione) throws ParseException, IOException, SQLException{
-		String csvFile = "/Users/mauro/Desktop/prova2.csv";
+		String csvFile = "/Users/daler/Desktop/faloriaT.csv";
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy =";";
@@ -150,9 +148,9 @@ public class ControllerDatiClimatici {
 				SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd");
 				
 				System.out.println("data: "+dbFormat.format(d));
-				if(!med[1].equals("NaN")) t=(Double.parseDouble(med[1]));
+				if(!med[2].equals("NaN")) t=(Double.parseDouble(med[2]));
 				else  t=-9999;
-				st.executeUpdate("INSERT INTO temperatura_avg(idstazionemetereologica,temperaturaavg,data) values("+idstazione+","+t+",'"+dbFormat.format(d)+"')");
+				st.executeUpdate("INSERT INTO temperatura_min(idstazionemetereologica,temperaturamin,data) values("+idstazione+","+t+",'"+dbFormat.format(d)+"')");
 			}	
 			st.close(); conn.close();
 		} catch (FileNotFoundException e) {
@@ -174,7 +172,7 @@ public class ControllerDatiClimatici {
 	}
 	
 	public static void lettoreCSVPrec(int id) throws ParseException, IOException, SQLException{
-		String csvFile = "/Users/daler/Desktop/faP.csv";
+		String csvFile = "/Users/daler/Desktop/precipitazioni.csv";
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy =";";
@@ -222,6 +220,7 @@ public class ControllerDatiClimatici {
 		double risultato=0;
 		int t=0;
 		int p=0;
+		System.out.println(		"  temperatura="+temperature.size());
 		for(t=0;t<temperature.size();t++){
 			if(temperature.get(t).compareTo(riferimento)==0) return prob.get(p);
 			else if(temperature.get(t).compareTo(riferimento)<0 && 0<temperature.get(t+1).compareTo(riferimento)){
@@ -232,12 +231,9 @@ public class ControllerDatiClimatici {
 				p++;
 			}		
 		}
-		int n = temperature.size();
-		System.out.println("numero di elementi; "+n);
-		if(riferimento>temperature.get(n-1)){
-			System.out.println("riferimento: "+riferimento+" "+temperature.get(n-1)+"");
-			return 1;
-		}
+		System.out.println("riferimento="+riferimento+"" );
+		System.out.println(		" ultima temperatura="+temperature.get(temperature.size()-1));
+		if(riferimento>temperature.get(temperature.size()-1)) return 1;
 		else return -1;
 	}
 	
@@ -251,7 +247,6 @@ public class ControllerDatiClimatici {
 		ArrayList<Double> tem= new ArrayList<Double>();
 		int limiteinf=dataLimite(t,-limite);
 		int limitesup=dataLimite(t,limite);
-		System.out.println("query: SELECT temperaturaavg FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" ");
 		ResultSet rs =st.executeQuery("SELECT temperaturaavg FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+"");
 		while(rs.next()){
 			tem.add(rs.getDouble("temperaturaavg"));
@@ -282,7 +277,7 @@ public class ControllerDatiClimatici {
 	}
 	
 	
-	public static ArrayList<Double> prendiT(Timestamp d,int id,int limite) throws SQLException{
+	public static ArrayList<Double> prendiT(Timestamp d,int id,int limite,String tipo) throws SQLException{
 		String url = "jdbc:postgresql://localhost:5432/DBAlps";
 		String user = "admin";
 		String pwd = "dbalps";
@@ -297,39 +292,32 @@ public class ControllerDatiClimatici {
 		int limiteinf=dataLimite(d,-limite);
 		int limitesup=dataLimite(d,0);
 		ResultSet rs;
-		System.out.println("limite inf  "+limiteinf);
-		System.out.println("limite sup  "+limitesup);
 		double cont=0;
 		double med=0;
 		boolean rif=false;
 		boolean nullo=false;
-		rs =st.executeQuery("SELECT temperaturaavg,data FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" ");
+		System.out.println("SELECT temperatura"+tipo+",data FROM temperatura_"+tipo+" WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" ");
+
+		rs =st.executeQuery("SELECT temperatura"+tipo+",data FROM temperatura_"+tipo+" WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" ");
 		//else rs =st.executeQuery("SELECT temperaturaavg,data FROM temperatura_avg  where date_part('month',data)="+cal.get(Calendar.MONTH)+" and date_part('day',data)="+cal.get(Calendar.DAY_OF_MONTH)+" and idstazionemetereologica"+id+"");
 		while(rs.next()){
 			if(cont<limite+1){
 				
-				if(rs.getDouble("temperaturaavg")!=-9999 && rs.getTimestamp("data").equals(d) ){
+				if(rs.getDouble("temperatura"+tipo+"")!=-9999 && rs.getTimestamp("data").equals(d) ){
 					//riferimento=rs.getDouble("temperaturaavg");
 					rif=true;
-					med=med+rs.getDouble("temperaturaavg");
-					System.out.println("trovato");
+					med=med+rs.getDouble("temperatura"+tipo+"");
 					nullo=true;
 				}
-				else if(rs.getDouble("temperaturaavg")!=-9999) {
+				else if(rs.getDouble("temperatura"+tipo+"")!=-9999) {
 					
 					//tem.add(rs.getDouble("temperaturaavg"));
-					med=med+rs.getDouble("temperaturaavg");
+					med=med+rs.getDouble("temperatura"+tipo+"");
 					nullo=true;
 				}
 				cont++;
 				if(cont==limite+1 ){
-					System.out.println(rs.getString("data"));
 					if(rif==true){
-						System.out.println("data riferimento "+rs.getString("data"));
-						System.out.println("cont="+cont);
-						System.out.println("media="+med);
-						System.out.println("denominatore="+(limite+1));
-
 						riferimento=med/(limite+1);
 						rif=false;
 					}
@@ -345,9 +333,7 @@ public class ControllerDatiClimatici {
 		}
 		
 		Collections.sort(tem);
-		System.out.println("tem "+tem.size());
 		tem.add(riferimento);
-		System.out.println("riferimento "+riferimento);
 		rs.close();
 		st.close();
 		return tem;
@@ -403,7 +389,7 @@ public class ControllerDatiClimatici {
 		date = date.valueOf(("2013-12-28 00:00:00"));
 		//------------temperature---------------------//
 			//incrementoTempo(date);	
-		lettoreCSVT(1001);
+		//lettoreCSVT(1014);
 		//System.out.println(""+annoRiferimento(date,4));
 		double Trif=0;
 	/*			int cont=0;
@@ -444,7 +430,7 @@ public class ControllerDatiClimatici {
 	*/	
 		//----------------------------precipitazioni--------------------------//
 	
-		//lettoreCSVPrec(5);
+		lettoreCSVPrec(1015);
 	/*			double precrif=0;
 			     ArrayList<Double> precipitazioni=prendiPrecipitazioni(date,45);
 			     System.out.println("1");
