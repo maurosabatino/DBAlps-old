@@ -116,7 +116,7 @@ public class HTMLProcesso {
 				//da fare
 			}
 		}else{
-			sb.append("<h1> spiacente non hai i permessi adeguati per accedere a questa pagina</h1>");
+			sb.append("<h1>Pagina delle segnalazioni(Da implementare)</h1>");
 		}
 		return sb.toString();
 	}
@@ -129,12 +129,14 @@ public class HTMLProcesso {
 		/*script per google maps*///centrerei la mappa al centro delle alpi 
 		
 		
-		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> dettagli</th> <th> modifica</th></tr>");
+		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> Report </th> <th> Modifica</th><th>Elimina</th></tr>");
 		for(Processo p: ap){
 			sb.append("<tr> <td>"+p.getNome()+" </td> <td> "+dateFormat.format(p.getData())+"</td> <td> "+p.getUbicazione().getLocAmm().getComune()+"</td>");
 			sb.append("<td>"+p.getUbicazione().getLocAmm().getNazione()+"</td> ");
 			sb.append("<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+p.getIdProcesso()+"\">dettagli</a></td>");
-			sb.append("<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td></tr>");
+			sb.append("<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+p.getIdProcesso()+"\">modifica</a> </td>");
+			sb.append("<td><a href=\"Servlet?operazione=eliminaProcesso&idProcesso="+p.getIdProcesso()+"\">Elimina</a> </td>");
+			sb.append("</tr>");
 		}
 		sb.append("</table></div>");
 		return sb.toString();
@@ -158,8 +160,6 @@ public class HTMLProcesso {
 	public static String formCercaProcessi(String path,String loc) throws SQLException{
 		StringBuilder sb = new StringBuilder();
 		sb.append(HTMLScript.scriptData("data"));
-		
-		
 		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
 		sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc),loc));
 		sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc),loc));
@@ -175,8 +175,8 @@ public class HTMLProcesso {
 			
 			sb.append("<div class=\"row\">");
 			sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"nome\">Nome Del Processo</label> <input type=\"text\" name=\"nome\" id=\"nome\" class=\"form-control\" placeholder=\"nome\" ></div>");
-			sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"data\">Data</label> <input type=\"text\" id=\"text\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
-			sb.append(" <div class=\"col-xs-6 col-md-4\"><label for=\"ora\">Ora</label> <input type=\"time\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
+			sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"data\">Data</label> <input type=\"text\" id=\"data\" name=\"data\" class=\"form-control\" placeholder=\"data\"></div>");
+			sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"ora\">Ora</label> <input type=\"text\" id=\"ora\" name=\"ora\"  class=\"form-control\" placeholder=\"ora\"></div> ");
 			sb.append("</div>");
 			
 			

@@ -12,10 +12,7 @@
     <div class="navbar-header">
      <a class="navbar-brand" href="index.jsp">DBAlps</a>
     </div>
-   <ul class="nav navbar-nav">
-     <li class="active"><a href="#">info</a></li>
-     <li><a href="#">contatti</a></li>
-  </ul>
+   
   
   <div class="navbar-collapse collapse">
  <% Partecipante part = (Partecipante)session.getAttribute("partecipante");

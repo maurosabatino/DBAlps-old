@@ -11,6 +11,7 @@ public class PartecipanteConcreto implements Partecipante {
 	String ruolo;
 	String email;
 	Timestamp dataCreazione;
+	Timestamp dataUltimoaccesso;
 	Timestamp ultimoAccesso;
 	
 	
@@ -84,6 +85,14 @@ public class PartecipanteConcreto implements Partecipante {
 	
 	public boolean isDecorated() {
 		return false;
+	}
+
+	public Timestamp getDataUltimoaccesso() {
+		return dataUltimoaccesso;
+	}
+
+	public void setDataUltimoaccesso(Timestamp dataUltimoaccesso) {
+		this.dataUltimoaccesso = dataUltimoaccesso;
 	}
 
 }

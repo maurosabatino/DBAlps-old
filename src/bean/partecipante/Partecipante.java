@@ -19,6 +19,8 @@ public interface Partecipante {
 	public void setEmail(String email);
 	public Timestamp getDataCreazione();
 	public void setDataCreazione(Timestamp dataCreazione);
+	public Timestamp getDataUltimoaccesso();
+	public void setDataUltimoaccesso(Timestamp dataUltimoaccesso);
 	public boolean hasRole(Role r);
 	public boolean isDecorated();
 }

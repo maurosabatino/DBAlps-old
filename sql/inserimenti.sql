@@ -53,3 +53,21 @@ insert into sensore(tipo_it,tipo_eng) values
 INSERT INTO sito_processo (caratteristica_it,caratteristica_eng) VALUES
 ( 'spartiacque','0f'),
 ( 'versante','f');
+
+insert into effetti_morfologici (tipo_eng,tipo_it) values 
+('rotto','rotto');
+
+insert into danno(tipo_eng,tipo_it) values 
+('rotto','rotto');
+
+insert into stato_fratturazione(nome_eng,nome_it) values
+('rotto','rotto');
+
+insert into proprieta_termiche(nome_eng,nome_it) values 
+('rotto','rotto');
+
+insert into classi_volume (intervallo) values 
+(1);
+
+insert into litologia(nome_eng,nome_it) values
+('rotto','rotto');

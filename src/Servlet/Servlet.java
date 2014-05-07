@@ -5,18 +5,27 @@ import html.HTMLProcesso;
 import html.HTMLStazioneMetereologica;
 import html.HTMLUtente;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -134,9 +143,10 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/processo.jsp");
 		}
 		if(operazione.equals("inserisciProcesso")){
+			Partecipante part = (Partecipante)session.getAttribute("partecipante");
 			Processo p = ControllerProcesso.nuovoProcesso(request,loc);
 			ControllerDatabase.salvaUbicazione(p.getUbicazione());
-			ControllerDatabase.salvaProcesso(p);
+			ControllerDatabase.salvaProcesso(p,part);
 			ControllerDatabase.salvaEffetti(p.getIdProcesso(), p.getEffetti(), p.getDanni());
 			ControllerDatabase.salvaTipologiaProcesso(p.getIdProcesso(), p.getTipologiaProcesso());
 			String content = HTMLProcesso.mostraProcesso(p.getIdProcesso());
@@ -204,6 +214,16 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/processo.jsp");
 		}
+		else if(operazione.equals("eliminaProcesso")){
+			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
+			Processo p = ControllerDatabase.prendiProcesso(idProcesso);
+			ControllerDatabase.eliminaProcesso(p);
+			String content = "ho eliminato il processo "+p.getNome()+"";
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
 		
 		/*
 		 * Stazione metereologica
@@ -238,7 +258,8 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/stazione.jsp");
 		}
 		else if(operazione.equals("mostraTutteStazioniMetereologiche")){
-			String content=HTMLStazioneMetereologica.mostraTutteStazioniMetereologiche();
+			Partecipante part =(Partecipante)session.getAttribute("partecipante");
+			String content=HTMLStazioneMetereologica.mostraTutteStazioniMetereologiche(part);
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
@@ -360,6 +381,50 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/stazione.jsp");
 
 		}
+		else if(operazione.equals("caricaDatiClimatici")){
+			int idstazione = Integer.parseInt(request.getParameter("idStazioneMetereologica"));
+			String content=HTMLStazioneMetereologica.UploadCSV(idstazione);
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/stazione.jsp");
+		}
+		else if(operazione.equals("uploadCSVDatiClimatici")){
+			StringBuilder content = new StringBuilder();
+			int idStazione = Integer.parseInt(request.getParameter("idStazioneMetereologica"));
+			String data="00-00-00";
+			String ora="00:00";
+			Timestamp dataInizio = null;
+			if(!(request.getParameter("data").equals(""))){
+				 data = request.getParameter("data");
+				if(!(request.getParameter("data").equals(""))){
+					if(!(request.getParameter("ora").equals(""))){
+						ora = request.getParameter("ora");
+					}else ora="00:00";
+					String dataCompleta = ""+data+" "+ora+":00";
+					System.out.println("data daala request: "+dataCompleta);
+					dataInizio = Timestamp.valueOf(dataCompleta);
+				}
+			}
+			String tabella = request.getParameter("tabella");
+			String attributo = tabella.substring(tabella.indexOf('$')+1, tabella.length());
+			tabella = tabella.substring(0,tabella.indexOf('$'));
+			StazioneMetereologica sm = ControllerDatabase.prendiStazioneMetereologica(idStazione, loc);
+			String pathStaz=path+"/"+sm.getNome()+"";
+			File theDir = new File(pathStaz);
+			if(!theDir.exists())
+				theDir.mkdir();
+				List<File> csv = uploadByJavaServletAPI(request, pathStaz);
+				content.append("<h4>stazione "+sm.getNome()+"</h4>");
+				for(File f:csv){
+					int count = ControllerDatabase.lettoreCSVT(f, tabella,attributo, idStazione,dataInizio);
+					content.append("<h5>hai caricato "+count+" dati climatici nella tabella "+tabella+" dal file "+f.getName()+"</h5>");
+				}
+				HTMLContent c = new HTMLContent();
+				c.setContent(content.toString());
+				request.setAttribute("HTMLc",c);
+				forward(request,response,"/stazione.jsp");
+		}
 		
 		//utente
 		else if(operazione.equals("formCreaUtente")){
@@ -388,7 +453,6 @@ public class Servlet extends HttpServlet {
 			String username = request.getParameter("username");
 			String password = request.getParameter("password");
 			if(ControllerDatabase.login(username, password)){
-				System.out.println("login corretto");
 				HTMLContent c = new HTMLContent();
 				Partecipante utente=ControllerDatabase.prendiUtente(username);
 				session.setAttribute("partecipante", utente);
@@ -410,6 +474,13 @@ public class Servlet extends HttpServlet {
 			request.getSession().invalidate();
 			response.sendRedirect(request.getContextPath() + "/index.jsp");
 		}
+		else if(operazione.equals("visualizzaTuttiUtenti")){
+			String content = HTMLUtente.visualizzaTuttiUtente();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/utente.jsp");
+		}
 		
 	}
 								
@@ -422,7 +493,52 @@ public class Servlet extends HttpServlet {
 		        rd.forward(request,response);
 	}
 	
+	
+	public static List<File> uploadByJavaServletAPI(HttpServletRequest request,String path) throws IOException, ServletException{
+		OutputStream out = null;
+    InputStream filecontent = null;
+    List<File> files = new LinkedList<File>();
+    Collection<Part> parts = request.getParts();
 
-
+    for(Part part:parts){   
+    	if(part.getContentType() != null){
+    		try {
+    			System.out.println(path);
+    			String fileName = getFilename(part);
+    			System.out.println("nome del file: "+fileName);
+    			File file = new File (path +File.separator+fileName);
+    			out = new FileOutputStream(file);
+    			filecontent = part.getInputStream();
+    			int read = 0;
+    			final byte[] bytes = new byte[1024];
+    			while ((read = filecontent.read(bytes)) != -1) {
+    				out.write(bytes, 0, read);
+    			}
+          	files.add(file);
+    		} catch (FileNotFoundException fne) {
+    			
+    		} finally {
+    			if (out != null) {
+    				out.close();
+    			}
+    			if (filecontent != null) {
+    				filecontent.close();
+    			}
+    		}	
+    	}
+    }
+    return files;
+	}
+	
+	
+	private static String getFilename(Part part) {
+		for (String cd : part.getHeader("content-disposition").split(";")) {
+			if (cd.trim().startsWith("filename")) {
+				String filename = cd.substring(cd.indexOf('=') + 1).trim().replace("\"", "");
+				return filename.substring(filename.lastIndexOf('/') + 1).substring(filename.lastIndexOf('\\') + 1); // MSIE fix.
+			}
+		}
+		return null;
+	}
 
 }

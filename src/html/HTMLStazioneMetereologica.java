@@ -8,19 +8,29 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import bean.*;
+import bean.partecipante.Partecipante;
+import bean.partecipante.Role;
 import controller.ControllerDatabase;
 import controller.ControllerJson;
 
 public class HTMLStazioneMetereologica {
-	public static String mostraTutteStazioniMetereologiche() throws SQLException{
+	public static String mostraTutteStazioniMetereologiche(Partecipante part) throws SQLException{
 		ArrayList<StazioneMetereologica>  ap = ControllerDatabase.prendiTutteStazioniMetereologiche(); 
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div class=\"table-responsive\"><table class=\"table\"> ");
-		sb.append("<tr> <th>Nome</th>  <th>comune</th> <th> dettagli</th> </tr>");
+		sb.append("<tr> <th>Nome</th>  <th>comune</th> <th> dettagli</th> ");
+		if(part!=null && (part.hasRole(Role.AMMINISTRATORE)||part.hasRole(Role.AVANZATO))){
+			sb.append("<th>modifica stazione</th><th> carica dati climatici</th>");
+		}
+		sb.append("</tr>");
 		for(StazioneMetereologica s: ap){
 			sb.append(" <tr> <td>"+s.getNome()+" </td>  <td> "+s.getUbicazione().getLocAmm().getComune()+"</td>  ");
-			sb.append("<td><a href=\"Servlet?operazione=mostraStazioneMetereologica&idStazioneMetereologica="+s.getIdStazioneMetereologica()+"\">dettagli</a>");
-			sb.append(" <a href=\"Servlet?operazione=modificaStazione&idStazioneMetereologica="+s.getIdStazioneMetereologica()+"\"> modifica stazione</a></td></tr>");
+			sb.append("<td><a href=\"Servlet?operazione=mostraStazioneMetereologica&idStazioneMetereologica="+s.getIdStazioneMetereologica()+"\">dettagli</a></td>");
+			if(part!=null &&(part.hasRole(Role.AMMINISTRATORE)||part.hasRole(Role.AVANZATO))){
+				sb.append("<td><a href=\"Servlet?operazione=modificaStazione&idStazioneMetereologica="+s.getIdStazioneMetereologica()+"\"> modifica</a></td>");
+				sb.append("<td><a href=\"Servlet?operazione=caricaDatiClimatici&idStazioneMetereologica="+s.getIdStazioneMetereologica()+"\"> Carica</a></td>");
+			}
+			sb.append("</tr>");
 		}
 		sb.append("</table></div>");
 		return sb.toString();
@@ -363,5 +373,20 @@ public class HTMLStazioneMetereologica {
 		return sb.toString();
 	}
 	
-	
+	public static String UploadCSV(int idstazione){
+		StringBuilder sb = new StringBuilder();
+		sb.append(""+HTMLScript.scriptData("data")+"");
+		sb.append("<form  action=\"/DBAlps/Servlet\" method=\"POST\" enctype=\"multipart/form-data\">");
+		sb.append("<input type=\"file\" name=\"files[]\" multiple>");
+		sb.append("<input type=\"hidden\" name=\"idStazioneMetereologica\" value=\""+idstazione+"\">");
+		sb.append("<select name=\"tabella\">");
+		sb.append(" <option value=\"temperatura_avg$temperaturaavg\">temperatura media</option>");
+		sb.append(" </select>");
+		sb.append("<input type=\"text\" id=\"data\" name=\"data\">");
+		sb.append("<input id=\"ora\" name=\"ora\" >");
+		sb.append("<input type=\"hidden\" name=\"operazione\" value=\"uploadCSVDatiClimatici\">");
+		sb.append("<input type=\"submit\" name=\"invia\" value=\"carica\"/>");
+		sb.append("</form>");
+		return sb.toString();
+	}
 }

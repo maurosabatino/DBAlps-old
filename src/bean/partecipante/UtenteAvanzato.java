@@ -76,7 +76,12 @@ public class UtenteAvanzato implements Ruolo{
 	public void setDataCreazione(Timestamp dataCreazione) {
 		partecipante.setDataCreazione(dataCreazione);
 	}
-	
+	public Timestamp getDataUltimoaccesso(){
+		return partecipante.getDataUltimoaccesso();
+	}
+	public void setDataUltimoaccesso(Timestamp dataUltimoaccesso){
+		partecipante.setDataUltimoaccesso(dataUltimoaccesso);
+	}
 	public Partecipante undecorate() {
 		if(partecipante.isDecorated()) return ((Ruolo)partecipante).undecorate();
 		return partecipante;

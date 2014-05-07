@@ -1,22 +1,37 @@
 package controller;
 
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PushbackReader;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 import javax.servlet.http.Part;
+
+import org.postgresql.copy.CopyManager;
+import org.postgresql.jdbc2.EscapedFunctions;
 
 import bean.*;
 import bean.partecipante.Amministratore;
 import bean.partecipante.Partecipante;
 import bean.partecipante.PartecipanteConcreto;
+import bean.partecipante.Role;
 import bean.partecipante.UtenteAvanzato;
 import bean.partecipante.UtenteBase;
 
@@ -29,33 +44,37 @@ public class ControllerDatabase {
 	 * Processo
 	 */
 	
-	public static Processo salvaProcesso(Processo p) throws SQLException{
+	public static Processo salvaProcesso(Processo p,Partecipante part) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		StringBuilder sb = new StringBuilder();
-		sb.append(""+p.getUbicazione().getIdUbicazione());
-		sb.append(","+p.getSitoProcesso().getIdSito()+"");
-		sb.append(",'"+p.getNome().replaceAll("'", "''")+"'");
-		sb.append(",'"+p.getData()+"'");
-		sb.append(",'"+p.getDescrizione()+"'");
-		sb.append(",'"+p.getNote()+"'");
-		sb.append(","+p.getAltezza());
-		sb.append(","+p.getLarghezza());
-		sb.append(","+p.getSuperficie());
-		sb.append(","+p.getVolumeSpecifico());
-		sb.append(",1");
-		sb.append(",1");
-		sb.append(",true");
-		sb.append(","+p.getClasseVolume().getIdClasseVolume());
-		sb.append(","+p.getLitologia().getidLitologia());
-		sb.append(","+p.getProprietaTermiche().getIdProprieta_termiche());
-		sb.append(","+p.getStatoFratturazione().getIdStato_fratturazione());
 		
-		st.executeUpdate("INSERT INTO processo(idUbicazione,idSito,nome,data,descrizione,note,altezza,larghezza,superficie,volumespecifico,"
+		String sql = "INSERT INTO processo(idUbicazione,idSito,nome,data,descrizione,note,altezza,larghezza,superficie,volumespecifico,"
 				+ "idutentecreatore,idutentemodifica,convalidato,idclassevolume,idlitologia,idproprietatermiche,idstatofratturazione)"
-				+ " values("+sb.toString()+")");
-		
-		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idUbicazione="+p.getUbicazione().getIdUbicazione()+" AND idSito="+p.getSitoProcesso().getIdSito()+" AND nome='"+p.getNome()+"' AND data='"+p.getData()+"' ");
+				+ " values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1,  p.getUbicazione().getIdUbicazione());
+		ps.setInt(2, p.getSitoProcesso().getIdSito());
+		ps.setString(3, p.getNome());
+		ps.setTimestamp(4, p.getData());
+		ps.setString(5, p.getDescrizione());
+		ps.setString(6, p.getNote());
+		ps.setDouble(7, p.getAltezza());
+		ps.setDouble(8, p.getLarghezza());
+		ps.setDouble(9, p.getSuperficie());
+		ps.setDouble(10, p.getVolumeSpecifico());
+		ps.setInt(11, part.getIdUtente());
+		ps.setInt(12, part.getIdUtente());
+		if(part.hasRole(Role.AMMINISTRATORE)|| part.hasRole(Role.AVANZATO)|| part.hasRole(Role.BASE))
+			ps.setBoolean(13, true);
+		else
+			ps.setBoolean(13, false);
+		ps.setInt(14, p.getClasseVolume().getIdClasseVolume());
+		ps.setInt(15, p.getLitologia().getidLitologia());
+		ps.setInt(16, p.getProprietaTermiche().getIdProprieta_termiche());
+		ps.setInt(17, p.getStatoFratturazione().getIdStato_fratturazione());
+		ps.executeUpdate();
+		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idUbicazione="+p.getUbicazione().getIdUbicazione()+" AND idSito="+p.getSitoProcesso().getIdSito()+" AND nome='"+p.getNome().replaceAll("'","''")+"' AND data='"+p.getData()+"' ");
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 		}
@@ -533,6 +552,14 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		
+	}
+	public static void eliminaProcesso(Processo p) throws SQLException{
+		//cancellare processo e ubicazione
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		PreparedStatement psp = conn.prepareStatement("delete from processo where idprocesso="+p.getIdProcesso()+"");
+		PreparedStatement psu = conn.prepareStatement("delete from ubicazione where idubicazione="+p.getUbicazione().getIdUbicazione()+"");
+		psp.executeUpdate();
+		psu.executeUpdate();
 	}
 	
 	/*
@@ -1603,8 +1630,8 @@ public class ControllerDatabase {
 	public static Partecipante salvaUtente(Partecipante p) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		st.executeUpdate("insert into utente(nome,cognome,username,password,ruolo,email,datacreazione) values "
-				+ "('"+p.getNome()+"','"+p.getCognome()+"','"+p.getUsername()+"','"+p.getPassword()+"','"+p.getRuolo()+"','"+p.getEmail()+"','"+p.getDataCreazione()+"')");
+		st.executeUpdate("insert into utente(nome,cognome,username,password,ruolo,email,datacreazione,dataultimoaccesso) values "
+				+ "('"+p.getNome().replaceAll("'", "''")+"','"+p.getCognome()+"','"+p.getUsername()+"','"+p.getPassword()+"','"+p.getRuolo()+"','"+p.getEmail()+"','"+p.getDataCreazione()+"','"+dataCorrente()+"')");
 		ResultSet rs=st.executeQuery("Select idutente from utente where username='"+p.getUsername()+"' and email='"+p.getEmail()+"' ");
 		while(rs.next()){
 			p.setIdUtente((rs.getInt("idutente")));
@@ -1620,25 +1647,22 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		Partecipante p = new PartecipanteConcreto();
-		System.out.println("username dal metodo db: "+username);
 		ResultSet rs=st.executeQuery("select * from utente where username='"+username+"'");
-		System.out.println("query : select * from utente where username='"+username+"'");
 		while(rs.next()){
 			switch(rs.getString("ruolo")){
 			case "amministratore" : p = new Amministratore(p); break;
 			case "avanzato" : p = new UtenteAvanzato(p); break;
 			case "base" : p = new UtenteBase(p); break;
 			}
-			System.out.println("sono nel db");
+			p.setIdUtente(rs.getInt("idutente"));
 			p.setCognome(rs.getString("cognome"));
 			p.setDataCreazione(rs.getTimestamp("datacreazione"));
-		//p.setDataUltimoAccesso(rs.getTimestamp("dataultimoaccesso"));
+			p.setDataUltimoaccesso(rs.getTimestamp("dataultimoaccesso"));
 			p.setEmail(rs.getString("email"));
 			p.setNome(rs.getString("nome"));
 			p.setPassword(rs.getString("password"));
 			p.setRuolo(rs.getString("ruolo"));
 			p.setUsername(rs.getString("username"));
-			System.out.println("username dal db: "+p.getUsername());
 		}
 		rs.close();
 		st.close();
@@ -1650,7 +1674,6 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		ResultSet rs=st.executeQuery("select * from utente where username='"+username+"' and password='"+password+"'");
-		System.out.println("query: select * from utente where username='"+username+"' and password='"+username+"'");
 		if(!(rs.next())){
 			rs.close();
 			st.close();
@@ -1658,6 +1681,7 @@ public class ControllerDatabase {
 			return false;
 		}
 		else{
+			st.executeUpdate("update utente set dataultimoaccesso='"+dataCorrente()+"' where idutente = "+rs.getInt("idutente")+"");
 			rs.close();
 			st.close();
 			conn.close();
@@ -1665,6 +1689,38 @@ public class ControllerDatabase {
 		}
 		
 	}
+	public static ArrayList<Partecipante> PrendiTuttiUtenti() throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ArrayList<Partecipante> part = new ArrayList<Partecipante>();
+		ResultSet rs=st.executeQuery("select * from utente");
+		while(rs.next()){
+			Partecipante p = new PartecipanteConcreto();
+			p.setCognome(rs.getString("cognome"));
+			p.setDataCreazione(rs.getTimestamp("datacreazione"));
+			p.setDataUltimoaccesso(rs.getTimestamp("dataultimoaccesso"));
+			p.setEmail(rs.getString("email"));
+			p.setIdUtente(rs.getInt("idutente"));
+			p.setNome(rs.getString("nome"));
+			p.setPassword(rs.getString("password"));
+			p.setRuolo(rs.getString("ruolo"));
+			p.setUsername(rs.getString("username"));
+			part.add(p);
+		}
+		rs.close();st.close();conn.close();
+		return part;
+	}
+	public static String dataCorrente(){
+		Calendar cal = new GregorianCalendar();
+	    int giorno = cal.get(Calendar.DAY_OF_MONTH);
+	    int mese = cal.get(Calendar.MONTH)+1;
+	    int anno = cal.get(Calendar.YEAR);
+	    int ora = cal.get(Calendar.HOUR_OF_DAY);
+	    int min = cal.get(Calendar.MINUTE);
+	    int sec = cal.get(Calendar.SECOND);
+	    return (anno+"-"+mese+"-"+giorno+" "+ora+":"+min+":"+sec);
+	}
+
 	
 	/*
 	 * dati climatici
@@ -1680,6 +1736,62 @@ public class ControllerDatabase {
 		}
 		st.close();
 		conn.close();
+	}
+	
+	public static int lettoreCSVT(File f,String tabella,String attributo,int idstazione,Timestamp dataInizio) throws ParseException, IOException, SQLException{
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy =";";
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		
+		double t=0;
+		final int batchSize = 1000;
+		int count = 0;
+		Calendar data = new GregorianCalendar();
+		data.setTime(dataInizio);
+		try {
+			br = new BufferedReader(new FileReader(f));
+			try{
+			String sql = "insert into "+tabella+"(idstazionemetereologica,"+attributo+",data) values(?,?,?)";
+			PreparedStatement insert = conn.prepareStatement(sql);
+			while ((line = br.readLine()) != null) {
+				String[] med = line.split(cvsSplitBy);
+				if(!med[0].equals("NaN")) t=(Double.parseDouble(med[0]));
+				else  t=-9999;
+				insert.setInt(1, idstazione);
+				insert.setDouble(2, t);
+				insert.setTimestamp(3, Timestamp.valueOf(dateFormat(data)));
+				insert.addBatch();
+				
+				if(++count % batchSize == 0) {
+	        insert.executeBatch();
+				}
+				data.add(Calendar.DAY_OF_MONTH, 1);
+			}
+			insert.executeBatch();
+		
+			insert.close(); conn.close();
+			}catch(SQLException ex) {
+				System.out.println(ex.getNextException());
+			}
+			
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+	
+	return count;
 	}
 	public static String dateFormat(Calendar cal){
 		String data = ""+cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH)+1) + "-" + cal.get(Calendar.DAY_OF_MONTH)+" 00:00:00.00";

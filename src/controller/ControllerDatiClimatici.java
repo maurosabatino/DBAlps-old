@@ -107,6 +107,8 @@ public class ControllerDatiClimatici {
 					deltarif=dati.get(inf+finestra-1)-dati.get(inf);
 					deltarif=arrotonda(deltarif);
 				}else {
+					if(inf>7000)
+					System.out.println("indice: "+inf);
 					if(dati.get(inf)!=-9999 && dati.get(inf+finestra-1)!=-9999){
 						 deltaT=dati.get(inf+finestra-1)-dati.get(inf);
 						 deltaT=arrotonda(deltaT);
