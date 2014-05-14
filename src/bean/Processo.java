@@ -6,6 +6,7 @@ public class Processo {
 	int idProcesso;
 	String nome;
 	Timestamp data;
+	int formatoData;
 	String descrizione;
 	String note;
 	Double superficie;
@@ -29,6 +30,7 @@ public class Processo {
         idProcesso=0;
         nome = "sconosciuto";
         data = Timestamp.valueOf("0001-01-01 00:00:00");
+        formatoData=00000;
         descrizione = "sconosciuto";
         note = "assente";
         superficie = 0.0;
@@ -176,6 +178,22 @@ public class Processo {
 
 	public void setStatoFratturazione(StatoFratturazione statoFratturazione) {
 		this.statoFratturazione = statoFratturazione;
+	}
+
+	public int getFormatoData() {
+		return formatoData;
+	}
+
+	public void setFormatoData(int formatoData) {
+		this.formatoData = formatoData;
+	}
+
+	public Double getVolume_specifico() {
+		return volume_specifico;
+	}
+
+	public void setVolume_specifico(Double volume_specifico) {
+		this.volume_specifico = volume_specifico;
 	}
  
   

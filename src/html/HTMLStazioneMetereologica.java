@@ -57,60 +57,95 @@ public class HTMLStazioneMetereologica {
 
 	public static String formStazioneMetereologica(String path) throws SQLException {
 		StringBuilder sb = new StringBuilder();
-		String loc ="IT";
-		Calendar inizio = new GregorianCalendar();
-		inizio.add(Calendar.MONTH, 1);
-		sb.append(HTMLScript.scriptData("datainizio"));
-		Calendar fine = new GregorianCalendar();
-		fine.add(Calendar.MONTH, 1);
-	 	sb.append(HTMLScript.scriptData("datafine"));
-		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
-		sb.append(HTMLScript.scriptAutocompleteSitoStazione(ControllerJson.getJsonSitoStazione(path, loc),loc));
-		sb.append(HTMLScript.scriptAutocompleteEnte(ControllerJson.getJsonEnte(path)));
-		sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+    String loc ="IT";
+    Calendar inizio = new GregorianCalendar();
+    inizio.add(Calendar.MONTH, 1);
+    sb.append(HTMLScript.scriptData("datainizio"));
+    Calendar fine = new GregorianCalendar();
+    fine.add(Calendar.MONTH, 1);
+    sb.append(HTMLScript.scriptData("datafine"));
+    sb.append(HTMLScript.scriptAperturaControlloInserimento());
+    sb.append(HTMLScript.scriptControlloInserimento("nome"));
+    sb.append(HTMLScript.scriptControlloInserimento("comune"));
+    sb.append(HTMLScript.scriptChiusuraControlloInserimento());
 
-	
-		
-		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">" +
-				"			<p>Nome:<input type=\"text\" name=\"nome\" value=\"prova\"></p>" +
-				"			<p>Aggregazione giornaliera:<input type=\"text\" name=\"aggregazioneGiornaliera\" value=\"agg\"></p>" +
-				"			<p>Note:<input type=\"text\" name=\"note\" value=\"note\"></p>" +
-				"			<p>Periodo Funzionamento:<input type=\"text\" name=\"periodoFunzionamento\" value=\"periodo\"></p>" +
-				"			<p>Oraria:<input type=\"text\" name=\"oraria\" value=\"false\"></p>");
-		
-		sb.append("<p> ente:<input type=\"text\" id=\"ente\" name=\"ente\" /></p>");
-		sb.append("<p>enteid:<input readonly=\"readonly\" type=\"text\" id=\"idEnte\" name=\"idEnte\" /></p>");
-		sb.append("<p> sito:<input type=\"text\" id=\"caratteristiche_"+loc+"\" name=\"caratteristiche_it\" /></p>");
-		sb.append("<p>sitoid:<input readonly=\"readonly\" type=\"hidden\" id=\"idsitostazione\" name=\"idsitostazione\" /></p>");
-		
-		sb.append("<p>dati sull'ubicazione</p>");
-		sb.append("<p>sottobacino:<input type=\"text\" id=\"sottobacino\" name=\"sottobacino\">");
-		sb.append("<p>bacino:<input type=\"text\"id=\"bacino\" name=\"bacino\"></p>");
-		sb.append("<input  type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\" />");
-		
-		sb.append("<p>comune:<input type=\"text\" id=\"comune\" name=\"comune\" /> </p>");
-		sb.append("<p>idcomune:<input readonly=\"readonly\" type=\"text\" id=\"idcomune\" name=\"idcomune\" /></p>");
-		sb.append("<p>provincia:<input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" /></p>");
-		sb.append("<p>regione:<input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" /></p> ");
-		sb.append("<p>nazione:<input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\" /></p>");
-		
-		sb.append("<p>latitudine:<input type=\"text\" name=\"latitudine\" value=\"12\"></p>");
-		sb.append("<p>longitudine:<input type=\"text\" name=\"longitudine\"value=\"14\"></p>");
-		sb.append("<p>quota:<input type=\"text\" name=\"quota\" value=\"12\"></p>");
-		sb.append("<p>esposizione:<input type=\"text\" name=\"esposizione\" value=\"nord\"></p>");
-		sb.append( "<p> data inizio <input type=\"text\" id=\"datainizio\" name=\"datainizio\" ></p>");
-		sb.append( "<p> data fine <input type=\"text\" id=\"datafine\" name=\"datafine\" ></p>");
-
-		for(Sensori sens:ControllerDatabase.prendiTuttiSensori()){
-			sb.append("<input type=\"checkbox\" name=\"tipo_it\" value=\""+sens.getSensori_IT()+"\" > "+sens.getSensori_IT()+" ");
-		}
-		
-		sb.append("<br>");
-			sb.append(	"			<input type=\"hidden\" name=\"operazione\" value=\"inserisciStazione\">" +
-				"			<input type=\"submit\" name =\"submit\" value=\"OK\">" +
-				"		</form>");
-		return sb.toString();
-	}
+    sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+    sb.append(HTMLScript.scriptAutocompleteSitoStazione(ControllerJson.getJsonSitoStazione(path, loc),loc));
+    sb.append(HTMLScript.scriptAutocompleteEnte(ControllerJson.getJsonEnte(path)));
+    sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+     
+    sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" onSubmit=\"return verificaInserisci(this);\" method=\"POST\">" );   
+    sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sulla Stazione</h4>");       
+    sb.append("<div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-12\"><label for=\"nome\">Nome Della Stazione</label> <input type=\"text\" name=\"nome\" id=\"nome\" class=\"form-control\" placeholder=\"nome\" ></div>");
+    sb.append("</div>");
+    sb.append("<br>");
+    sb.append("<div class=\"row\">");
+    sb.append(  "<div class=\"col-xs-6 col-md-4\"><label for=\"aggregazionegiornaliera\">Aggregazione giornaliera<input type=\"text\" name=\"aggregazioneGiornaliera\"  id=\"aggregazionegiornaliera\" class=\"form-control\" placeholder=\"aggregazione\"/></div>" );  
+    sb.append(  "<div class=\"col-xs-6 col-md-4\"><label for=\"periodofunzionamento\">Periodo Funzionamento<input type=\"text\" name=\"periodoFunzionamento\"  id=\"periodofunzionamento\" class=\"form-control\" placeholder=\"Periodo\"/></div>" );
+    sb.append("</div>");
+    sb.append("<br>");
+    sb.append("<div class=\"row\">");
+    sb.append(  "<div class=\"col-xs-6 col-md-4\"><label for=\"oraria\">Oraria:<input type=\"radio\" name=\"oraria\"  id=\"oraria\" value=\"oraria\"  ></div>");
+    sb.append(  "<div class=\"col-xs-6 col-md-4\"><label for=\"oraria\">Giornaliera:<input type=\"radio\" checked name=\"oraria\"  id=\"giornaliera\" value=\"giornaliera\" ></div>");
+    sb.append("</div>");
+    sb.append("<br>");
+    sb.append("<div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"datainizio\">Data inizio</label> <input type=\"text\" id=\"datainizio\" name=\"datainizio\" class=\"form-control\" placeholder=\"datainizio\"></div>");
+    sb.append("<div class=\"col-xs-6 col-md-4\"><label for=\"datafine\">Data fine</label> <input type=\"text\" id=\"datafine\" name=\"datafine\" class=\"form-control\" placeholder=\"datafine\"></div>");
+    sb.append("</div>");
+    sb.append("<br>");
+    sb.append("<div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"ente\"> Ente:<input type=\"text\" id=\"ente\" name=\"ente\"  class=\"form-control\" placeholder=\"ente\"></div> ");
+    sb.append("<input  type=\"hidden\" id=\"idEnte\" name=\"idEnte\" />");
+    sb.append("</div>");
+    sb.append("<br>");
+    sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Dati sull'ubicazione</h4>");
+    sb.append("<div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"sottobacino\">Sottobacino</label><input type=\"text\" id=\"sottobacino\" name=\"sottobacino\" class=\"form-control\" placeholder=\"Sottobacino\"/></div>");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"bacino\">Bacino</label><input readonly=\"readonly\" type=\"text\"id=\"bacino\" name=\"bacino\" class=\"form-control\" placeholder=\"Bacino\"/></div> ");
+    sb.append("<input type=\"hidden\" id=\"idSottobacino\" name=\"idSottobacino\"/>");
+    sb.append("</div>");
+    sb.append("<br><div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"comune\">Comune</label><input type=\"text\" id=\"comune\" name=\"comune\" class=\"form-control\"placeholder=\"Comune\"/></div>");
+    sb.append("<input  type=\"hidden\" id=\"idcomune\" name=\"idcomune\" />");
+    sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"provincia\">Provincia</label><input readonly=\"readonly\" type=\"text\" id=\"provincia\" name=\"provincia\" class=\"form-control\"placeholder=\"Provincia\"/></div>");
+    sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"regione\">Regione</label><input readonly=\"readonly\" type=\"text\" id=\"regione\" name=\"regione\" class=\"form-control\" placeholder=\"Regione\" /> </div>");
+    sb.append("<div class=\"col-xs-6 col-md-3\"><label for=\"nazione\">Nazione</label><input readonly=\"readonly\" type=\"text\" id=\"nazione\" name=\"nazione\"class=\"form-control\" placeholder=\"Nazione\" /></div>");
+    sb.append("</div>");  
+    sb.append("<br><div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"latitudine\">Latitudine</label><input type=\"text\" id=\"latitudine\"name=\"latitudine\" class=\"form-control\" placeholder=\"Latitudine\"/></div>");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"longitudine\">Longitudine</label><input type=\"text\" id=\"longitudine\" name=\"longitudine\" class=\"form-control\" placeholder=\"Longitudine\"/></div>");
+    sb.append("</div>");
+    sb.append("<br><div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"quota\">Quota</label> <input type=\"text\" id=\"quota\"name=\"quota\" class=\"form-control\" placeholder=\"Quota\"/></div>");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"esposizione\">Esposizione</label> <input type=\"text\" id=\"esposizione\" name=\"esposizione\" class=\"form-control\" placeholder=\"Esposizione\" /></div>");
+    sb.append("</div>");
+    sb.append("<br><div class=\"row\">");
+    sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\"caratteristiche_"+loc+"\"> Caratteristiche Sito <input type=\"text\" id=\"caratteristiche_"+loc+"\" name=\"caratteristicaSito_"+loc+"\" class=\"form-control\" placeholder=\"Caratteristiche \" /></div>");
+    sb.append("<input type=\"hidden\" id=\"idsitostazione\" name=\"idsitostazione\" />");
+    sb.append("</div>");
+    sb.append("</div> </div>"); 
+    sb.append("<br>");
+    sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Sensori</h4>");
+    for(Sensori sens:ControllerDatabase.prendiTuttiSensori()){
+        sb.append("<input type=\"checkbox\" id=\"sensori\" name=\"tipo_it\" value=\""+sens.getSensori_IT()+"\" > "+sens.getSensori_IT()+" ");
+    }
+    sb.append("</div>");
+    sb.append("</div>");
+    sb.append("<br><div class=\"wrapper\">");
+    sb.append("<div class=\"content-main\"><label for=\"note\">Note</label></div>");
+    sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"note\" id=\"note\" class=\"textarea\" placeholder=\"Note\">  </textarea></div>");
+    sb.append("</div>");
+     
+    sb.append("<br>");
+     
+        sb.append(  "           <input type=\"hidden\" name=\"operazione\" value=\"inserisciStazione\">" );
+        sb.append(  "           <input type=\"submit\" name =\"submit\" value=\"OK\">" );
+        sb.append("</div>");
+        sb.append(  "       </form>");
+    return sb.toString();
+}
 	
 	
 	public static String modificaStazioneMetereologica(StazioneMetereologica s,String path) throws SQLException {

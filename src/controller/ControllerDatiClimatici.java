@@ -19,7 +19,9 @@ import java.util.*;
 
 
 public class ControllerDatiClimatici {
-	
+	static String url = "jdbc:postgresql://localhost:5432/dbalps";
+	static String user = "postgres";
+	static String pwd = "guido2014";
 	public static ArrayList<Double> distribuzioneFrequenzaCumulativa(ArrayList<Double> dati){//array gia ordinato dal db
 		ArrayList<Double> temp = new ArrayList<Double>();
 		double probabilita=0;
@@ -239,9 +241,7 @@ public class ControllerDatiClimatici {
 	
 	
 	public static ArrayList<Double> prendiTDelta(Timestamp t,int limite, int id) throws SQLException{// limite = intervallo a dx/sx es 15 su aggregazione 30 giorni
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		String user = "admin";
-		String pwd = "dbalps";
+		
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		ArrayList<Double> tem= new ArrayList<Double>();
@@ -258,9 +258,6 @@ public class ControllerDatiClimatici {
 	}
 	
 	public static ArrayList<Double> prendiPrecipitazioni(Timestamp t,int limite,int id) throws SQLException{// limite = intervallo a dx/sx es 15 su aggregazione 30 giorni
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		String user = "admin";
-		String pwd = "dbalps";
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		ArrayList<Double> prec= new ArrayList<Double>();
@@ -278,9 +275,6 @@ public class ControllerDatiClimatici {
 	
 	
 	public static ArrayList<Double> prendiT(Timestamp d,int id,int limite,String tipo) throws SQLException{
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		String user = "admin";
-		String pwd = "dbalps";
 		double riferimento=0;
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -354,9 +348,7 @@ public class ControllerDatiClimatici {
 	
 	public static int annoRiferimento(Timestamp t, int id) throws SQLException{
 		int anno=0;
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		String user = "admin";
-		String pwd = "dbalps";
+
 		Calendar cal=new GregorianCalendar();
 		cal.setTime(t);
 		anno=cal.get(Calendar.YEAR);

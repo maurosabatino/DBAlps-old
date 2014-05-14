@@ -1,4 +1,4 @@
---utenti 
+﻿--utenti 
 create table if not exists utente(
 idutente serial primary key not null,
 nome varchar(200),
@@ -7,6 +7,7 @@ username varchar(40),
 password varchar(40),
 ruolo varchar(20),
 email varchar(40),
+attivo boolean,
 datacreazione timestamp,
 dataultimoaccesso timestamp
 );
@@ -66,11 +67,12 @@ FOREIGN KEY (idProvincia) REFERENCES provincia (idProvincia) on delete cascade
 
 CREATE TABLE IF NOT EXISTS ubicazione(
 idUbicazione serial primary key not null,
-idComune integer not null,
-idSottobacino integer not null,
+idComune integer,
+idSottobacino integer,
 quota double precision,
 esposizione varchar(10),
 coordinate geography(point),
+affidabilita varchar(45),
 FOREIGN KEY (idComune) REFERENCES comune (idComune) on delete no action, 
 FOREIGN KEY (idSottobacino) REFERENCES sottobacino (idSottobacino) on delete no action
 );
@@ -128,12 +130,13 @@ intervallo double precision not null
 
 CREATE table if not exists processo(
 idprocesso serial not null primary key,
-nome text not null,
-idubicazione integer not null references ubicazione(idubicazione) on delete no action,
+nome text,
+idubicazione integer references ubicazione(idubicazione) on delete no action,
 idsito integer references sito_processo(idsitoprocesso) on delete no action,
 data timestamp not null,
+formatodata integer not null,
 idutentecreatore integer not null references utente(idutente) on delete no action,
-idutentemodifica integer not null references utente(idutente) on delete no action,
+idutentemodifica integer references utente(idutente) on delete no action,
 descrizione text,
 note text,
 superficie double precision,
@@ -187,13 +190,12 @@ tipo_ENG varchar(100) not null unique
 
 create table if not exists stazione_metereologica(
 idStazionemetereologica serial primary key not null,
-idEnte integer REFERENCES ente(idEnte) not null,
-idSitostazione integer REFERENCES sito_stazione(idSitostazione) not null on delete no action,
-idUbicazione integer REFERENCES ubicazione(idUbicazione) not null on delete no action,
-idutentecreatore integer not null references utente(idutente) on delete no action,
 nome varchar(100) not null,
-aggregazioneGiornaliera varchar(100) not null,
-oraria boolean not null,
+idEnte integer REFERENCES ente(idEnte),
+idSitostazione integer REFERENCES sito_stazione(idSitostazione) on delete no action,
+idUbicazione integer not null REFERENCES ubicazione(idUbicazione)  on delete no action,
+idutentecreatore integer references utente(idutente) on delete no action,
+aggregazioneGiornaliera varchar(100),
 note text,
 datainizio timestamp,-- forse not null?
 datafine timestamp
@@ -208,35 +210,40 @@ create table if not exists neve(
 idneve serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 neve double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists precipitazione(
 idPrecipitazione serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 quantita double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists temperatura_avg(
 idTemperaturaavg serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 temperaturaavg double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists temperatura_max(
 idTemperaturamax serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 temperaturamax double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists temperatura_min(
 idTemperaturamin serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 temperaturamin double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists vento(
@@ -245,33 +252,39 @@ idStazionemetereologica integer not null REFERENCES stazione_metereologica(idSta
 nome varchar(40),
 direzione varchar(8),
 velocita double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists rain(
 idRain serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 quantita double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 create table if not exists radSol(
 idRadsol serial primary key not null,
 idStazionemetereologica integer not null REFERENCES stazione_metereologica(idStazionemetereologica) on delete cascade,
 quantita double precision,
-data timestamp not null
+data timestamp not null,
+oraria boolean not null
 );
 
 --allegati
 create table if not exists allegati(
 idAllegati serial not null primary key,
-nome text not null,
-data timestamp not null,
+autore text not null,
+titolo text not null,
+anno text not null,
 fonte text not null,
-tipoallegato text not null,
-url text,
+tipoallegato text,
+urlweb text,
+nella text,
 idutente integer not null references utente(idutente),
-file bytea--?????
+linkfile text,
+data timestamp
 );
 
 create table if not exists allegati_Processo(

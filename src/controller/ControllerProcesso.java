@@ -53,17 +53,35 @@ public class ControllerProcesso {
 		p.setNome(request.getParameter("nome"));
 		String data="00-00-00";
 		String ora="00:00";
-		if(!(request.getParameter("data").equals(""))){
-			 data = request.getParameter("data");
-			if(!(request.getParameter("data").equals(""))){
-				if(!(request.getParameter("ora").equals(""))){
-					ora = request.getParameter("ora");
-				}
-				String dataCompleta = ""+data+" "+ora+":00";
-				
-				p.setData((Timestamp.valueOf(dataCompleta)));
-			}
-		}
+		StringBuilder formatoData = new StringBuilder();
+		String anno="0000";
+		String mese="01";
+		String giorno="01";
+		if(!(request.getParameter("anno").equals(""))){
+			formatoData.append("1");
+			anno = request.getParameter("anno");
+		}else formatoData.append("0");
+		
+		if(!(request.getParameter("mese").equals("vuoto"))){
+			mese = request.getParameter("mese");
+			formatoData.append("1");
+		}else formatoData.append("0");
+		
+		if(!(request.getParameter("giorno").equals("vuoto"))){
+			giorno = request.getParameter("giorno");
+			formatoData.append("1");
+		} else formatoData.append("0");
+		
+		data = ""+anno+"-"+mese+"-"+giorno+"";
+		if(!(request.getParameter("ora").equals(""))){
+			ora = request.getParameter("ora");
+			formatoData.append("1");
+		}else formatoData.append("0");
+		String dataCompleta = ""+data+" "+ora+":00";
+		p.setData((Timestamp.valueOf(dataCompleta)));
+		System.out.println("formato data: "+formatoData);
+		p.setFormatoData(Integer.parseInt(formatoData.toString()));
+		
 		String descrizione =request.getParameter("descrizione");
 		p.setDescrizione(descrizione);
 		p.setNote(request.getParameter("note"));

@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,9 +37,9 @@ import bean.partecipante.UtenteAvanzato;
 import bean.partecipante.UtenteBase;
 
 public class ControllerDatabase {
-	static String url = "jdbc:postgresql://localhost:5432/DBAlps";
-	static String user = "admin";
-	static String pwd = "dbalps";
+	static String url = "jdbc:postgresql://localhost:5432/dbalps";//dbalps
+	static String user = "postgres";//potstgres
+	static String pwd = "guido2014";//guido2014
 	
 	/**
 	 * Processo
@@ -49,12 +50,18 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		
 		String sql = "INSERT INTO processo(idUbicazione,idSito,nome,data,descrizione,note,altezza,larghezza,superficie,volumespecifico,"
-				+ "idutentecreatore,idutentemodifica,convalidato,idclassevolume,idlitologia,idproprietatermiche,idstatofratturazione)"
-				+ " values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+				+ "idutentecreatore,idutentemodifica,convalidato,idclassevolume,idlitologia,idproprietatermiche,idstatofratturazione,formatodata)"
+				+ " values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-		PreparedStatement ps = conn.prepareStatement(sql);
+		PreparedStatement ps = conn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+		if(p.getUbicazione().getIdUbicazione()!=0)
 		ps.setInt(1,  p.getUbicazione().getIdUbicazione());
+		else
+			ps.setNull(1, Types.INTEGER);
+		if(p.getSitoProcesso().getIdSito()!=0)
 		ps.setInt(2, p.getSitoProcesso().getIdSito());
+		else
+			ps.setNull(2, Types.INTEGER);
 		ps.setString(3, p.getNome());
 		ps.setTimestamp(4, p.getData());
 		ps.setString(5, p.getDescrizione());
@@ -69,12 +76,18 @@ public class ControllerDatabase {
 			ps.setBoolean(13, true);
 		else
 			ps.setBoolean(13, false);
+		if(p.getClasseVolume().getIdClasseVolume()!=0)
 		ps.setInt(14, p.getClasseVolume().getIdClasseVolume());
+		else
+			ps.setNull(14, Types.INTEGER);
 		ps.setInt(15, p.getLitologia().getidLitologia());
 		ps.setInt(16, p.getProprietaTermiche().getIdProprieta_termiche());
 		ps.setInt(17, p.getStatoFratturazione().getIdStato_fratturazione());
+		ps.setInt(18, p.getFormatoData());
 		ps.executeUpdate();
-		ResultSet rs = st.executeQuery("SELECT * FROM processo WHERE idUbicazione="+p.getUbicazione().getIdUbicazione()+" AND idSito="+p.getSitoProcesso().getIdSito()+" AND nome='"+p.getNome().replaceAll("'","''")+"' AND data='"+p.getData()+"' ");
+		
+		ResultSet rs = ps.getGeneratedKeys();
+		
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 		}
@@ -120,23 +133,35 @@ public class ControllerDatabase {
 		LocazioneIdrologica locIdro = new LocazioneIdrologica();
 		StringBuilder sb = new StringBuilder();
 		sb.append("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y, l.nome_it as lito_it,l.nome_eng as lito_eng,pt.nome_it as pt_it,pt.nome_eng as pt_eng,sf.nome_it as sf_it,sf.nome_eng as sf_eng ");
-		sb.append(" from processo proc, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,");
-		sb.append(" litologia l,proprieta_termiche pt, stato_fratturazione sf, sito_processo sp,classi_volume cv");
-		sb.append(" where proc.idubicazione = u.idubicazione and proc.idprocesso="+idProcesso+"");
-		sb.append(" and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and");
-		sb.append(" b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and ");
-		sb.append(" proc.idlitologia = l.idlitologia and pt.idproprietatermiche=proc.idproprietatermiche and sp.idsitoprocesso=proc.idsito and proc.idclassevolume=cv.idclassevolume");
+		sb.append(" from processo proc ");
+		sb.append(" left join sito_processo sp on (proc.idsito=sp.idsitoprocesso) ");
+		sb.append(" left join classi_volume cv  on (proc.idclassevolume=cv.idclassevolume)");
+		sb.append(" left join litologia l on(proc.idlitologia = l.idlitologia) ");
+		sb.append(" left join proprieta_termiche pt on (pt.idproprietatermiche=proc.idproprietatermiche) ");
+		sb.append(" left join stato_fratturazione sf on (proc.idstatofratturazione=sf.idstatofratturazione)");
+		sb.append(" left join ubicazione u on (proc.idubicazione=u.idubicazione)");
+		sb.append(" left join comune c on (c.idcomune=u.idcomune)");
+		sb.append(" left join provincia p on (c.idProvincia=p.idProvincia)");
+		sb.append(" left join regione r on ( r.idregione=p.idregione)");
+		sb.append(" left join nazione n on (r.idnazione=n.idnazione)");
+		sb.append(" left join sottobacino s on (s.idsottobacino=u.idsottobacino)");
+		sb.append(" left join bacino b on (b.idbacino=s.idbacino)");
+		sb.append(" where proc.idprocesso="+idProcesso+"");
 		
+		
+		System.out.println("iquery"+sb.toString());
 		ResultSet rs = st.executeQuery(sb.toString());
 		while(rs.next()){
 			p.setIdprocesso(rs.getInt("idProcesso"));
 			p.setNome(rs.getString("nome"));
+			System.out.println("nome processo"+p.getNome());
 			p.setData(rs.getTimestamp("data"));
 			p.setDescrizione(rs.getString("descrizione"));
 			p.setNote(rs.getString("note"));
 			p.setAltezza(rs.getDouble("altezza"));
 			p.setLarghezza(rs.getDouble("larghezza"));
 			p.setSuperficie(rs.getDouble("superficie"));
+			p.setFormatoData(rs.getInt("formatodata"));
 			p.setVolumeSpecifico(rs.getDouble("volumespecifico"));
 			coord.setX(rs.getDouble("x"));
 			coord.setY(rs.getDouble("y"));
@@ -148,6 +173,7 @@ public class ControllerDatabase {
 			locIdro.setIdSottoBacino(rs.getInt("idsottobacino"));
 			locIdro.setBacino(rs.getString("nomebacino"));
 			locIdro.setSottobacino(rs.getString("nomesottobacino"));
+			u.setIdUbicazione(rs.getInt("idubicazione"));
 			u.setCoordinate(coord);
 			u.setLocAmm(locAmm);
 			u.setLocIdro(locIdro);
@@ -173,6 +199,7 @@ public class ControllerDatabase {
 			sf.setStatoFratturazione_IT(rs.getString("sf_it"));
 			sf.setStatoFratturazione_ENG(rs.getString("sf_eng"));
 			p.setStatoFratturazione(sf);
+			System.out.println("pt: "+p.getProprietaTermiche().getProprieta_termiche_IT() );
 			SitoProcesso sp = new SitoProcesso();
 			sp.setIdSito(rs.getInt("idsito"));
 			sp.setCaratteristicaSito_IT(rs.getString("caratteristica_it"));
@@ -194,12 +221,19 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
 		sb.append("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y, l.nome_it as lito_it,l.nome_eng as lito_eng,pt.nome_it as pt_it,pt.nome_eng as pt_eng,sf.nome_it as sf_it,sf.nome_eng as sf_eng ");
-		sb.append(" from processo proc, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,");
-		sb.append(" litologia l,proprieta_termiche pt, stato_fratturazione sf, sito_processo sp,classi_volume cv");
-		sb.append(" where proc.idubicazione = u.idubicazione ");
-		sb.append(" and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and");
-		sb.append(" b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and ");
-		sb.append(" proc.idlitologia = l.idlitologia and pt.idproprietatermiche=proc.idproprietatermiche and sp.idsitoprocesso=proc.idsito and proc.idclassevolume=cv.idclassevolume");
+		sb.append(" from processo proc ");
+		sb.append(" left join sito_processo sp on (proc.idsito=sp.idsitoprocesso) ");
+		sb.append(" left join classi_volume cv  on (proc.idclassevolume=cv.idclassevolume)");
+		sb.append(" left join litologia l on(proc.idlitologia = l.idlitologia) ");
+		sb.append(" left join proprieta_termiche pt on (pt.idproprietatermiche=proc.idproprietatermiche) ");
+		sb.append(" left join stato_fratturazione sf on (proc.idstatofratturazione=sf.idstatofratturazione)");
+		sb.append(" left join ubicazione u on (proc.idubicazione=u.idubicazione)");
+		sb.append(" left join comune c on (c.idcomune=u.idcomune)");
+		sb.append(" left join provincia p on (c.idProvincia=p.idProvincia)");
+		sb.append(" left join regione r on ( r.idregione=p.idregione)");
+		sb.append(" left join nazione n on (r.idnazione=n.idnazione)");
+		sb.append(" left join sottobacino s on (s.idsottobacino=u.idsottobacino)");
+		sb.append(" left join bacino b on (b.idbacino=s.idbacino)");
 		ResultSet rs = st.executeQuery(sb.toString());
 		while(rs.next()){
 			Processo p = new Processo();
@@ -216,6 +250,7 @@ public class ControllerDatabase {
 			p.setLarghezza(rs.getDouble("larghezza"));
 			p.setSuperficie(rs.getDouble("superficie"));
 			p.setVolumeSpecifico(rs.getDouble("volumespecifico"));
+			p.setFormatoData(rs.getInt("formatodata"));
 			coord.setX(rs.getDouble("x"));
 			coord.setY(rs.getDouble("y"));
 			locAmm.setIdComune(rs.getInt("idcomune"));
@@ -278,7 +313,7 @@ public class ControllerDatabase {
 		}
 		
 		if(!(p.getNome()==null || p.getNome().equals(""))){
-				sb.append(" and nome="+p.getNome()+"");
+				sb.append(" and nome similar to '%"+p.getNome()+"%'");
 		}
 		if(!(p.getSuperficie()==null || p.getSuperficie()==0)){
 				sb.append(" and superficie="+p.getSuperficie()+"");
@@ -354,25 +389,25 @@ public class ControllerDatabase {
 		
 		if(!(u.getLocAmm().isEmpty())){
 			if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
-				su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
+				su.append(" and c.nomecomune similar to '%"+u.getLocAmm().getComune()+"%'");
 			}
 			if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
-				su.append(" and p.nomeprovincia='"+u.getLocAmm().getProvincia()+"'");
+				su.append(" and p.nomeprovincia similar to '%"+u.getLocAmm().getProvincia()+"%'");
 			}
 			if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
-				su.append(" and r.nomeregione ='"+u.getLocAmm().getRegione()+"'");
+				su.append(" and r.nomeregione similar to '%"+u.getLocAmm().getRegione()+"%'");
 			}		
 			if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
-				su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+				su.append(" and n.nomenazione similar to '%"+u.getLocAmm().getNazione()+"%'");
 			}
 		}
 		
 		if(!(u.getLocIdro().isEmpty())){
 			if(!(u.getLocIdro().getBacino()==null || u.getLocIdro().getBacino().equals(""))){
-				su.append(" and b.nomebacino='"+u.getLocIdro().getBacino()+"'");
+				su.append(" and b.nomebacino similar to '%"+u.getLocIdro().getBacino()+"%'");
 			}
 			if(!(u.getLocIdro().getSottobacino()==null || u.getLocIdro().getSottobacino().equals(""))){
-				su.append(" and s.nomesottobacino='"+u.getLocIdro().getSottobacino()+"'");
+				su.append(" and s.nomesottobacino similar to '%"+u.getLocIdro().getSottobacino()+"%'");
 			}
 		}
 		
@@ -386,11 +421,11 @@ public class ControllerDatabase {
 		query.append(" b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and ");
 		query.append(" proc.idlitologia = l.idlitologia and pt.idproprietatermiche=proc.idproprietatermiche and sp.idsitoprocesso=proc.idsito and proc.idclassevolume=cv.idclassevolume");
 		if(u.isEmpty()==true){
-			System.out.println("query "+sb.toString());
+			System.out.println("Query: "+query.toString()+" "+sb.toString()+"");
 		 rs = st.executeQuery(""+query.toString()+" "+sb.toString()+" ");
 		}
 		else {
-			System.out.println("SELECT * FROM processo  "+sb.toString()+" "+su.toString()+" ");
+			System.out.println("Query: "+query.toString()+"  "+sb.toString()+" "+su.toString()+" ");
 			rs = st.executeQuery(""+query.toString()+"  "+sb.toString()+" "+su.toString()+" ");
 		}
 		while(rs.next()){
@@ -517,7 +552,6 @@ public class ControllerDatabase {
 		}
 		
 		if(!(p.getTipologiaProcesso().isEmpty() ||p.getTipologiaProcesso().size()==0)){
-			System.out.println("size: "+p.getTipologiaProcesso().size());
 			st.executeUpdate("delete from caratteristiche_processo where idprocesso = "+p.getIdProcesso()+"" );
 			salvaTipologiaProcesso(p.getIdProcesso(), p.getTipologiaProcesso());
 		}else{
@@ -1136,7 +1170,6 @@ public class ControllerDatabase {
 		}
 		
 		sb.append("where idStazioneMetereologica="+idStazione);
-		System.out.println("query: "+sb.toString());
 		st.executeUpdate(""+sb.toString());
 
 		/*
@@ -1163,7 +1196,6 @@ public class ControllerDatabase {
 				su.append("idsottobacino =1");
 			}
 			su.append(" where idubicazione="+s.getUbicazione().getIdUbicazione());
-			System.out.println(su.toString());
 			st.executeUpdate(""+su.toString());
 		}
 		
@@ -1983,5 +2015,40 @@ public class ControllerDatabase {
 		st.close();
 		conn.close();
 		return dati;
+	}
+	public static int salvaAllegato(int idUtente,String autore,String anno, String titolo, String in, String fonte, String urlWeb, String note, String tipo, String absoluteFile) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		int idAllegato = 0;
+		String query = "insert into allegati(autore,anno,titolo,nella,fonte,urlweb,note,tipoallegato,linkfile) values(?,?,?,?,?,?,?,?,?)";
+		PreparedStatement ps = conn.prepareStatement(query,Statement.RETURN_GENERATED_KEYS);
+		ps.setString(1,autore);
+		ps.setString(2, anno);
+		ps.setString(3, titolo);
+		ps.setString(4, in);
+		ps.setString(5, fonte);
+		ps.setString(6, urlWeb);
+		ps.setString(7, note);
+		ps.setString(8, tipo);
+		ps.setString(9, absoluteFile);
+		
+ResultSet rs = ps.getGeneratedKeys();
+		
+		while(rs.next()){
+		idAllegato = rs.getInt("idProcesso");
+		}
+		
+		rs.close();ps.close();conn.close();
+		
+		return idAllegato;
+	}
+	public static void salvaAllegatoProcesso(int idProcesso, int idUtente, String autore,String anno, String titolo, String in, String fonte, String urlWeb, String note, String tipo, String absoluteFile) throws SQLException {
+		Connection conn = DriverManager.getConnection(url,user,pwd); 
+		int idAllegato = salvaAllegato(idUtente, tipo, tipo, tipo, tipo, tipo, tipo, tipo, tipo, absoluteFile);
+		String query = "insert into allegati_processo(idprocesso,idallegati) values(?,?)";
+		 PreparedStatement ps = conn.prepareStatement(query);
+		 ps.setInt(1, idProcesso);
+		 ps.setInt(2,idAllegato);
+		 ps.executeUpdate();
+		 conn.close();ps.close();
 	}
 }

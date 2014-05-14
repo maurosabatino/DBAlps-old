@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -401,6 +402,12 @@ public class ControllerJson {
 	
 	public static void creaJson(String path) throws SQLException{
 		System.out.println("creo json");
+		String uploadPath = path + "\\" + "json";
+		System.out.println("upload path: "+uploadPath);
+		File uploadDir = new File(uploadPath);
+    if (!uploadDir.exists()) {
+        uploadDir.mkdir();
+    }
 		craeteJsonstatoFratturazione(path);
 		createJsonDanni(path);
 		createJsonEffettiMorfologici(path);

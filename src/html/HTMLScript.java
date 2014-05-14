@@ -54,9 +54,7 @@ public class HTMLScript {
 	
 	public static String mostraMappaProcesso(Processo p){
 		StringBuilder sb = new StringBuilder();
-		sb.append("<script type=\"text/javascript\"");
-		sb.append("src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyD2ZrcNbP1btezQE5gYgeA7_1IY0J8odCQ&sensor=false\">");
-		sb.append("</script>");
+	
 		sb.append(" <script type=\"text/javascript\">");
 		sb.append("function initialize() {");
 		sb.append("var myLatlng = new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+");");
@@ -134,6 +132,7 @@ public class HTMLScript {
     sb.append("var states ="+json+";");
     sb.append("$(\"#comune\").autocomplete({");
     sb.append("source: states,");
+    sb.append(" minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#comune\" ).val( ui.item.comune);");
     sb.append("return false;");
@@ -156,6 +155,7 @@ public class HTMLScript {
     sb.append("var idro ="+json+";");
     sb.append("$(\"#sottobacino\").autocomplete({");
     sb.append("source: idro,");
+    sb.append("  minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#sottobacino\" ).val( ui.item.label);");
     sb.append("return false;");
@@ -177,6 +177,7 @@ public class HTMLScript {
     sb.append("var statoFratturazione ="+json+";");
     sb.append("$(\"#statoFratturazione_"+loc+"\").autocomplete({");
     sb.append("source: statoFratturazione,");
+    sb.append("  minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#statoFratturazione_"+loc+"\" ).val(ui.item.label);");
     sb.append("return false;");
@@ -197,25 +198,7 @@ public class HTMLScript {
     sb.append("var proprietaTermiche ="+json+";");
     sb.append("$(\"#proprietaTermiche_"+loc+"\").autocomplete({");
     sb.append("source: proprietaTermiche,");
-    sb.append("focus: function( event, ui ) {");
-    sb.append("$(\"#proprietaTermiche_"+loc+"\" ).val( ui.item.label);");
-    sb.append("return false;");
-    sb.append("},");
-    sb.append("select: function(event, ui) {");
-    sb.append("$('#idProprietaTermiche').val(ui.item.idProprietaTermiche);");
-    sb.append("}");
-    sb.append("});");
-    sb.append("});");
-    sb.append("</script>");
- 	return sb.toString();
-	}
-	public static String scriptAutocompleteLitologia(String json,String loc){
-    StringBuilder sb = new StringBuilder();
-    sb.append("<script type=\"text/javascript\">");
-    sb.append("$(function() {");
-    sb.append("var proprietaTermiche ="+json+";");
-    sb.append("$(\"#proprietaTermiche_"+loc+"\").autocomplete({");
-    sb.append("source: proprietaTermiche,");
+    sb.append("  minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#proprietaTermiche_"+loc+"\" ).val( ui.item.label);");
     sb.append("return false;");
@@ -229,6 +212,7 @@ public class HTMLScript {
  	return sb.toString();
 	}
 	
+	
 	public static String scriptAutocompleteClasseVolume(String json){
     StringBuilder sb = new StringBuilder();
     sb.append("<script type=\"text/javascript\">");
@@ -236,6 +220,7 @@ public class HTMLScript {
     sb.append("var classeVolume ="+json+";");
     sb.append("$(\"#intervallo\").autocomplete({");
     sb.append("source: classeVolume,");
+    sb.append("  minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#intervallo\" ).val( ui.item.label);");
     sb.append("return false;");
@@ -256,6 +241,7 @@ public class HTMLScript {
     sb.append("var litologia ="+json+";");
     sb.append("$(\"#nomeLitologia_"+loc+"\").autocomplete({");
     sb.append("source: litologia,");
+    sb.append("  minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#nomeLitologia_"+loc+"\" ).val( ui.item.label);");
     sb.append("return false;");
@@ -275,6 +261,7 @@ public class HTMLScript {
     sb.append("var sitoProcesso ="+json+";");
     sb.append("$(\"#caratteristicaSito_"+loc+"\").autocomplete({");
     sb.append("source: sitoProcesso,");
+    sb.append("minLength: 0,");
     sb.append("focus: function( event, ui ) {");
     sb.append("$(\"#caratteristicaSito_"+loc+"\" ).val( ui.item.label);");
     sb.append("return false;");
@@ -505,6 +492,20 @@ public class HTMLScript {
 		sb.append("modulo."+controllo+".focus();");
 		sb.append("return false;");
 		sb.append("}");
+
+	 	return sb.toString();
+	}
+	
+	public static String scriptAperturaControlloInserimento(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<script>");
+		sb.append("function verificaInserisci(modulo){");
+	 	return sb.toString();
+	}
+	public static String scriptChiusuraControlloInserimento(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("return true;}");
+		sb.append("</script>");
 	 	return sb.toString();
 	}
 	

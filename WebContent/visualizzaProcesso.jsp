@@ -32,7 +32,13 @@
 <div class="row">
 <dl class="dl-horizontal">
   <dt>Descrizione</dt>
-  <dd>una descrizione del processo</dd>
+  <dd><%=p.getDescrizione() %></dd>
+  <dt>Altezza</dt>
+  <dd><%=p.getAltezza() %></dd>
+  <dt>Superficie</dt>
+  <dd><%=p.getSuperficie() %></dd>
+  <dt>Larghezza</dt>
+  <dd><%=p.getLarghezza() %></dd>
 </dl>
 </div>
 </div>

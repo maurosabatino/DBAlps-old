@@ -77,7 +77,7 @@ public class StazioneMetereologica {
 		aggregazioneGiornaliera=aggregazione;
 	}
 	public String getAggregazioneGiornaliera(){
-		return nome;
+		return aggregazioneGiornaliera;
 	}
 	
 	

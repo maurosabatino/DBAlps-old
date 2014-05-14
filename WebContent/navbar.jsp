@@ -19,16 +19,21 @@
 	if (part==null){
 %>	
   <form class="navbar-form navbar-right" action="/DBAlps/Servlet" name="dati" method="POST">
+  <div class="form-group">
    <label for="username">Username </label><input type="text" name="username" id="username" class="form-control" placeholder="username"/>
-	<label for="password">Password </label><input type="text" name="password" id = "password" class="form-control" placeholder="password"/>
+	<label for="password">Password </label><input type="password" name="password" id = "password" class="form-control" placeholder="password"/>
 	<input type="hidden" name="operazione" value="login"/>
-	<input type="submit" name ="submit" value="login"/>
+	</div>
+	<button type="submit" class="btn btn-default">Login</button>
  </form>
   <%}else{ %>
   <form  class="navbar-form navbar-right" action="/DBAlps/Servlet" name="dati" method="POST">
-<%=part.getUsername()%>
+  <div class="form-group">
+<p class="navbar-text">Utente: <%=part.getUsername()%></p> 
 <input type=hidden name=operazione value=logout>
-<input type=submit value="logout">
+<button type="submit" class="btn btn-default">Logout</button>
+</div>
+
 </form>
 <% }%>
 

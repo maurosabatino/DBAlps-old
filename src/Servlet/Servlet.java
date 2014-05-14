@@ -80,7 +80,10 @@ import controller.ControllerUtente;
 @MultipartConfig
 public class Servlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+	private static final String UPLOAD_DIRECTORY = "upload";
+	private static final int THRESHOLD_SIZE     = 1024 * 1024 * 3;  // 3MB
+	private static final int MAX_FILE_SIZE      = 1024 * 1024 * 40; // 40MB
+	private static final int MAX_REQUEST_SIZE   = 1024 * 1024 * 50; // 50MB     
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -88,6 +91,7 @@ public class Servlet extends HttpServlet {
         super();
         // TODO Auto-generated constructor stub
     }
+    
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
@@ -124,8 +128,10 @@ public class Servlet extends HttpServlet {
 	}
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		
-		String operazione = request.getParameter("operazione");
-		String path = getServletContext().getRealPath("/");
+		
+		String operazione = request.getParameter("operazione");    
+		String path = System.getProperty("catalina.base")+"\\resources\\";
+		System.out.println("Catalina" +System.getProperty("catalina.base"));
 		System.out.println(path);
 		HttpSession session = request.getSession();
 		String loc = "IT";//oggetto sessione
@@ -149,15 +155,14 @@ public class Servlet extends HttpServlet {
 			ControllerDatabase.salvaProcesso(p,part);
 			ControllerDatabase.salvaEffetti(p.getIdProcesso(), p.getEffetti(), p.getDanni());
 			ControllerDatabase.salvaTipologiaProcesso(p.getIdProcesso(), p.getTipologiaProcesso());
+			System.out.println("id processo"+p.getIdProcesso());
 			String content = HTMLProcesso.mostraProcesso(p.getIdProcesso());
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/processo.jsp");
-		
 		}
 		else if(operazione.equals("mostraProcesso")){
-			System.out.println("stampa");
 			int idProcesso=Integer.parseInt(request.getParameter("idProcesso"));
 			String content = HTMLProcesso.mostraProcesso(idProcesso);
 			HTMLContent c = new HTMLContent();
@@ -273,7 +278,13 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/elaborazioni.jsp");
 		}
-		
+		else if(operazione.equals("mostraProcessiMaps")){
+			String content=HTMLProcesso.mostraProcessiMaps();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
 		/*
 		 * Stazione metereologica
 		 */
@@ -285,10 +296,10 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/stazione.jsp");
 		}
 		else if(operazione.equals("inserisciStazione")){
-
+			Partecipante part = (Partecipante)session.getAttribute("partecipante");
 			Ubicazione u = ControllerUbicazione.nuovaUbicazione(request);
 			ControllerDatabase.salvaUbicazione(u);
-			StazioneMetereologica s=ControllerStazioneMetereologica.nuovaStazioneMetereologica(request,loc,u);
+			StazioneMetereologica s=ControllerStazioneMetereologica.nuovaStazioneMetereologica(request,loc,u,part);
 			ControllerDatabase.salvaStazione(s);
 			String content = HTMLStazioneMetereologica.mostraStazioneMetereologica(s.getIdStazioneMetereologica(),loc);
 			HTMLContent c = new HTMLContent();
@@ -315,9 +326,9 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/stazione.jsp");
 		}
 		else if(operazione.equals("ricercaStazione")){
-		
+			Partecipante part = (Partecipante)session.getAttribute("partecipante");
 			Ubicazione u = ControllerUbicazione.creaUbicazione(request);
-			StazioneMetereologica s = ControllerStazioneMetereologica.nuovaStazioneMetereologica(request,loc,u);
+			StazioneMetereologica s = ControllerStazioneMetereologica.nuovaStazioneMetereologica(request,loc,u,part);
 			ArrayList<StazioneMetereologica> ap =ControllerDatabase.ricercaStazioneMetereologica(s,u);
 			String content = HTMLStazioneMetereologica.mostraCercaStazioneMetereologica(ap);
 			HTMLContent c = new HTMLContent();
@@ -347,10 +358,10 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/stazione.jsp");
 		}
 		else if(operazione.equals("inserisciStazioneModificata")){
-
+			Partecipante part = (Partecipante)session.getAttribute("partecipante");
 			Ubicazione u = ControllerUbicazione.nuovaUbicazione(request);
 			ControllerDatabase.salvaUbicazione(u);
-			StazioneMetereologica s=ControllerStazioneMetereologica.nuovaStazioneMetereologica(request, loc,u);
+			StazioneMetereologica s=ControllerStazioneMetereologica.nuovaStazioneMetereologica(request, loc,u,part);
 			String enteVecchio=request.getParameter("enteVecchio");
 			int idStazione=Integer.parseInt(request.getParameter("idStazione"));
 
@@ -434,8 +445,6 @@ public class Servlet extends HttpServlet {
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/stazione.jsp");
-
-		
 		}
 		else if(operazione.equals("temperatureDaProcesso")){
 			String [] id= (String[]) request.getParameterValues("id");
@@ -532,7 +541,9 @@ public class Servlet extends HttpServlet {
 				HTMLContent c = new HTMLContent();
 				Partecipante utente=ControllerDatabase.prendiUtente(username);
 				session.setAttribute("partecipante", utente);
-				String content = HTMLUtente.visualizzaUtente(utente);
+				String content ="<h3>Login Utente effettuato</h3>";
+				content +="<h5>Informazione sull'utente</h5>";
+				content += HTMLUtente.visualizzaUtente(utente);
 				c.setContent(content);
 				request.setAttribute("HTMLc",c);
 				forward(request,response,"/utente.jsp");
@@ -690,6 +701,42 @@ public class Servlet extends HttpServlet {
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
 			forward(request,response,"/elaborazioni.jsp");
+		}else if(operazione.equals("uploadAllegatoProcesso")){
+			String uploadPath = path + "\\" + "allegatiProcesso";
+			File uploadDir = new File(uploadPath);
+	    if (!uploadDir.exists()) {
+	        uploadDir.mkdir();
+	    }
+	    int idProcesso = 6;//Integer.parseInt(request.getParameter("idprocesso"));
+	    Processo p = ControllerDatabase.prendiProcesso(idProcesso);
+	    String autore = "";
+	    String anno = "";
+	    String titolo = "";
+	    String in = "";
+	    String fonte = "";
+	    String urlWeb = "";
+	    String note = "";
+	    String tipo = "";
+	    Partecipante part = (Partecipante) session.getAttribute("partecipante");
+	    String uploadPathProcesso = path + "\\" + "allegatiProcesso\\"+""+p.getNome()+"";
+			File uploadDirP = new File(uploadPathProcesso);
+	    if (!uploadDirP.exists()) {
+	        uploadDirP.mkdir();
+	    }
+	    List<File> uploadFile = uploadByJavaServletAPI(request, uploadPathProcesso);
+	    if(!(uploadFile.isEmpty())){
+	    	for(File f:uploadFile){
+	    		autore = request.getParameter("autore");
+	    		anno = request.getParameter("anno");
+	    		titolo = request.getParameter("titolo");
+	    		in = request.getParameter("in");
+	    		fonte = request.getParameter("fonte");
+	    		urlWeb = request.getParameter("urlWeb");
+	    		note = request.getParameter("note");
+	    		tipo = request.getParameter("tipo");
+	    		ControllerDatabase.salvaAllegatoProcesso(idProcesso,part.getIdUtente(),autore,anno,titolo,in,fonte,urlWeb,note,tipo,f.getAbsolutePath());
+	    	}
+	    }
 		}
 		
 	}
@@ -708,8 +755,7 @@ public class Servlet extends HttpServlet {
 		OutputStream out = null;
     InputStream filecontent = null;
     List<File> files = new LinkedList<File>();
-    Collection<Part> parts = request.getParts();
-
+    Collection<Part> parts = request.getParts();	
     for(Part part:parts){   
     	if(part.getContentType() != null){
     		try {

@@ -5,11 +5,13 @@ import bean.Sensori;
 import bean.SitoStazioneMetereologica;
 import bean.StazioneMetereologica;
 import bean.Ubicazione;
+import bean.partecipante.Partecipante;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
-
 import java.util.ArrayList;
+
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,7 +43,7 @@ public class ControllerStazioneMetereologica {
 		return s;
 	}
 	
-	public static StazioneMetereologica nuovaStazioneMetereologica(HttpServletRequest request,String loc,Ubicazione u) throws SQLException, ParseException{
+	public static StazioneMetereologica nuovaStazioneMetereologica(HttpServletRequest request,String loc,Ubicazione u,Partecipante part) throws SQLException, ParseException{
 		StazioneMetereologica s= creaStazioneMetereologica(request);
 		s.setUbicazione(u);
 		if(!(request.getParameter("idsitostazione").equals(""))){
@@ -54,7 +56,7 @@ public class ControllerStazioneMetereologica {
 		if(!(request.getParameterValues("tipo_"+loc+"")==null)){
 			s.setSensori(creaSensori(request,loc));
 		}
-		s.setIdUtente(1);	
+		s.setIdUtente(part.getIdUtente());	
 		return s;
 	}
 	
