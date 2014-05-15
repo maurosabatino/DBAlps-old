@@ -223,6 +223,27 @@ public class HTMLProcesso {
 		sb.append("</table></div>");
 		return sb.toString();
 	}
+	public static String mostraTuttiProcessiModifica() throws SQLException{
+		ArrayList<Processo> ap = ControllerDatabase.prendiTuttiProcessi();
+		StringBuilder sb = new StringBuilder();
+
+		/* script per google maps */// centrerei la mappa al centro delle alpi
+
+		sb.append(HTMLScript.scriptFilter());   
+		sb.append("<h3>Scegli un Processo da modificare</h3>");
+		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> Report </th> <th> Modifica</th></tr>");
+		for (Processo p : ap) {
+			sb.append("<tr> <td>" + p.getNome() + " </td> ");
+			sb.append("	<td>"	+ dataFormattata(p.getFormatoData(), p.getData()) + "</td>" );
+			sb.append("	<td>"+ p.getUbicazione().getLocAmm().getComune() + "</td>");
+			sb.append("<td>" + p.getUbicazione().getLocAmm().getNazione() + "</td> ");
+			sb.append("<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+ p.getIdProcesso() + "\">dettagli</a></td>");
+			sb.append("<td><a href=\"Servlet?operazione=mostraModificaProcesso&idProcesso="+ p.getIdProcesso() + "\">modifica</a> </td>");
+			sb.append("</tr>");
+		}
+		sb.append("</table></div>");
+		return sb.toString();
+	}
 
 	public static String mostraProcesso(int idProcesso) throws SQLException {
 
@@ -257,9 +278,7 @@ public class HTMLProcesso {
 						+ cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.ITALY));
 			}
 			if (fd.charAt(2) == '1') {
-				sb.append("-"
-						+ cal.getDisplayName(Calendar.DAY_OF_MONTH, Calendar.LONG,
-								Locale.ITALY));
+				sb.append("-"+ cal.get(Calendar.DAY_OF_MONTH));
 			}
 			if (fd.charAt(3) == '1') {
 				sb.append(" " + cal.get(Calendar.HOUR_OF_DAY));
@@ -721,5 +740,68 @@ public class HTMLProcesso {
 		sb.append("</script>");
 		return sb.toString();
 	}
+	
+	/*
+	 * query delle ricerche S...
+	 */
+	public static String listaQueryProcesso(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"panel panel-default\">");
+		sb.append("	<div class=\"panel-heading\">Query sui processi</div>");
+
+		sb.append("		<div class=\"list-group\">");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=nome\" class=\"list-group-item\">Cerca per nome</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=anno\" class=\"list-group-item\">Cerca per anno</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=caratteristicaSito_IT\" class=\"list-group-item\">Cerca per caratteristica sito</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=tpnome_IT\" class=\"list-group-item\">cerca per tipologia processo</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=comune-provincia-regione-nazione-sottobacino-bacino\" class=\"list-group-item\">ricerca territoriale</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=quota\" class=\"list-group-item\">ricerca per quota</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=dtipo_IT\" class=\"list-group-item\">ricerca per danni</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=nomeLitologia_IT-proprietaTermiche_IT-statoFratturazione_IT\" class=\"list-group-item\">ricerca per litologia</a>");
+		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=\" class=\"list-group-item\">ricerca sulla mappa(da implementare)</a>");
+		sb.append("          	<a href=\"Servlet?operazione=mostraTuttiProcessi\" class=\"list-group-item\"> mostra tutti i processi</a>");
+		sb.append("			<a href=\"Servlet?operazione=mostraProcessiMaps\" class=\"list-group-item\"> mostra processi sulla mappa</a>");
+		sb.append(" 			<a href=\"Servlet?operazione=formCercaProcessi\" class=\"list-group-item\"> ricerca processo</a>");
+		sb.append("  		</div>");
+		sb.append("  		</div>	");             		
+		return sb.toString();
+	}
+	public static String formCercaSingola(String attributi,String path,String loc){
+		StringBuilder sb = new StringBuilder();
+		StringBuilder attributiBulder = new StringBuilder();
+		attributiBulder.append(attributi);
+		String[] attributiArray = attributi.split("-");
+		
+		sb.append(HTMLScript.scriptData("data"));
+		
+		
+		sb.append(HTMLScript.scriptAutocompleteLocAmm(ControllerJson.getJsonLocazioneAmminitrativa(path)));
+		sb.append(HTMLScript.scriptAutocompleteProprietaTermiche(ControllerJson.getJsonProprietaTermiche(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteStatoFratturazione(ControllerJson.getJsonStatoFratturazione(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteClasseVolume(ControllerJson.getJsonClasseVolume(path)));
+		sb.append(HTMLScript.scriptAutcompleteLitologia(ControllerJson.getJsonLitologia(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteSitoProcesso(ControllerJson.getJsonSitoProcesso(path, loc), loc));
+		sb.append(HTMLScript.scriptAutocompleteLocIdro(ControllerJson.getJsonLocazioneIdrologica(path)));
+		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" role=\"form\">");
+
+		sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Ricerca tra i Processi</h4>");
+		
+			
+		
+		sb.append("<div class=\"row\">");
+		for(int i = 0;i<attributiArray.length;i++){
+			System.out.println("attributi"+attributiArray[i]);
+			sb.append("<div class=\"col-xs-6 col-md-6\"><label for=\""+attributiArray[i]+"\">"+attributiArray[i]+"</label> <input type=\"text\" name=\""+attributiArray[i]+"\" id=\""+attributiArray[i]+"\" class=\"form-control\" placeholder=\""+attributiArray[i]+"\" ></div>");
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		sb.append("<input type=\"hidden\" name=\"operazione\" value=\"cercaProcesso\">");
+		sb.append("<input type=\"submit\" name =\"submit\" value=\"OK\">");
+		sb.append("</form>");
+		
+		
+		return sb.toString();
+	}
+	
 
 }

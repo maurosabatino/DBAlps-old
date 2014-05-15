@@ -178,6 +178,20 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/processo.jsp");
 		
 		}
+		else if(operazione.equals("mostraTuttiProcessiModifica")){
+			String content=HTMLProcesso.mostraTuttiProcessiModifica();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
+		else if(operazione.equals("queryProcesso")){
+			String content=HTMLProcesso.listaQueryProcesso();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
 		if(operazione.equals("formCercaProcessi")){
 			ControllerJson.creaJson(path);
 			String content = HTMLProcesso.formCercaProcessi(path, loc);
@@ -280,6 +294,14 @@ public class Servlet extends HttpServlet {
 		}
 		else if(operazione.equals("mostraProcessiMaps")){
 			String content=HTMLProcesso.mostraProcessiMaps();
+			HTMLContent c = new HTMLContent();
+			c.setContent(content);
+			request.setAttribute("HTMLc",c);
+			forward(request,response,"/processo.jsp");
+		}
+		else if(operazione.equals("formRicercaSingola")){
+			String attributi = request.getParameter("attributi");
+			String content = HTMLProcesso.formCercaSingola(attributi, path, loc);
 			HTMLContent c = new HTMLContent();
 			c.setContent(content);
 			request.setAttribute("HTMLc",c);
@@ -569,7 +591,7 @@ public class Servlet extends HttpServlet {
 			forward(request,response,"/utente.jsp");
 		}
 	//query
-			else if(operazione.equals("query")){
+			else if(operazione.equals("queryClimatiche")){
 				String content=HTMLElaborazioni.sceltaQuery();
 				HTMLContent c=new HTMLContent();
 				c.setContent(content);

@@ -50,56 +50,73 @@ import bean.Ubicazione;
 public class ControllerProcesso {
 	public static Processo creaProcesso(HttpServletRequest request) throws ParseException{//qui creo le parti solo del processo
 		Processo p = new Processo();
+		if(!(request.getParameter("nome")==null))
 		p.setNome(request.getParameter("nome"));
-		String data="00-00-00";
+		String data="";
 		String ora="00:00";
 		StringBuilder formatoData = new StringBuilder();
 		String anno="0000";
 		String mese="01";
 		String giorno="01";
-		if(!(request.getParameter("anno").equals(""))){
-			formatoData.append("1");
-			anno = request.getParameter("anno");
-		}else formatoData.append("0");
-		
-		if(!(request.getParameter("mese").equals("vuoto"))){
-			mese = request.getParameter("mese");
-			formatoData.append("1");
-		}else formatoData.append("0");
-		
-		if(!(request.getParameter("giorno").equals("vuoto"))){
-			giorno = request.getParameter("giorno");
-			formatoData.append("1");
-		} else formatoData.append("0");
-		
+		if(!(request.getParameter("anno")==null)){
+			if(!(request.getParameter("anno").equals(""))){
+				formatoData.append("1");
+				anno = request.getParameter("anno");
+			}else formatoData.append("0");
+		}
+		if(!(request.getParameter("mese")==null)){
+			if(!(request.getParameter("mese").equals("vuoto"))){
+				mese = request.getParameter("mese");
+				formatoData.append("1");
+			}else formatoData.append("0");
+		}
+		if(!(request.getParameter("girno")==null)){
+			if(!(request.getParameter("giorno").equals("vuoto"))){
+				giorno = request.getParameter("giorno");
+				formatoData.append("1");
+			} else formatoData.append("0");
+		}
 		data = ""+anno+"-"+mese+"-"+giorno+"";
+		if(!(request.getParameter("ora")==null)){
 		if(!(request.getParameter("ora").equals(""))){
 			ora = request.getParameter("ora");
 			formatoData.append("1");
 		}else formatoData.append("0");
+		}
 		String dataCompleta = ""+data+" "+ora+":00";
 		p.setData((Timestamp.valueOf(dataCompleta)));
 		System.out.println("formato data: "+formatoData);
+		if(!(formatoData.toString().equals("")))
 		p.setFormatoData(Integer.parseInt(formatoData.toString()));
-		
-		String descrizione =request.getParameter("descrizione");
+		String descrizione = "";
+		if(!(request.getParameter("descrizione")!=null))
+		 descrizione =request.getParameter("descrizione");
 		p.setDescrizione(descrizione);
+		if(!(request.getParameter("note")!=null))
 		p.setNote(request.getParameter("note"));
-		if(!(request.getParameter("altezza").equals("")))
-		p.setAltezza(Double.parseDouble(request.getParameter("altezza")));
-		if(!(request.getParameter("larghezza").equals("")))
-		p.setLarghezza(Double.parseDouble(request.getParameter("larghezza")));
-		if(!(request.getParameter("superficie").equals("")))
-		p.setSuperficie(Double.parseDouble(request.getParameter("superficie")));
-		if(!(request.getParameter("volumespecifico").equals("")))
-			p.setVolumeSpecifico(Double.parseDouble(request.getParameter("volumespecifico")));
+		if(!(request.getParameter("altezza")==null)){
+			if(!(request.getParameter("altezza").equals("")))
+				p.setAltezza(Double.parseDouble(request.getParameter("altezza")));
+		}
+		if(!(request.getParameter("larghezza")==null)){
+			if(!(request.getParameter("larghezza").equals("")))
+				p.setLarghezza(Double.parseDouble(request.getParameter("larghezza")));
+		}
+		if(!(request.getParameter("superficie")==null)){
+			if(!(request.getParameter("superficie").equals("")))
+				p.setSuperficie(Double.parseDouble(request.getParameter("superficie")));
+		}
+		if(!(request.getParameter("volumespecifico")==null)){
+			if(!(request.getParameter("volumespecifico").equals("")))
+				p.setVolumeSpecifico(Double.parseDouble(request.getParameter("volumespecifico")));
+		}
 		
 		return p;
 	}
 	public static Processo nuovoProcesso(HttpServletRequest request,String loc) throws ParseException, SQLException{ //qui ci metto tutte le informazioni e la pubblicazione sul db + ubicazione, sito, allegati, effetti
 		Processo p = creaProcesso(request);
 		Ubicazione u = ControllerUbicazione.creaUbicazione(request);
-		SitoProcesso sp = creaSito(request);
+		SitoProcesso sp = creaSito(request,loc);
 		ClasseVolume cv = creaClasseVolume(request);
 		ArrayList<EffettiMorfologici> em = creaEffettiMorfologici(request,loc);
 		ArrayList<Danni> d = creaDanni(request,loc);
@@ -123,52 +140,63 @@ public class ControllerProcesso {
 	/*
 	 * caratteristiche del processo
 	 */
-	public static SitoProcesso creaSito(HttpServletRequest request) throws SQLException{
+	public static SitoProcesso creaSito(HttpServletRequest request,String loc) throws SQLException{
 		SitoProcesso sp = new SitoProcesso();
-		if(!(request.getParameter("idsito").equals("")))
-			sp.setIdSito(Integer.parseInt(request.getParameter("idsito")));
-		sp.setCaratteristicaSito_IT(request.getParameter("caratteristicaSito_IT"));
-		sp.setCaratteristicaSito_ENG(request.getParameter("caratteristicaSito_ENG"));
-			
+		if(!(request.getParameter("idsito")==null)){
+			if(!(request.getParameter("idsito").equals("")))
+				sp.setIdSito(Integer.parseInt(request.getParameter("idsito")));
+			if(loc.equals("IT"))
+				sp.setCaratteristicaSito_IT(request.getParameter("caratteristicaSito_IT"));
+			if(loc.equals("ENG"))
+				sp.setCaratteristicaSito_ENG(request.getParameter("caratteristicaSito_ENG"));
+		}
 		return sp; 
 	}
 	public static Litologia creaLitologia(HttpServletRequest request,String loc) throws SQLException{
 		Litologia l = new Litologia();
+		if(!(request.getParameter("idLitologia")==null)){
 		if(!(request.getParameter("idLitologia").equals("")))
 		l.setIdLitologia(Integer.parseInt(request.getParameter("idLitologia")));
 		if(loc.equals("IT"))
 		l.setNomeLitologia_IT(request.getParameter("nomeLitologia_IT"));
 		if(loc.equals("ENG"))
 		l.setNomeLitologia_ENG(request.getParameter("nomeLitologia_ENG"));
+		}
 		return l;
 	}
 	public static ClasseVolume creaClasseVolume(HttpServletRequest request){
 		ClasseVolume cv = new ClasseVolume();
-		if(!(request.getParameter("idclasseVolume").equals("")))
-			cv.setIdClasseVolume(Integer.parseInt(request.getParameter("idclasseVolume")));
-		cv.setIntervallo(request.getParameter("intervallo"));
+		if(!(request.getParameter("idClasseVolume")==null)){
+			if(!(request.getParameter("idclasseVolume").equals("")))
+				cv.setIdClasseVolume(Integer.parseInt(request.getParameter("idclasseVolume")));
+			cv.setIntervallo(request.getParameter("intervallo"));
+		}
 		return cv;
 	}
 	
 
 	public static ProprietaTermiche creaProprietaTermiche(HttpServletRequest request,String loc){
 		ProprietaTermiche pt = new ProprietaTermiche();
-		if(!(request.getParameter("idProprietaTermiche").equals("")))
-		pt.setIdProprietaTermiche(Integer.parseInt(request.getParameter("idProprietaTermiche")));
-		if(loc.equals("IT"))
-		pt.setProprietaTermiche_IT(request.getParameter("proprietaTermiche_IT"));
-		if(loc.equals("ENG"))
-		pt.setProprietaTermiche_ENG(request.getParameter("proprietaTermiche_ENG"));
+		if(!(request.getParameter("idProprietaTermiche")==null)){
+			if(!(request.getParameter("idProprietaTermiche").equals("")))
+				pt.setIdProprietaTermiche(Integer.parseInt(request.getParameter("idProprietaTermiche")));
+			if(loc.equals("IT"))
+				pt.setProprietaTermiche_IT(request.getParameter("proprietaTermiche_IT"));
+			if(loc.equals("ENG"))
+				pt.setProprietaTermiche_ENG(request.getParameter("proprietaTermiche_ENG"));
+		}
 		return pt;
 	}
 	public static StatoFratturazione creaStatoFratturazione(HttpServletRequest request,String loc){
 		StatoFratturazione pt = new StatoFratturazione();
-		if(!(request.getParameter("idStatoFratturazione").equals("")))
-		pt.setIdStatoFratturazione(Integer.parseInt(request.getParameter("idStatoFratturazione")));
-		if(loc.equals("IT"))
-		pt.setStatoFratturazione_IT(request.getParameter("statoFratturazione_IT"));
-		if(loc.equals("ENG"))
-		pt.setStatoFratturazione_ENG(request.getParameter("statoFratturazione_ENG"));
+		if(!(request.getParameter("idStatoFratturazione")==null)){
+			if(!(request.getParameter("idStatoFratturazione").equals("")))
+				pt.setIdStatoFratturazione(Integer.parseInt(request.getParameter("idStatoFratturazione")));
+			if(loc.equals("IT"))
+				pt.setStatoFratturazione_IT(request.getParameter("statoFratturazione_IT"));
+			if(loc.equals("ENG"))
+				pt.setStatoFratturazione_ENG(request.getParameter("statoFratturazione_ENG"));
+		}
 		return pt;
 	}
 	
@@ -179,25 +207,28 @@ public class ControllerProcesso {
 
 	if(loc.equals("IT")){
 		if(!(request.getParameter("emtipo_IT")==null)){
-		
-			emtipo_it = request.getParameterValues("emtipo_IT");
-			for(int i = 0;i<emtipo_it.length;i++){
-				EffettiMorfologici e = new EffettiMorfologici();
-				e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_it[i], "IT"));
-				e.setTipo_IT(emtipo_it[i]);
-				em.add(e);
+			if(!(request.getParameter("emtipo_IT")==null)){
+				emtipo_it = request.getParameterValues("emtipo_IT");
+				for(int i = 0;i<emtipo_it.length;i++){
+					EffettiMorfologici e = new EffettiMorfologici();
+					e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_it[i], "IT"));
+					e.setTipo_IT(emtipo_it[i]);
+					em.add(e);
+				}
 			}
 		}
 	}
 	if(loc.equals("ENG")){
 		if(!(request.getParameter("emtipo_ENG")==null)){
-		emtipo_eng = request.getParameterValues("emtipo_ENG");
-			for(int i = 0;i<emtipo_eng.length;i++){
-				EffettiMorfologici e = new EffettiMorfologici();
-				e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_eng[i], "ENG"));
-				e.setTipo_ENG(emtipo_eng[i]);
-				em.add(e);
-			}
+			if(!(request.getParameter("emtipo_ENG")==null)){
+				emtipo_eng = request.getParameterValues("emtipo_ENG");
+				for(int i = 0;i<emtipo_eng.length;i++){
+					EffettiMorfologici e = new EffettiMorfologici();
+					e.setIdEffettiMOrfologici(ControllerDatabase.prendiIdEffettiMorfologici(emtipo_eng[i], "ENG"));
+					e.setTipo_ENG(emtipo_eng[i]);
+					em.add(e);
+				}
+			}	
 		}
 	}
 	

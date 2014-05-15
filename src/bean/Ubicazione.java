@@ -13,7 +13,7 @@ public class Ubicazione {
 		locIdr = new LocazioneIdrologica();
 		locAmm= new LocazioneAmministrativa();
 		quota = 0.0;
-		esposizione = "sconosciuto";
+		esposizione = "";
 		coordinate = new Coordinate();
 	}
 	public int getIdUbicazione(){

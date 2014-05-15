@@ -2,8 +2,8 @@
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <head>
- <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
- <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"/>
+ <link rel="stylesheet" type="text/css" href="css/bootstrap.css"/>
+ <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css"/>
    
    <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.10.4.custom.css">
  <script src="js/jquery.js"></script>
@@ -11,7 +11,7 @@
 <script src="js/jquery-ui.custom.js"></script>
 <script src="js/globalize.js"></script>
 <script src="js/globalize.culture.de-DE.js"></script>
-<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap.js"></script>
     <title>index</title>
   </head>
 <body>

@@ -10,7 +10,6 @@
 
 </head>
 <body>
-
 <%Partecipante part = (Partecipante)session.getAttribute("partecipante"); %>
 <div class="row">
 <div class="col-sm-3 col-md-2 sidebar" id=login>
@@ -29,22 +28,23 @@
  	<li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Modifica <b class="caret"></b></a>
           <ul class="dropdown-menu">
-          	
+          	<li><a href="Servlet?operazione=mostraTuttiProcessiModifica">Modifica un Processo </a></li>
+          	<li><a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni</a></li>
           </ul>
      </li>
 	<li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Query <b class="caret"></b></a>
           <ul class="dropdown-menu">
+          	<li><a href="Servlet?operazione=queryProcesso"> Query sul Processo</a></li>
+          	<li><a href="Servlet?operazione=queryStazione"> Query Stazione Metereologica</a></li>
+          	<li><a href="Servlet?operazione=queryClimatiche"> Query Climatiche</a></li>
+          	<li><a href="Servlet?operazione=elencoElaborazioni"> Elaborazioni</a></li>
           	 <li><a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni</a></li>
+          	 <li><a href="Servlet?operazione=mostraStazioniMaps" class="list-group-item"> mostra stazioni su mappa</a></li>
  			 <li><a href="Servlet?operazione=formRicercaStazione"> ricerca stazione</a></li>
- 			 <li><a href="Servlet?operazione=mostraStazioniMaps"> mostra stazioni su mappa</a></li>
-          	 <li><a href="Servlet?operazione=mostraTuttiProcessi"> mostra tutti i processi</a></li>
-			 <li><a href="Servlet?operazione=mostraProcessiMaps"> mostra processi sulla mappa</a></li>
- 			 <li><a href="Servlet?operazione=formCercaProcessi"> ricerca processo</a></li>
-  	         <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzione deltaT</a></li>
+ 			 <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzione deltaT</a></li>
  		     <li><a href="Servlet?operazione=scegliStazioniT"> distribuzione temperature</a></li>
              <li><a href="Servlet?operazione=scegliStazioniPrecipitazioni"> distribuzione precipitazioni</a></li>
- 			 <li><a href="Servlet?operazione=query"> interrogazione db</a></li>
           </ul>
      </li>
      <li class="dropdown">
