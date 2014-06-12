@@ -282,6 +282,7 @@ fonte text not null,
 tipoallegato text,
 urlweb text,
 nella text,
+note text,
 idutente integer not null references utente(idutente),
 linkfile text,
 data timestamp

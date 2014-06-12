@@ -36,8 +36,8 @@ public class StazioneMetereologica {
 		sensori=new ArrayList<Sensori>() ;
 		aggregazioneGiornaliera="";
 	    note="";
-		dataInizio=new Date(0);
-		dataFine=new Date(0);
+		dataInizio=null;
+		dataFine=null;
 		oraria=false;
 		
 		distanzaProcesso=-1;

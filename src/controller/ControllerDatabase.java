@@ -70,8 +70,14 @@ public class ControllerDatabase {
 		ps.setDouble(8, p.getLarghezza());
 		ps.setDouble(9, p.getSuperficie());
 		ps.setDouble(10, p.getVolumeSpecifico());
-		ps.setInt(11, part.getIdUtente());
-		ps.setInt(12, part.getIdUtente());
+		if(part!=null){
+			ps.setInt(11, part.getIdUtente());
+			ps.setInt(12, part.getIdUtente());
+		}else{
+			ps.setNull(11,Types.INTEGER );
+			ps.setNull(12,Types.INTEGER );
+		}
+			
 		if(part.hasRole(Role.AMMINISTRATORE)|| part.hasRole(Role.AVANZATO)|| part.hasRole(Role.BASE))
 			ps.setBoolean(13, true);
 		else
@@ -80,9 +86,21 @@ public class ControllerDatabase {
 		ps.setInt(14, p.getClasseVolume().getIdClasseVolume());
 		else
 			ps.setNull(14, Types.INTEGER);
+		
+		if(p.getLitologia().getidLitologia()!=0)
 		ps.setInt(15, p.getLitologia().getidLitologia());
+		else
+			ps.setNull(15,Types.INTEGER );
+		
+		if(p.getProprietaTermiche().getIdProprieta_termiche()!=0)
 		ps.setInt(16, p.getProprietaTermiche().getIdProprieta_termiche());
+		else
+			ps.setNull(16,Types.INTEGER );
+		
+		if(p.getStatoFratturazione().getIdStato_fratturazione()!=0)
 		ps.setInt(17, p.getStatoFratturazione().getIdStato_fratturazione());
+		else
+			ps.setNull(17,Types.INTEGER );
 		ps.setInt(18, p.getFormatoData());
 		ps.executeUpdate();
 		
@@ -350,10 +368,21 @@ public class ControllerDatabase {
 		}
 		System.out.println("data: "+p.getData().toString());
 		if(!((p.getData()==null) ||p.getData().toString().equals("0001-01-01 00:00:00.0")||p.getData().toString().equals("0001-01-01 01:00:00.0"))){
-			if(!(sb.toString().equals("")))
-				sb.append(" and data='"+p.getData()+"'");
-			else if((sb.toString().equals("")))
-				sb.append(" where data='"+p.getData()+"'");
+			int formatoData = p.getFormatoData();
+			System.out.println("formato data:"+formatoData);
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(p.getData());
+			if(formatoData==1000){
+				if(!(sb.toString().equals("")))
+					sb.append(" and EXTRACT(year from data)="+cal.get(Calendar.YEAR)+"");
+				else if((sb.toString().equals("")))
+					sb.append(" where EXTRACT(year from data)="+cal.get(Calendar.YEAR)+"");
+			}else{
+				if(!(sb.toString().equals("")))
+					sb.append(" and data='"+p.getData().toString()+"'");
+				else if((sb.toString().equals("")))
+					sb.append(" where data='"+p.getData().toString()+"'");
+			}
 		}
 		if(!(p.getClasseVolume().getIdClasseVolume()==0)){
 			if(!(sb.toString().equals("")))
@@ -1048,20 +1077,27 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		StringBuilder sb=new StringBuilder();
-		sb.append("'"+s.ente.getIdEnte()+"'");
-		sb.append(",'"+s.getNome()+"'");
+		sb.append("'"+s.getNome().replaceAll("'", "''")+"'");
+		if(s.ente.getIdEnte()!=0)sb.append("'"+s.ente.getIdEnte()+"'");
+		else sb.append(",null");
 		sb.append(",'"+s.getAggregazioneGiornaliera()+"'");
-		sb.append(","+s.getOraria());
-		sb.append(",'"+s.getNote()+"'");
-		sb.append(",'"+s.getDataInizio()+"'");
-		sb.append(",'"+s.getDataFine()+"'");
-		sb.append(",'"+s.sito.getIdSitoStazioneMetereologica()+"'");
+		sb.append(",'"+s.getNote().replaceAll("'", "''")+"'");
+
+
+		if(s.getDataInizio()!=null)sb.append(",'"+s.getDataInizio()+"'");
+		else sb.append(",null");
+		if(s.getDataFine()!=null)sb.append(",'"+s.getDataFine()+"'");
+		else sb.append(",null");
+
+		if(s.sito.getIdSitoStazioneMetereologica()!=0)sb.append(",'"+s.sito.getIdSitoStazioneMetereologica()+"'");
+		else sb.append(",null");
 		sb.append(","+s.getIdUtente());
 		sb.append(","+s.getUbicazione().getIdUbicazione());
 		
-		 st.executeUpdate("INSERT INTO STAZIONE_METEREOLOGICA(IDENTE,NOME,AGGREGAZIONEGIORNALIERA,ORARIA,NOTE,datainizio,datafine,idSitoStazione,idutentecreatore,IDUBICAZIONE) VALUES( "+sb+")");
+		System.out.println("INSERT INTO STAZIONE_METEREOLOGICA(NOME,IDENTE,AGGREGAZIONEGIORNALIERA,NOTE,datainizio,datafine,idSitoStazione,idutentecreatore,IDUBICAZIONE) VALUES( "+sb+")");
+		 st.executeUpdate("INSERT INTO STAZIONE_METEREOLOGICA(NOME,IDENTE,AGGREGAZIONEGIORNALIERA,NOTE,datainizio,datafine,idSitoStazione,idutentecreatore,IDUBICAZIONE) VALUES( "+sb+")");
 
-		 ResultSet rs =st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE  idUbicazione="+s.getUbicazione().getIdUbicazione()+" and datainizio='"+s.getDataInizio()+"'and datafine='"+s.getDataFine()+"' ");
+		 ResultSet rs =st.executeQuery("SELECT * FROM STAZIONE_METEREOLOGICA WHERE  idUbicazione="+s.getUbicazione().getIdUbicazione()+"  ");
 		while(rs.next())
 			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
 		
@@ -1075,9 +1111,17 @@ public class ControllerDatabase {
 		ArrayList<StazioneMetereologica> al = new ArrayList<StazioneMetereologica>();
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss where staz.idubicazione = u.idubicazione"
-				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
-				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione");
+		
+		ResultSet rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz " +
+				"left join sito_stazione ss on (staz.idsitostazione=ss.idsitostazione)" +
+				"left join ente e  on (staz.idente=e.idente)" +
+				"left join ubicazione u on (staz.idubicazione=u.idubicazione)" +
+				"left join comune c on (c.idcomune=u.idcomune)" +
+				"left join provincia p on (c.idProvincia=p.idProvincia)" +
+				"left join regione r on ( r.idregione=p.idregione)" +
+				"left join nazione n on (r.idnazione=n.idnazione)" +
+				"left join sottobacino s on (s.idsottobacino=u.idsottobacino) " +
+				"left join bacino b on (b.idbacino=s.idbacino)" );
 		while(rs.next()){
 			StazioneMetereologica s=new StazioneMetereologica();
 			Ubicazione u = new Ubicazione();
@@ -1087,7 +1131,7 @@ public class ControllerDatabase {
 			s.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
 			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
 			s.setNote(rs.getString("note"));
-			s.setOraria(rs.getBoolean("oraria"));
+		//	s.setOraria(rs.getBoolean("oraria"));
 			s.setDataInizio(rs.getDate("datainizio"));
 			s.setDataFine(rs.getDate("datafine"));
 			s.setNome(rs.getString("nome"));
@@ -1128,10 +1172,17 @@ public class ControllerDatabase {
 	public static StazioneMetereologica prendiStazioneMetereologica(int idStazioneMetereologica,String loc)throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss  "
-				+ "where  staz.idstazionemetereologica="+idStazioneMetereologica+"  and staz.idubicazione = u.idubicazione"
-				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
-				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione");
+		ResultSet rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz " +
+				"left join sito_stazione ss on (staz.idsitostazione=ss.idsitostazione)" +
+				"left join ente e  on (staz.idente=e.idente)" +
+				"left join ubicazione u on (staz.idubicazione=u.idubicazione)" +
+				"left join comune c on (c.idcomune=u.idcomune)" +
+				"left join provincia p on (c.idProvincia=p.idProvincia)" +
+				"left join regione r on ( r.idregione=p.idregione)" +
+				"left join nazione n on (r.idnazione=n.idnazione)" +
+				"left join sottobacino s on (s.idsottobacino=u.idsottobacino) " +
+				"left join bacino b on (b.idbacino=s.idbacino)" +
+				"where staz.idstazionemetereologica="+idStazioneMetereologica+"");
 		StazioneMetereologica s=new StazioneMetereologica();
 		Ubicazione u = new Ubicazione();
 		Coordinate coord = new Coordinate();
@@ -1141,9 +1192,10 @@ public class ControllerDatabase {
 			s.setIdStazioneMetereologica(idStazioneMetereologica);
 			s.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
 			s.setNote(rs.getString("note"));
-			s.setOraria(rs.getBoolean("oraria"));
-			s.setDataInizio(rs.getDate("datainizio"));
-			s.setDataFine(rs.getDate("datafine"));
+			//s.setOraria(rs.getBoolean("oraria"));
+			if(rs.getDate("datainizio")!=null)	s.setDataInizio(rs.getDate("datainizio"));
+			else System.out.println("data nulla="+rs.getDate("datainizio"));
+			if(rs.getDate("datafine")!=null)	s.setDataFine(rs.getDate("datafine"));
 			s.setNome(rs.getString("nome"));
 			coord.setX(rs.getDouble("x"));
 			coord.setY(rs.getDouble("y"));
@@ -1177,7 +1229,7 @@ public class ControllerDatabase {
 		rs.close();
 		st.close();
 		conn.close();
-	    return s;
+		return s;
 	}
 	
 	public static Ente prendiEnte(int idente) throws SQLException{
@@ -1229,8 +1281,8 @@ public class ControllerDatabase {
 	/*	while(rs.next()){
 			ente = (rs.getInt("idente"));
 		}*/
-		if(!enteVecchio.equals(s.getEnte().getEnte())) sb.append("note = 'stazione passata da"+enteVecchio+"a "+s.ente.getEnte()+". "+s.getNote()+" ',"); 
-		else   sb.append("note = "+s.getNote()+" ,");
+		if(!(enteVecchio.equals(s.getEnte().getEnte())) && !(enteVecchio.equals("null")) ) sb.append("note = 'stazione passata da"+enteVecchio+"a "+s.ente.getEnte()+". "+s.getNote()+" ',"); 
+		else   sb.append("note = '"+s.getNote()+"' ,");
 		if(!(s.getDataInizio()==null)){
 			sb.append("datainizio= '"+s.getDataInizio()+"' ,");
 		}
@@ -1238,7 +1290,6 @@ public class ControllerDatabase {
 			sb.append("dataFine= '"+s.getDataFine()+"' ,");
 		}
 	
-			sb.append("oraria = '"+s.getOraria()+"',");
 		
 		if(!(s.sito.getIdSitoStazioneMetereologica()==0)){
 			sb.append("idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+",");
@@ -1252,6 +1303,7 @@ public class ControllerDatabase {
 		}
 		
 		sb.append("where idStazioneMetereologica="+idStazione);
+		System.out.println("query: "+sb.toString());
 		st.executeUpdate(""+sb.toString());
 
 		/*
@@ -1278,6 +1330,7 @@ public class ControllerDatabase {
 				su.append("idsottobacino =1");
 			}
 			su.append(" where idubicazione="+s.getUbicazione().getIdUbicazione());
+			System.out.println(su.toString());
 			st.executeUpdate(""+su.toString());
 		}
 		
@@ -1331,13 +1384,18 @@ public class ControllerDatabase {
 		Statement st = conn.createStatement();
 		
 		if(!(s.getNome()==null || s.getNome().equals(""))){
-			sb.append(" and staz.nome='"+s.getNome()+"'");
+			if((sb.toString().equals("")))
+				sb.append(" where staz.nome similar to '%"+s.getNome()+"%'");
 		}
 		if(!(s.getAggregazioneGiornaliera()==null || s.getAggregazioneGiornaliera().equals(""))){
 			
-				sb.append(" and staz.aggregazionegiornaliera='"+s.getAggregazioneGiornaliera()+"'");
+				if(!(sb.toString().equals("")))
+					sb.append(" and staz.aggregazionegiornaliera similar to '%"+s.getAggregazioneGiornaliera()+"%'");
+				else if((sb.toString().equals("")))
+					sb.append(" where staz.aggregazionegiornaliera similar to '%"+s.getAggregazioneGiornaliera()+"%'");
 		}
-	/*	if(!(s.getDataInizio()==null)){
+		
+		/*if(!(s.getDataInizio()==null)){
 			if(sb.toString().equals("") || sb == null)
 			sb.append("where datainizio= '"+s.getDataInizio()+"' ");
 			else sb.append("and datainzio='"+s.getDataInizio()+"'");
@@ -1347,22 +1405,22 @@ public class ControllerDatabase {
 				sb.append("where datafine= '"+s.getDataFine()+"' ");
 				else sb.append("and datafine='"+s.getDataFine()+"'");
 		}
-	*/	
 		
+		*/
 		
-		/*	
-		 * bisogna decidere come gestire l'oraria se come intero o booleano
-		 * if(sb.toString().equals("") || sb == null)
-			sb.append("where oraria = "+s.getOraria()+"");
-			else sb.append("and oraria="+s.getOraria()+"");
-			*/
+		System.out.println("sito stazione cotnroller"+s.sito.getIdSitoStazioneMetereologica());
 	
-		if(!(s.sito.getIdSitoStazioneMetereologica()==0)){
-			 sb.append(" and staz.idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
+		if(!(s.sito.getIdSitoStazioneMetereologica()==0)  ){
+			 if(!(sb.toString().equals("")))
+					sb.append(" and staz.idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
+				else if((sb.toString().equals("")))
+					sb.append(" where staz.idsitostazione="+s.sito.getIdSitoStazioneMetereologica()+"");
 
 		}
 		if(!(s.ente.getIdEnte()==0)){
-			sb.append("and idente="+s.ente.getIdEnte()+"");   
+			 if(!(sb.toString().equals(""))) sb.append("and idente="+s.ente.getIdEnte()+"");   
+			 else if((sb.toString().equals("")))
+					sb.append(" where idente="+s.ente.getIdEnte()+"");
 		}
 		StringBuilder se=new StringBuilder();
 		if(!(s.getSensori().size()==0)){
@@ -1370,7 +1428,7 @@ public class ControllerDatabase {
 			for(int i=0;i<s.getSensori().size();i++){
 				if(i==0)
 					se.append("select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
-				else se.append(" and idstazionemetereologica in(select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
+				else se.append(" and staz.idstazionemetereologica in(select distinct(idstazionemetereologica) from sensore_stazione where idsensore="+s.getSensori().get(i).getIdsensori()+"");
 			}
 			int i=0;
 			while(i!=s.getSensori().size()){
@@ -1379,41 +1437,120 @@ public class ControllerDatabase {
 			}
 			
 		}
-		if(!(se.toString().equals(""))) sb.append(se);
+		 sb.append(se);
 		
-		if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
-			su.append(" and c.nomecomune='"+u.getLocAmm().getComune()+"'");
+		if(!(u.getLocAmm().isEmpty())){
+			if(!(u.getLocAmm().getComune()==null || u.getLocAmm().getComune().equals(""))){
+				
+				if( !(sb.toString().equals(""))){
+				su.append(" and c.nomecomune ='"+u.getLocAmm().getComune()+"'");
+				}else if((su.toString().equals("")))
+					su.append(" where c.nomecomune ='"+u.getLocAmm().getComune()+"'");
+				else
+					su.append(" and c.nomecomune ='"+u.getLocAmm().getComune()+"'");
+
+				
+			}
+			if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
+				
+				
+				if( !(sb.toString().equals(""))){
+					su.append(" and p.nomeprovincia = '"+u.getLocAmm().getProvincia()+"'");
+					}else if((su.toString().equals("")))
+						su.append(" where p.nomeprovincia = '"+u.getLocAmm().getProvincia()+"'");
+					else
+						su.append(" and p.nomeprovincia = '"+u.getLocAmm().getProvincia()+"'");
+			}
+			if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
+		
+				if( !(sb.toString().equals(""))){
+					su.append(" and r.nomeregione = '"+u.getLocAmm().getRegione()+"'");
+					}else if((su.toString().equals("")))
+						su.append(" where r.nomeregione = '"+u.getLocAmm().getRegione()+"'");
+					else
+						su.append(" and r.nomeregione = '"+u.getLocAmm().getRegione()+"'");
+				
+			}		
+			if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
+				
+				if( !(sb.toString().equals(""))){
+					su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+					}else if((su.toString().equals("")))
+						su.append(" where n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+					else
+						su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
+			}
 		}
-		if(!(u.getLocAmm().getProvincia()==null || u.getLocAmm().getProvincia().equals(""))){
-			su.append(" and p.nomeprovincia='"+u.getLocAmm().getProvincia()+"'");
+		
+		if(!(u.getLocIdro().isEmpty())){
+			if(!(u.getLocIdro().getBacino()==null || u.getLocIdro().getBacino().equals(""))){
+				
+				if( !(sb.toString().equals(""))){
+					su.append(" and b.nomebacino ='"+u.getLocIdro().getBacino()+"'");
+					}else if((su.toString().equals("")))
+						su.append(" where b.nomebacino ='"+u.getLocIdro().getBacino()+"'");
+					else
+						su.append(" and b.nomebacino ='"+u.getLocIdro().getBacino()+"'");			}
+			if(!(u.getLocIdro().getSottobacino()==null || u.getLocIdro().getSottobacino().equals(""))){
+				
+				if( !(sb.toString().equals(""))){
+					su.append(" and s.nomesottobacino ='"+u.getLocIdro().getSottobacino()+"'");
+					}else if((su.toString().equals("")))
+						su.append(" where s.nomesottobacino ='"+u.getLocIdro().getSottobacino()+"'");
+					else
+						su.append(" and s.nomesottobacino ='"+u.getLocIdro().getSottobacino()+"'");
+			}
 		}
-		if(!(u.getLocAmm().getRegione()==null || u.getLocAmm().getRegione().equals(""))){
-			su.append(" and r.nomeregione ='"+u.getLocAmm().getRegione()+"'");
-		}
-		if(!(u.getLocAmm().getNazione()==null || u.getLocAmm().getNazione().equals(""))){
-			su.append(" and n.nomenazione ='"+u.getLocAmm().getNazione()+"'");
-		}
-		if(!( u.getCoordinate().getX()==0)){
-			su.append(" and st_x(coordinate) ='"+u.getCoordinate().getX()+"'");
-		}
-		if(!( u.getCoordinate().getY()==0)){
-			su.append(" and st_y(coordinate) ='"+u.getCoordinate().getY()+"'");
-		}
-	
 
 		ResultSet rs = null;
 
 		if(u.isEmpty()==true){
-			System.out.println("1-SELECT * FROM stazione_metereologica  "+sb.toString());
-		 rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss where staz.idubicazione = u.idubicazione"
-				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
-				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione "+sb.toString()+" ");
+			System.out.println("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz " +
+					"left join sito_stazione ss on (staz.idsitostazione=ss.idsitostazione)" +
+					"left join ente e  on (staz.idente=e.idente)" +
+					"left join ubicazione u on (staz.idubicazione=u.idubicazione)" +
+					"left join comune c on (c.idcomune=u.idcomune)" +
+					"left join provincia p on (c.idProvincia=p.idProvincia)" +
+					"left join regione r on ( r.idregione=p.idregione)" +
+					"left join nazione n on (r.idnazione=n.idnazione)" +
+					"left join sottobacino s on (s.idsottobacino=u.idsottobacino) " +
+					"left join bacino b on (b.idbacino=s.idbacino)" +
+					""+sb.toString()+" ");
+		 rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz " +
+					"left join sito_stazione ss on (staz.idsitostazione=ss.idsitostazione)" +
+					"left join ente e  on (staz.idente=e.idente)" +
+					"left join ubicazione u on (staz.idubicazione=u.idubicazione)" +
+					"left join comune c on (c.idcomune=u.idcomune)" +
+					"left join provincia p on (c.idProvincia=p.idProvincia)" +
+					"left join regione r on ( r.idregione=p.idregione)" +
+					"left join nazione n on (r.idnazione=n.idnazione)" +
+					"left join sottobacino s on (s.idsottobacino=u.idsottobacino) " +
+					"left join bacino b on (b.idbacino=s.idbacino)" +
+					""+sb.toString()+" ");
 		}
 		else {
-			System.out.println("2-SELECT * FROM stazione_metereologica  "+sb.toString()+" "+su.toString()+" ");
-			rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz, ubicazione u,comune c,provincia p,regione r,nazione n,bacino b,sottobacino s,ente e,sito_stazione ss where staz.idubicazione = u.idubicazione"
-				+ " and(c.idProvincia=p.idProvincia) and ( r.idregione=p.idregione) and(r.idnazione=n.idnazione) and c.idcomune=u.idcomune and"
-				+ " b.idbacino=s.idbacino and s.idsottobacino=u.idsottobacino and staz.idente=e.idente and staz.idsitostazione=ss.idsitostazione "+sb.toString()+" "+su.toString()+" ");
+			System.out.println("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz " +
+					"left join sito_stazione ss on (staz.idsitostazione=ss.idsitostazione)" +
+					"left join ente e  on (staz.idente=e.idente)" +
+					"left join ubicazione u on (staz.idubicazione=u.idubicazione)" +
+					"left join comune c on (c.idcomune=u.idcomune)" +
+					"left join provincia p on (c.idProvincia=p.idProvincia)" +
+					"left join regione r on ( r.idregione=p.idregione)" +
+					"left join nazione n on (r.idnazione=n.idnazione)" +
+					"left join sottobacino s on (s.idsottobacino=u.idsottobacino) " +
+					"left join bacino b on (b.idbacino=s.idbacino)" +
+					""+sb.toString()+" "+su.toString()+" ");
+			 rs = st.executeQuery("select *,st_x(coordinate::geometry) as x ,st_y(coordinate::geometry) as y,e.nome as enome  from stazione_metereologica staz " +
+						"left join sito_stazione ss on (staz.idsitostazione=ss.idsitostazione)" +
+						"left join ente e  on (staz.idente=e.idente)" +
+						"left join ubicazione u on (staz.idubicazione=u.idubicazione)" +
+						"left join comune c on (c.idcomune=u.idcomune)" +
+						"left join provincia p on (c.idProvincia=p.idProvincia)" +
+						"left join regione r on ( r.idregione=p.idregione)" +
+						"left join nazione n on (r.idnazione=n.idnazione)" +
+						"left join sottobacino s on (s.idsottobacino=u.idsottobacino) " +
+						"left join bacino b on (b.idbacino=s.idbacino)" +
+						""+sb.toString()+" "+su.toString()+" ");
 		}
 		while(rs.next()){
 			StazioneMetereologica sm=new StazioneMetereologica();
@@ -1424,7 +1561,6 @@ public class ControllerDatabase {
 			sm.setIdStazioneMetereologica(rs.getInt("idStazioneMetereologica"));
 			sm.setAggregazioneGiornaliera(rs.getString("aggregazioneGiornaliera"));
 			sm.setNote(rs.getString("note"));
-			sm.setOraria(rs.getBoolean("oraria"));
 			sm.setDataInizio(rs.getDate("datainizio"));
 			sm.setDataFine(rs.getDate("datafine"));
 			sm.setNome(rs.getString("nome"));
@@ -1582,11 +1718,18 @@ public class ControllerDatabase {
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		StringBuilder sb = new StringBuilder();
+		if(u.getLocIdro().getIdSottobacino()!=0)
 		sb.append(""+u.getLocIdro().getIdSottobacino()+"");
+		else 
+			sb.append("null");
+		if(u.getLocAmm().getIdComune()!=0)
 		sb.append(","+u.getLocAmm().getIdComune()+"");
+		else 
+			sb.append(",null");
 		sb.append(","+u.getQuota());
 		sb.append(",'"+u.getEsposizione()+"'");
-		sb.append(",ST_GeometryFromText("+u.getCoordinate().toDB()+")");
+		sb.append(",ST_GeographyFromText("+u.getCoordinate().toDB()+")");
+		
 		st.executeUpdate("INSERT INTO ubicazione(idSottobacino,idComune,quota,esposizione,coordinate) values("+sb.toString()+") ");
 		
 		ResultSet rs = st.executeQuery("SELECT * FROM ubicazione WHERE coordinate= "+u.getCoordinate().toDB()+" ");
@@ -2040,6 +2183,26 @@ public class ControllerDatabase {
 		
 	}
 	
+	public static ArrayList<Double> temperatureAnno(String id,String anno, boolean a,String tipo) throws SQLException{
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ArrayList<Double> tem= new ArrayList<Double>();
+	
+		ResultSet rs;
+		
+		
+			rs =st.executeQuery("SELECT data,temperatura"+tipo+" as "+tipo+" FROM temperatura_"+tipo+" WHERE extract(year FROM data)="+anno+" and  idstazionemetereologica="+id+" and temperatura"+tipo+"<>-9999 order by data");
+		while(rs.next()){
+			tem.add(rs.getDouble(""+tipo+""));
+			
+		}
+		
+		rs.close();
+		st.close();
+		return tem;
+	
+}
+	
 	public static ArrayList<Double> prendiMM(String id,String anno, boolean a,String tipo) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
@@ -2098,10 +2261,30 @@ public class ControllerDatabase {
 		conn.close();
 		return dati;
 	}
+	public static ArrayList<Double> temperatureTrimestre(String id,	String anno, String mese, boolean a, String tipo) throws SQLException {
+		ArrayList<Double> temperature=new ArrayList<Double>();
+		int mesefinale=Integer.parseInt(mese)+2;
+		Connection conn = DriverManager.getConnection(url,user,pwd);
+		Statement st = conn.createStatement();
+		ResultSet rs;
+		rs=st.executeQuery("select temperatura"+tipo+",data from temperatura_"+tipo+" where  idstazionemetereologica="+id+" and (EXTRACT(MONTH FROM data))::int BETWEEN "+mese+" AND "+mesefinale+" and extract(year from data)="+anno+" order by data");
+		System.out.println("select temperatura"+tipo+",data from temperatura_"+tipo+" where  idstazionemetereologica="+id+" and (EXTRACT(MONTH FROM data))::int BETWEEN "+mese+" AND "+mesefinale+" and extract(year from data)="+anno+"");
+		while(rs.next()){
+			temperature.add(rs.getDouble("temperatura"+tipo+""));
+			
+		}
+		rs.close();
+		st.close();
+		conn.close();
+		
+		return temperature;
+	}
+	
+
 	public static int salvaAllegato(int idUtente,String autore,String anno, String titolo, String in, String fonte, String urlWeb, String note, String tipo, String absoluteFile) throws SQLException{
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		int idAllegato = 0;
-		String query = "insert into allegati(autore,anno,titolo,nella,fonte,urlweb,note,tipoallegato,linkfile) values(?,?,?,?,?,?,?,?,?)";
+		String query = "insert into allegati(autore,anno,titolo,nella,fonte,urlweb,note,tipoallegato,linkfile,idutente) values(?,?,?,?,?,?,?,?,?,?)";
 		PreparedStatement ps = conn.prepareStatement(query,Statement.RETURN_GENERATED_KEYS);
 		ps.setString(1,autore);
 		ps.setString(2, anno);
@@ -2112,23 +2295,34 @@ public class ControllerDatabase {
 		ps.setString(7, note);
 		ps.setString(8, tipo);
 		ps.setString(9, absoluteFile);
-		
-ResultSet rs = ps.getGeneratedKeys();
+		ps.setInt(10, idUtente);
+		ps.executeUpdate();
+		ResultSet rs = ps.getGeneratedKeys();
 		
 		while(rs.next()){
-		idAllegato = rs.getInt("idProcesso");
+		idAllegato = rs.getInt("idallegati");
 		}
 		
 		rs.close();ps.close();conn.close();
 		
 		return idAllegato;
 	}
-	public static void salvaAllegatoProcesso(int idProcesso, int idUtente, String autore,String anno, String titolo, String in, String fonte, String urlWeb, String note, String tipo, String absoluteFile) throws SQLException {
+	public static void salvaAllegatoProcesso(int idProcesso, int idUtente, String autore,String anno, String titolo, String in, String fonte, String urlWeb, String note, String tipo, String absolutePath) throws SQLException {
 		Connection conn = DriverManager.getConnection(url,user,pwd); 
-		int idAllegato = salvaAllegato(idUtente, tipo, tipo, tipo, tipo, tipo, tipo, tipo, tipo, absoluteFile);
+		int idAllegato = salvaAllegato(idUtente, tipo, tipo, tipo, tipo, tipo, tipo, tipo, tipo, absolutePath);
 		String query = "insert into allegati_processo(idprocesso,idallegati) values(?,?)";
 		 PreparedStatement ps = conn.prepareStatement(query);
 		 ps.setInt(1, idProcesso);
+		 ps.setInt(2,idAllegato);
+		 ps.executeUpdate();
+		 conn.close();ps.close();
+	}
+	public static void salvaAllegatoStazione(int idstazione, int idUtente,String autore, String anno, String titolo, String in, String fonte,String urlWeb, String note, String tipo, String absolutePath) throws SQLException {
+		Connection conn = DriverManager.getConnection(url,user,pwd); 
+		int idAllegato = salvaAllegato(idUtente,autore,anno, titolo, in, fonte,urlWeb, note,  tipo, absolutePath);
+		String query = "insert into allegati_stazione(idstazione,idallegati) values(?,?)";
+		 PreparedStatement ps = conn.prepareStatement(query);
+		 ps.setInt(1, idstazione);
 		 ps.setInt(2,idAllegato);
 		 ps.executeUpdate();
 		 conn.close();ps.close();

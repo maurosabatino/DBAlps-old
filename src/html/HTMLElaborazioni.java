@@ -14,7 +14,7 @@ import controller.ControllerDatiClimatici;
 
 public class HTMLElaborazioni {
 	
-	public static String deltaT(String[] id,int finestra,int aggregazione,Timestamp t) throws SQLException{
+	public static ArrayList<Grafici> deltaT(String[] id,int finestra,int aggregazione,Timestamp t) throws SQLException{
 		String sb = "";
 		ArrayList<Grafici> g=new ArrayList<Grafici>();
 		//cambiare inserimenti metodi controller dati climatici
@@ -40,15 +40,12 @@ public class HTMLElaborazioni {
 				
 		}
 		
-		for(Grafici ga:g) System.out.println(""+ga.getRiferimento());
-		String titolo="DeltaT";
-		String unita="(°C)";
-		sb=grafici(g,titolo,unita);
 		
 		
-		return sb;
+		
+		return g;
 	}
-	public static String mediaTemperatura(String[]id,int aggregazione,Timestamp t,double gradiente,double quota,String[] tipi) throws SQLException{
+	public static ArrayList<Grafici> mediaTemperatura(String[]id,int aggregazione,Timestamp t,double gradiente,double quota,String[] tipi) throws SQLException{
 		String sb = "";
 		double riferimentoG=0;
 		ArrayList<Grafici> g=new ArrayList<Grafici>();
@@ -98,13 +95,11 @@ public class HTMLElaborazioni {
 			
 			}
 		}//
-		String titolo="Temperatura";
-		String unita="(°C)";
-		sb=grafici(g,titolo,unita);
-		return sb.toString();
+		
+		return g;
 	}
 	
-	public static String mediaPrecipitazioni(String[] id,int finestra,int aggregazione,Timestamp t) throws SQLException{
+	public static ArrayList<Grafici> mediaPrecipitazioni(String[] id,int finestra,int aggregazione,Timestamp t) throws SQLException{
 		String sb="";
 		ArrayList<Grafici> g=new ArrayList<Grafici>();
 		//String data=Timestamp.toString(t);
@@ -114,9 +109,14 @@ public class HTMLElaborazioni {
 			int idStazione=Integer.parseInt(id[i]);
 			double precrif=0;
 			int anno=ControllerDatiClimatici.annoRiferimento(t, idStazione);
+			System.out.println("anno ="+anno);
+
 			ArrayList<Double> precipitazioni=ControllerDatiClimatici.prendiPrecipitazioni(t,aggregazione,idStazione);
+			System.out.println("precipitazioni ="+precipitazioni.size());
 			ArrayList<Double> somma=ControllerDatiClimatici.mediaMobilePrecipitazioni(precipitazioni,finestra,aggregazione*2+1,anno);
+			
 			precrif=somma.get(somma.size()-1);
+			System.out.println("prec rif="+precrif);
 			somma.remove(somma.size()-1);	
 			ArrayList<Double> pro=ControllerDatiClimatici.distribuzioneFrequenzaCumulativa(somma);
 			double interpolazione=ControllerDatiClimatici.interpolazione(somma, pro,precrif);
@@ -128,10 +128,7 @@ public class HTMLElaborazioni {
 			gra.setY(pro);
 			g.add(gra);
 		}
-	  	String titolo="Precipitazioni";
-		String unita="(mm)";
-	  	 sb=grafici(g,titolo,unita);
-		return sb.toString();
+		return g;
 	}
 	
 	
@@ -217,29 +214,56 @@ public class HTMLElaborazioni {
 				"		});" +
 				"</script>" +
 				"<div id=\"container\" style=\"min-width: 310px; height: 400px; margin: 0 auto\"></div> ");
+			sb.append("<a href=\"Servlet?operazione=download&grafici=grafici\">dettagli</a>");
+			sb.append("<form action=\"/DBAlps/Servlet\" name=\"download\" method=\"POST\" >");
+	sb.append(" <input type=\"submit\" name =\"submit\" value=\"download\" >");
+			sb.append(" <input type=\"hidden\" name=\"operazione\" value=\"download\">");
+			sb.append(" <input type=\"hidden\" name=\"titolo\" value=\""+titolo+"\">");
 
+					sb.append(" </form>");
+			
 		return sb.toString();
 	}
 	
 	
 	public static String sceltaQuery(){
 		StringBuilder sb=new StringBuilder();
-		sb.append(" <li><a href=\"Servlet?operazione=precipitazioniAnno\"> precipitazioni anni </a></li> ");
-		sb.append(" <li><a href=\"Servlet?operazione=precipitazioniMese\"> precipitazioni mese </a></li> ");
-		sb.append(" <li><a href=\"Servlet?operazione=precipitazioniTrimestre\"> precipitazioni trimestre </a></li> ");
-		sb.append(" <li><a href=\"Servlet?operazione=temperaturaEPrecipitazioneAnno\"> temperatura e precipitazione anno</a></li> ");
+		sb.append("	<div class=\"row\">");
+		sb.append("	<div class=\"col-xs-6 col-md-11 col-md-push-1\"><h3>Query sui dati climatici</h3></div>");
+		sb.append("	</div>");
+		sb.append("	<br>");
+		sb.append("	<div class=\"list-group\">");
+		sb.append("	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=precipitazioniAnno\" class=\"list-group-item\">  precipitazioni anni</a></div>");
+		sb.append("  	</div>	");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=precipitazioniMese\" class=\"list-group-item\"> precipitazioni mese</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=precipitazioniTrimestre\" class=\"list-group-item\"> precipitazioni trimestre</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=temperaturaEPrecipitazioneAnno\" class=\"list-group-item\"> temperatura e precipitazione anno</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=temperaturaTrimestre\" class=\"list-group-item\"> temperatura trimestre</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=temperaturaAnno\" class=\"list-group-item\"> temperatura anno</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	</div>");
 
 		return sb.toString();
 	}
 	
-	public static String precipitazioniDatiAnno(ArrayList<StazioneMetereologica>s, String op){
+	public static String datiAnno(ArrayList<StazioneMetereologica>s, String op){
 		StringBuilder sb=new StringBuilder();
 		sb.append("<script  type=\"text/javascript\">");
-		sb.append("function Disabilita(stato1,stato2,stato3){");
+		/*sb.append("function Disabilita(stato1,stato2,stato3){");
 		sb.append("	document.getElementById('anno').disabled = stato1;");
 		sb.append("	document.getElementById('mesi').disabled = stato2;");
 		sb.append("	document.getElementById('anni').disabled = stato3;");
-
+*/
 		sb.append("}");
 		sb.append("	</script>");
 		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">");
@@ -258,7 +282,7 @@ public class HTMLElaborazioni {
 		return sb.toString();	
 		}
 	
-	public static String precipitazioniDatiMese(ArrayList<StazioneMetereologica>s,String op){
+	public static String DatiTrimestre(ArrayList<StazioneMetereologica>s,String op){
 		StringBuilder sb=new StringBuilder();
 		
 		sb.append("<form action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\">");
@@ -371,7 +395,7 @@ public class HTMLElaborazioni {
 		return data;
 	}
 	
-	public static String precipitazioniQueryTrimestre(String mese,String anno,String[]id) throws SQLException{
+	public static ArrayList<Grafici> precipitazioniQueryTrimestre(String mese,String anno,String[]id) throws SQLException{
 		StringBuilder sb=new StringBuilder();
 		String tipo="column";
 		Calendar ca=new GregorianCalendar();
@@ -410,15 +434,13 @@ public class HTMLElaborazioni {
 			g.add(gra);
 			g.add(cumulata);
 		}
-		String titolo="precipitazioni";
-		String unita="mm";
-		sb.append(""+graficiMultipliPrecipitazioni( g, tipo, titolo,unita, unita, titolo,"cumulata",anno,mese));
-		return sb.toString();
+		
+		return g;
 	}
 	
 	
 	public static String precipitazioniTemperaturaQueryAnno(String anno,String[]id) throws SQLException{
-		StringBuilder sb=new StringBuilder();
+				StringBuilder sb=new StringBuilder();
 		String tipo="column";
 		
 		ArrayList<Grafici> g=new ArrayList<Grafici>();
@@ -496,14 +518,75 @@ public class HTMLElaborazioni {
 		return sb.toString();
 	}
 	
+	public static ArrayList<Grafici> queryTemperaturaAnno(String anno,String[]id) throws NumberFormatException, SQLException{
+		ArrayList<Grafici> g=new ArrayList<Grafici>();
+		for(int i=0;i<id.length;i++){
+		Grafici gra=new Grafici();
+		String nome=ControllerDatabase.prendiNome(Integer.parseInt(id[i]));
+		gra.setNome(nome);
+			
+			boolean a=true;
+			
+		Grafici avg=new Grafici();
+		avg.setY(ControllerDatabase.temperatureAnno(id[i],anno,a,"avg"));
+		avg.setNome("avg");
+		System.out.println("avg size="+avg.getY().size());
+		g.add(avg);
+		Grafici min=new Grafici();
+		min.setY(ControllerDatabase.temperatureAnno(id[i],anno,a,"min"));
+		System.out.println("min size="+min.getY().size());
+
+		min.setNome("min");
+		g.add(min);
+		Grafici max=new Grafici();
+		max.setY(ControllerDatabase.temperatureAnno(id[i],anno,a,"max"));
+		System.out.println("max size="+max.getY().size());
+
+		max.setNome("max");
+		g.add(max);
+		
+		}
+		String unita="C";
+		String titolo="temperatura";
+		return g;
+	}
+	
+	public static ArrayList<Grafici> queryTemperaturaTrimestre(String mese,String anno,String[]id) throws NumberFormatException, SQLException{
+		ArrayList<Grafici> g=new ArrayList<Grafici>();
+		for(int i=0;i<id.length;i++){
+			Grafici gra=new Grafici();
+			String nome=ControllerDatabase.prendiNome(Integer.parseInt(id[i]));
+			gra.setNome(nome);
+			
+			boolean a=true;
+			
+			Grafici avg=new Grafici();
+			avg.setY(ControllerDatabase.temperatureTrimestre(id[i],anno,mese,a,"avg"));
+			avg.setNome("avg");
+			System.out.println("PROVA="+avg.getY().size());
+			g.add(avg);
+			Grafici min=new Grafici();
+			min.setY(ControllerDatabase.temperatureTrimestre(id[i],anno,mese,a,"min"));
+			min.setNome("min");
+			g.add(min);
+			Grafici max=new Grafici();
+			max.setY(ControllerDatabase.temperatureTrimestre(id[i],anno,mese,a,"max"));
+			max.setNome("max");
+			g.add(max);
+		
+		}
+		String unita="C";
+		String titolo="temperatura";
+		return g;
+	}
 	
 	
 	
 	
-	public static String graficiCategorie(ArrayList<Grafici> g,String tipo,String titolo,String unita) throws SQLException{
+	
+	public static String graficiCategorie(ArrayList<Grafici> g,String tipo,String titolo,String unita,String anno,String mese) throws SQLException{
 		StringBuilder sb=new StringBuilder();
 	
-	sb.append("	<script src=\"js/jquery-1.10.2.js\"></script>");
 	sb.append("	<script src=\"js/Charts/highcharts.js\"></script>");
 	sb.append("	<script src=\"js/Charts/modules/exporting.js\"></script>");	
 	sb.append("<script>");
@@ -514,7 +597,13 @@ public class HTMLElaborazioni {
 	sb.append("      type: '"+tipo+"'");
 	sb.append("	        },");
 	sb.append("	        xAxis: {");
-		sb.append("categories: [");
+		if(titolo.equals("temperatura")){
+			 sb.append("type: 'datetime',");
+		        sb.append("    dateTimeLabelFormats: {");
+		         sb.append("       day: '%e of %b'");
+		         sb.append("   }");
+		}else{
+			sb.append("categories: [");
 		int i=0;	
 		for(String x:g.get(0).getCategorie()){
 				sb.append("'"+x+"',");
@@ -522,7 +611,7 @@ public class HTMLElaborazioni {
 			}
 		      sb.append("]");
 	
-	
+		}
 	sb.append("	        },");
 	
 	sb.append(" yAxis: {");
@@ -544,10 +633,15 @@ public class HTMLElaborazioni {
 	    		for(int j=0;j<gra.getY().size();j++){
 	    			sb.append(""+gra.getY().get(j)+",");
 	    		}
-	    		sb.append("]");
+	    		sb.append("],");
+	    		if(titolo.equals("temperatura")) {
+					 sb.append("pointStart: Date.UTC("+anno+", "+(Integer.parseInt(mese)-1)+", 1),");
+		               sb.append("pointInterval: 24 * 3600*1000 , ");
+				}
+	    		
 	    		sb.append("   },");
 			}
-
+			
 		      
 		
 		    		  
@@ -567,7 +661,6 @@ public class HTMLElaborazioni {
 	
 	public static String graficiMultipliPrecipitazioni(ArrayList<Grafici> g,String tipo,String titolo,String unita,String unita2,String titolo1,String titolo2,String anno,String mese){
 		StringBuilder sb=new StringBuilder();
-		sb.append("<script src=\"js/jquery-1.10.2.js\"></script>");
 sb.append("<script src=\"http://code.highcharts.com/highcharts.js\"></script>");
 sb.append("<script src=\"http://code.highcharts.com/modules/exporting.js\"></script>");
 sb.append("<script >");
@@ -645,7 +738,7 @@ sb.append("$(function () {");
                }
             	   
                sb.append("],");
-               sb.append("pointStart: Date.UTC("+anno+", "+mese+", 1),");
+               sb.append("pointStart: Date.UTC("+anno+", "+(Integer.parseInt(mese)-1)+", 1),");
                sb.append("pointInterval: 24 * 3600*1000 , ");
                 sb.append("tooltip: {");
                 sb.append("    valueSuffix: ' "+unita+"'");
@@ -666,7 +759,7 @@ sb.append("$(function () {");
                }
             	   
                sb.append("],");
-               sb.append("pointStart: Date.UTC("+anno+", "+mese+", 1),");
+               sb.append("pointStart: Date.UTC("+anno+", "+(Integer.parseInt(mese)-1)+", 1),");
             sb.append("pointInterval: 24 * 3600*1000 , ");
                 sb.append("tooltip: {");
                 sb.append("    valueSuffix: ' "+unita2+"'");
@@ -687,7 +780,6 @@ sb.append("<div id=\"container\" style=\"min-width: 400px; height: 400px; margin
 	
 	public static String graficiMultipli(ArrayList<Grafici> g,String tipo,String titolo,String unita,String unita2,String titolo1,String titolo2){
 		StringBuilder sb=new StringBuilder();
-		sb.append("<script src=\"js/jquery-1.10.2.js\"></script>");
 sb.append("<script src=\"http://code.highcharts.com/highcharts.js\"></script>");
 sb.append("<script src=\"http://code.highcharts.com/modules/exporting.js\"></script>");
 sb.append("<script >");
@@ -894,6 +986,28 @@ sb.append("});");
 sb.append("</script>"); 
 
 sb.append("<div id=\"container\" style=\"min-width: 300px; height: 400px; margin: 0 auto\"></div>");
+		return sb.toString();
+	}
+
+
+	public static String listaElaborazioni(){
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("	<div class=\"row\">");
+		sb.append("	<div class=\"col-xs-6 col-md-11 col-md-push-1\"><h3>Query sui Dati Climatici</h3></div>");
+		sb.append("	</div>");
+		sb.append("	<br>");
+		sb.append("	<div class=\"list-group\">");
+		sb.append("	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=scegliStazioniDeltaT\" class=\"list-group-item\"> Distribuzione Delta T</a></div>");
+		sb.append("  	</div>	");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=scegliStazioniT\" class=\"list-group-item\">Distribuzione Temperature</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	<div class=\"row\">");
+		sb.append("  	<div class=\"col-xs-6 col-md-4  col-md-push-1\"><a href=\"Servlet?operazione=scegliStazioniPrecipitazioni\" class=\"list-group-item\"> Distribuzione precipitazioni</a></div>");
+		sb.append("  	</div>");
+		sb.append("  	</div>");
 		return sb.toString();
 	}
 

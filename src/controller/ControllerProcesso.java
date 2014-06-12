@@ -33,6 +33,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 
 
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -58,41 +59,46 @@ public class ControllerProcesso {
 		String anno="0000";
 		String mese="01";
 		String giorno="01";
+		
 		if(!(request.getParameter("anno")==null)){
 			if(!(request.getParameter("anno").equals(""))){
 				formatoData.append("1");
 				anno = request.getParameter("anno");
 			}else formatoData.append("0");
-		}
+		}else formatoData.append("0");
+		
 		if(!(request.getParameter("mese")==null)){
 			if(!(request.getParameter("mese").equals("vuoto"))){
 				mese = request.getParameter("mese");
 				formatoData.append("1");
 			}else formatoData.append("0");
-		}
+		}else formatoData.append("0");
+		
 		if(!(request.getParameter("girno")==null)){
 			if(!(request.getParameter("giorno").equals("vuoto"))){
 				giorno = request.getParameter("giorno");
 				formatoData.append("1");
 			} else formatoData.append("0");
-		}
+		}else formatoData.append("0");
 		data = ""+anno+"-"+mese+"-"+giorno+"";
 		if(!(request.getParameter("ora")==null)){
 		if(!(request.getParameter("ora").equals(""))){
 			ora = request.getParameter("ora");
 			formatoData.append("1");
 		}else formatoData.append("0");
-		}
+		}else formatoData.append("0");
 		String dataCompleta = ""+data+" "+ora+":00";
 		p.setData((Timestamp.valueOf(dataCompleta)));
 		System.out.println("formato data: "+formatoData);
 		if(!(formatoData.toString().equals("")))
 		p.setFormatoData(Integer.parseInt(formatoData.toString()));
-		String descrizione = "";
-		if(!(request.getParameter("descrizione")!=null))
-		 descrizione =request.getParameter("descrizione");
-		p.setDescrizione(descrizione);
-		if(!(request.getParameter("note")!=null))
+		if(!(request.getParameter("descrizione")==null)){
+			String descrizione = request.getParameter("descrizione");
+			p.setDescrizione(descrizione);
+		}
+		System.out.println("descrizione da htm: "+(request.getParameter("descrizione")));
+		System.out.println("descrizione da processo: "+(p.getDescrizione()));
+		if(!(request.getParameter("note")==null))
 		p.setNote(request.getParameter("note"));
 		if(!(request.getParameter("altezza")==null)){
 			if(!(request.getParameter("altezza").equals("")))
@@ -115,7 +121,9 @@ public class ControllerProcesso {
 	}
 	public static Processo nuovoProcesso(HttpServletRequest request,String loc) throws ParseException, SQLException{ //qui ci metto tutte le informazioni e la pubblicazione sul db + ubicazione, sito, allegati, effetti
 		Processo p = creaProcesso(request);
+		
 		Ubicazione u = ControllerUbicazione.creaUbicazione(request);
+		
 		SitoProcesso sp = creaSito(request,loc);
 		ClasseVolume cv = creaClasseVolume(request);
 		ArrayList<EffettiMorfologici> em = creaEffettiMorfologici(request,loc);

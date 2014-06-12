@@ -10,7 +10,7 @@
 <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container-fluid">
     <div class="navbar-header">
-     <a class="navbar-brand" href="index.jsp">DBAlps</a>
+     <a class="navbar-brand" href="index.jsp">dbalps</a>
     </div>
    
   

@@ -88,7 +88,7 @@ public class HTMLProcesso {
 				sb.append("</div>");
 				sb.append("<br><div class=\"wrapper\">");
 				sb.append("<div class=\"content-main\"><label for=\"descrizione\">Descrizione</label></div>");
-				sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"descrizione\" id=\"descrizione\" class=\"textarea\" placeholder=\"Descrizione\">  </textarea></div>");
+				sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"descrizione\" id=\"descrizione\" class=\"textarea\" placeholder=\"Descrizione\"></textarea></div>");
 				sb.append("</div>");
 				sb.append("<br><h4>Tipologia Processo</h4>");
 				sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\">");
@@ -183,7 +183,7 @@ public class HTMLProcesso {
 
 				sb.append("<br><div class=\"wrapper\">");
 				sb.append("<div class=\"content-main\"><label for=\"note\">Note</label></div>");
-				sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"note\" id=\"note\" class=\"textarea\" placeholder=\"Note\">  </textarea></div>");
+				sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"note\" id=\"note\" class=\"textarea\" placeholder=\"Note\"></textarea></div>");
 				sb.append("</div>");
 
 				sb.append("<input type=\"hidden\" name=\"operazione\" value=\"inserisciProcesso\">");
@@ -252,15 +252,20 @@ public class HTMLProcesso {
 
 		sb.append(HTMLScript.mostraMappaProcesso(p));
 
-		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> </tr>");
-		sb.append(" <tr> <td>" + p.getNome() + " </td> <td> "
-				+ dataFormattata(p.getFormatoData(), p.getData()) + "</td> <td> "
-				+ p.getUbicazione().getLocAmm().getComune() + "</td>");
-		sb.append("<td><a href=\"Servlet?operazione=scegliRaggio&idProcesso="
-				+ idProcesso + "\">stazioni</a></td>");
+		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>Mappa</th></tr>");
+		sb.append(" <tr> <td>" + p.getNome() + " </td> <td> "+ dataFormattata(p.getFormatoData(), p.getData()) + "</td> <td> "+ p.getUbicazione().getLocAmm().getComune() + "</td>");
+		sb.append("<td><button class=\"btn btn-info\" data-toggle=\"modal\" data-target=\".mappa\">Visualizza sulla mappa</button></td>");
+		sb.append("<td><a href=\"Servlet?operazione=scegliRaggio&idProcesso="+ idProcesso + "\">stazioni</a></td>");
 		sb.append("</tr>");
 		sb.append("</table></div>");
+		sb.append("<div class=\"modal mappa\" tabindex=\"-6\" role=\"dialog\" aria-labelledby=\"mySmallModalLabel\" aria-hidden=\"true\">");
+		sb.append("  				<div class=\"modal-dialog modal-lg\">");
+		sb.append("    				<div class=\"modal-content\">");
+		sb.append("");
 		sb.append("<div id=\"mappa\" style=\"width:400px;height:500px\"/>");
+		sb.append("    				</div>");
+		sb.append("  				</div>");
+		sb.append("  </div>");
 		return sb.toString();
 	}
 
@@ -346,7 +351,7 @@ public class HTMLProcesso {
 			sb.append("</div>");
 			sb.append("<br><div class=\"wrapper\">");
 			sb.append("<div class=\"content-main\"><label for=\"descrizione\">Descrizione</label></div>");
-			sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"descrizione\" id=\"descrizione\" class=\"textarea\" placeholder=\"Descrizione\">  </textarea></div>");
+			sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"descrizione\" id=\"descrizione\" class=\"textarea\" placeholder=\"Descrizione\"></textarea></div>");
 			sb.append("</div>");
 			sb.append("<br><h4>Tipologia Processo</h4>");
 			sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\">");
@@ -430,7 +435,7 @@ public class HTMLProcesso {
 
 			sb.append("<br><div class=\"wrapper\">");
 			sb.append("<div class=\"content-main\"><label for=\"note\">Note</label></div>");
-			sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"note\" id=\"note\" class=\"textarea\" placeholder=\"Note\">  </textarea></div>");
+			sb.append("<div class=\"content-secondary\"><textarea rows=\"5\" cols=\"140\" name=\"note\" id=\"note\" class=\"textarea\" placeholder=\"Note\"></textarea></div>");
 			sb.append("</div>");
 
 			sb.append("<input type=\"hidden\" name=\"operazione\" value=\"cercaProcesso\">");
@@ -690,8 +695,6 @@ public class HTMLProcesso {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("<div id=\"gmap\" style=\"width:400px;height:500px\"></div>");
-		sb.append("<script type=\"text/javascript\" src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyD2ZrcNbP1btezQE5gYgeA7_1IY0J8odCQ&sensor=false\"></script>");
-		sb.append("<script type=\"text/javascript\" src=\"http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js\"></script>");
 		sb.append("<script>");
 		sb.append("var map_center = new google.maps.LatLng(0.1700235000, 20.7319823000);");
 		sb.append("var map = new google.maps.Map(document.getElementById(\"gmap\"), {");
@@ -746,9 +749,10 @@ public class HTMLProcesso {
 	 */
 	public static String listaQueryProcesso(){
 		StringBuilder sb = new StringBuilder();
+		sb.append("<br>");
 		sb.append("<div class=\"panel panel-default\">");
-		sb.append("	<div class=\"panel-heading\">Query sui processi</div>");
-
+		sb.append("	<h3>Query sui processi</h3>");
+		sb.append("<br>");
 		sb.append("		<div class=\"list-group\">");
 		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=nome\" class=\"list-group-item\">Cerca per nome</a>");
 		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=anno\" class=\"list-group-item\">Cerca per anno</a>");
@@ -759,8 +763,8 @@ public class HTMLProcesso {
 		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=dtipo_IT\" class=\"list-group-item\">ricerca per danni</a>");
 		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=nomeLitologia_IT-proprietaTermiche_IT-statoFratturazione_IT\" class=\"list-group-item\">ricerca per litologia</a>");
 		sb.append("  			<a href=\"Servlet?operazione=formRicercaSingola&attributi=\" class=\"list-group-item\">ricerca sulla mappa(da implementare)</a>");
-		sb.append("          	<a href=\"Servlet?operazione=mostraTuttiProcessi\" class=\"list-group-item\"> mostra tutti i processi</a>");
-		sb.append("			<a href=\"Servlet?operazione=mostraProcessiMaps\" class=\"list-group-item\"> mostra processi sulla mappa</a>");
+		sb.append("       <a href=\"Servlet?operazione=mostraTuttiProcessi\" class=\"list-group-item\"> mostra tutti i processi</a>");
+		sb.append("			  <a href=\"Servlet?operazione=mostraProcessiMaps\" class=\"list-group-item\"> mostra processi sulla mappa</a>");
 		sb.append(" 			<a href=\"Servlet?operazione=formCercaProcessi\" class=\"list-group-item\"> ricerca processo</a>");
 		sb.append("  		</div>");
 		sb.append("  		</div>	");             		
@@ -802,6 +806,115 @@ public class HTMLProcesso {
 		
 		return sb.toString();
 	}
+	public static String mostraTuttiProcessiAllega() throws SQLException{
+		ArrayList<Processo> ap = ControllerDatabase.prendiTuttiProcessi();
+		StringBuilder sb = new StringBuilder();
+
+		/* script per google maps */// centrerei la mappa al centro delle alpi
+
+		sb.append(HTMLScript.scriptFilter());   
+		sb.append("<h3>Scegli un Processo a cui allegare un file</h3>");
+		sb.append("<div class=\"table-responsive\"><table class=\"table\"> <tr> <th>Nome</th> <th>data</th> <th>comune</th> <th>nazione</th> <th> Report </th> <th> Allega</th></tr>");
+		for (Processo p : ap) {
+			sb.append("<tr> <td>" + p.getNome() + " </td> ");
+			sb.append("	<td>"	+ dataFormattata(p.getFormatoData(), p.getData()) + "</td>" );
+			sb.append("	<td>"+ p.getUbicazione().getLocAmm().getComune() + "</td>");
+			sb.append("<td>" + p.getUbicazione().getLocAmm().getNazione() + "</td> ");
+			sb.append("<td><a href=\"Servlet?operazione=mostraProcesso&idProcesso="+ p.getIdProcesso() + "\">dettagli</a></td>");
+			sb.append("<td><a href=\"Servlet?operazione=formAllegatoProcesso&idprocesso="+ p.getIdProcesso() + "\">Allega</a> </td>");
+			sb.append("</tr>");
+		}
+		sb.append("</table></div>");
+		return sb.toString();
+	}
 	
+	public static String formAllegatoProcesso(int idprocesso) throws SQLException{
+		StringBuilder sb = new StringBuilder();
+		Processo p = ControllerDatabase.prendiProcesso(idprocesso);
+		sb.append("<form class=\"form-horizontal\" action=\"/DBAlps/Servlet\" name=\"dati\" method=\"POST\" enctype=\"multipart/form-data\" >");
+		sb.append("<div class=\"panel panel-default\"> <div class=\"panel-body\"> <h4>Allegu un file al processo "+p.getNome()+"</h4>");
+		sb.append("<br>");
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"autore\" class=\"col-sm-2 control-label\">Autore</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"autore\" id=\"autore\" class=\"form-control\">");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"anno\" class=\"col-sm-2 control-label\">Anno</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"anno\" id=\"anno\" class=\"form-control\">");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"titolo\" class=\"col-sm-2 control-label\">Titolo</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"titolo\" id=\"titolo\" class=\"form-control\">");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"in\" class=\"col-sm-2 control-label\">In:</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"in\" id=\"in\" class=\"form-control\">");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"fonte\" class=\"col-sm-2 control-label\">Fonte</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"fonte\" id=\"fonte\" class=\"form-control\" >");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"urlWeb\" class=\"col-sm-2 control-label\">URL del sito</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"urlWeb\" id=\"urlWeb\" class=\"form-control\" >");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"note\" class=\"col-sm-2 control-label\">Note</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"text\" name=\"note\" id=\"note\" class=\"form-control\" >");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"tipo\" class=\"col-sm-2 control-label\">Tipo</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<select class=\"form-control\" name=\"tipo\" id=\"tipo\">");
+		sb.append("<option value=\"document\">Document</option>");
+		sb.append("<option value=\"map\">Map </option>");
+		sb.append("<option value=\"image\">Image</option>");
+		sb.append("<option value=\"photo\">Photo</option>");
+		sb.append("</select>");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label for=\"uploadFile\" class=\"col-sm-2 control-label\">Carica il File</label>");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append("<input type=\"file\" name=\"uploadFile\" id=\"uploadFile\" class=\"form-control\" >");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("<input type=\"hidden\" name=\"idprocesso\" value=\""+p.getIdProcesso()+"\">");
+		sb.append("<input type=\"hidden\" name=\"operazione\" value=\"uploadAllegatoProcesso\">");
+		sb.append("<div class=\"form-group\">");
+		sb.append("<div class=\"col-sm-10\">");
+		sb.append(" <button type=\"submit\" class=\"btn btn-default\">Allega</button>");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		sb.append("</div>");
+		sb.append("</form>");
+		
+		return sb.toString();
+	}
 
 }

@@ -12,8 +12,6 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
 
-
-
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -26,26 +24,26 @@ public class ControllerStazioneMetereologica {
 		String ora="00:00:00";
 		s.setAggregazioneGiornaliera(request.getParameter("aggregazioneGiornaliera"));
 		s.setNote(request.getParameter("note"));
-	
 		if(!(request.getParameter("datainizio").equals(""))){
 			String dataInizio = request.getParameter("datainizio");
 			s.setDataInizio(Timestamp.valueOf(""+dataInizio+" "+ora+""));
-		}
+		}else s.setDataInizio(null);
 		
-		if(request.getParameter("datafine").equals("")) s.setDataFine(Timestamp.valueOf("0001-01-01 00:00:00"));
-		else{
+		if(!(request.getParameter("datafine").equals(""))){ 
 			String fine=request.getParameter("datafine");
 			s.setDataFine(Timestamp.valueOf(""+fine+" "+ora+""));
-		}
-		if(!(request.getParameter("oraria").equals("")))  s.setOraria(Boolean.parseBoolean(request.getParameter("oraria")));
-	   
-	   // sensori da fare
+		}else s.setDataFine(null);
+		
+		
 		return s;
 	}
 	
-	public static StazioneMetereologica nuovaStazioneMetereologica(HttpServletRequest request,String loc,Ubicazione u,Partecipante part) throws SQLException, ParseException{
+	public static StazioneMetereologica nuovaStazioneMetereologica(HttpServletRequest request,String loc,Ubicazione u) throws SQLException, ParseException{
 		StazioneMetereologica s= creaStazioneMetereologica(request);
 		s.setUbicazione(u);
+		System.out.println("sito stazione request"+request.getParameter("idsitostazione"));
+		System.out.println("sito stazione request"+request.getParameter("caratteristicaSito_IT"));
+
 		if(!(request.getParameter("idsitostazione").equals(""))){
 		SitoStazioneMetereologica sito=creaSitoStazione(request,loc);
 		s.setSito(sito);}
@@ -56,7 +54,7 @@ public class ControllerStazioneMetereologica {
 		if(!(request.getParameterValues("tipo_"+loc+"")==null)){
 			s.setSensori(creaSensori(request,loc));
 		}
-		s.setIdUtente(part.getIdUtente());	
+		s.setIdUtente(1);	
 		return s;
 	}
 	

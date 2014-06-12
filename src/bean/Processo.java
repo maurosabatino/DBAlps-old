@@ -32,7 +32,7 @@ public class Processo {
         data = Timestamp.valueOf("0001-01-01 00:00:00");
         formatoData=00000;
         descrizione = "";
-        note = "assente";
+        note = "";
         superficie = 0.0;
         larghezza = 0.0;
         altezza = 0.0;

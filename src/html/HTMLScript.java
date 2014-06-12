@@ -57,9 +57,9 @@ public class HTMLScript {
 	
 		sb.append(" <script type=\"text/javascript\">");
 		sb.append("function initialize() {");
-		sb.append("var myLatlng = new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+");");
+		sb.append("var myLatlng = new google.maps.LatLng("+p.getUbicazione().getCoordinate().getY()+","+p.getUbicazione().getCoordinate().getX()+");");
 		sb.append("var mapOptions = {");
-		sb.append("center: new google.maps.LatLng("+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+"),");
+		sb.append("center: new google.maps.LatLng("+p.getUbicazione().getCoordinate().getY()+","+p.getUbicazione().getCoordinate().getX()+"),");
 		sb.append("zoom: 8,");
 		sb.append("mapTypeId: google.maps.MapTypeId.SATELLITE");
 		sb.append("};");
@@ -71,7 +71,7 @@ public class HTMLScript {
 		sb.append("});");
 		sb.append("marker.setMap(map);");
 		sb.append("var contentString ='<p>nome processo:"+p.getNome()+"</p>'+");
-		sb.append("'<p>coordinate: "+p.getUbicazione().getCoordinate().getX()+","+p.getUbicazione().getCoordinate().getY()+"</p>';");
+		sb.append("'<p>coordinate: "+p.getUbicazione().getCoordinate().getY()+","+p.getUbicazione().getCoordinate().getX()+"</p>';");
 		sb.append("var infowindow = new google.maps.InfoWindow({");
 		sb.append("content: contentString");
 		sb.append("});");

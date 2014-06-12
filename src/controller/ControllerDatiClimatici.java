@@ -62,7 +62,10 @@ public class ControllerDatiClimatici {
 				 	somma=arrotonda(somma);
 			 		}
 			 		if(somma!=0){ //salvo somma se non è 0
+			 			if(anno>20) System.out.println("inf="+inf+" conf="+(aggregazione*(annoriferimento-1)+riferimento-finestra)+" anno="+anno);
+			 			
 			 			if(inf==(aggregazione*(annoriferimento-1)+riferimento-finestra) && anno==annoriferimento){
+			 				System.out.println("anno riferimento");
 			 				precrif=somma;
 			 				precrif=arrotonda(precrif);
 			 			}
@@ -133,9 +136,7 @@ public class ControllerDatiClimatici {
 		String line = "";
 		String cvsSplitBy =";";
 		Date d;
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		String user = "admin";
-		String pwd = "dbalps";
+		
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		double t=0;
@@ -179,9 +180,6 @@ public class ControllerDatiClimatici {
 		String line = "";
 		String cvsSplitBy =";";
 		Date d;
-		String url = "jdbc:postgresql://localhost:5432/DBAlps";
-		String user = "admin";
-		String pwd = "dbalps";
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		double p=0;
@@ -223,7 +221,7 @@ public class ControllerDatiClimatici {
 		int t=0;
 		int p=0;
 		System.out.println(		"  temperatura="+temperature.size());
-		for(t=0;t<temperature.size();t++){
+		for(t=0;t<temperature.size()-1;t++){
 			if(temperature.get(t).compareTo(riferimento)==0) return prob.get(p);
 			else if(temperature.get(t).compareTo(riferimento)<0 && 0<temperature.get(t+1).compareTo(riferimento)){
 					risultato=((riferimento-temperature.get(t+1))/(temperature.get(t)-temperature.get(t+1)))*prob.get(p)-((riferimento-temperature.get(t))/(temperature.get(t)-temperature.get(t+1)))*prob.get(p+1);
@@ -241,13 +239,12 @@ public class ControllerDatiClimatici {
 	
 	
 	public static ArrayList<Double> prendiTDelta(Timestamp t,int limite, int id) throws SQLException{// limite = intervallo a dx/sx es 15 su aggregazione 30 giorni
-		
 		Connection conn = DriverManager.getConnection(url,user,pwd);
 		Statement st = conn.createStatement();
 		ArrayList<Double> tem= new ArrayList<Double>();
 		int limiteinf=dataLimite(t,-limite);
 		int limitesup=dataLimite(t,limite);
-		ResultSet rs =st.executeQuery("SELECT temperaturaavg FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+"");
+		ResultSet rs =st.executeQuery("SELECT temperaturaavg FROM temperatura_avg WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" order by data");
 		while(rs.next()){
 			tem.add(rs.getDouble("temperaturaavg"));
 		}
@@ -263,7 +260,10 @@ public class ControllerDatiClimatici {
 		ArrayList<Double> prec= new ArrayList<Double>();
 		int limiteinf=dataLimite(t,-limite);
 		int limitesup=dataLimite(t,limite);
-		ResultSet rs =st.executeQuery("SELECT quantita FROM precipitazione WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+"");
+		ResultSet rs =st.executeQuery("SELECT quantita FROM precipitazione WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" order by data");
+		
+		System.out.println("SELECT quantita FROM precipitazione WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" order by data");
+		
 		while(rs.next()){
 			prec.add(rs.getDouble("quantita"));
 		}
@@ -290,9 +290,9 @@ public class ControllerDatiClimatici {
 		double med=0;
 		boolean rif=false;
 		boolean nullo=false;
-		System.out.println("SELECT temperatura"+tipo+",data FROM temperatura_"+tipo+" WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" ");
+		System.out.println("SELECT temperatura"+tipo+",data FROM temperatura_"+tipo+" WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" order by data");
 
-		rs =st.executeQuery("SELECT temperatura"+tipo+",data FROM temperatura_"+tipo+" WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" ");
+		rs =st.executeQuery("SELECT temperatura"+tipo+",data FROM temperatura_"+tipo+" WHERE  (EXTRACT(MONTH FROM data) * 100 + EXTRACT(DAY FROM data))::int BETWEEN "+limiteinf+" AND "+limitesup+" and idstazionemetereologica="+id+" order by data");
 		//else rs =st.executeQuery("SELECT temperaturaavg,data FROM temperatura_avg  where date_part('month',data)="+cal.get(Calendar.MONTH)+" and date_part('day',data)="+cal.get(Calendar.DAY_OF_MONTH)+" and idstazionemetereologica"+id+"");
 		while(rs.next()){
 			if(cont<limite+1){
@@ -348,7 +348,6 @@ public class ControllerDatiClimatici {
 	
 	public static int annoRiferimento(Timestamp t, int id) throws SQLException{
 		int anno=0;
-
 		Calendar cal=new GregorianCalendar();
 		cal.setTime(t);
 		anno=cal.get(Calendar.YEAR);
@@ -358,6 +357,7 @@ public class ControllerDatiClimatici {
 		ArrayList<Double> tem= new ArrayList<Double>();
 		ResultSet rs=st.executeQuery("select count(distinct date_part('year',data) ) from temperatura_avg where date_part('year',data)<"+anno+" and idstazionemetereologica="+id+"" );
 		while(rs.next()) anno=rs.getInt("count");
+		System.out.println("anno meno 1="+anno);
 		anno=anno+1;
 		rs.close();
 		st.close();
@@ -375,7 +375,7 @@ public class ControllerDatiClimatici {
 		}
 	}
 	
-	public static void main(String[] args) throws ParseException, IOException, SQLException{
+/*	public static void main(String[] args) throws ParseException, IOException, SQLException{
 		
 		Timestamp date = new Timestamp(0);
 		date = date.valueOf(("2013-12-28 00:00:00"));
@@ -422,7 +422,7 @@ public class ControllerDatiClimatici {
 	*/	
 		//----------------------------precipitazioni--------------------------//
 	
-		lettoreCSVPrec(1015);
+	//	lettoreCSVPrec(1015);
 	/*			double precrif=0;
 			     ArrayList<Double> precipitazioni=prendiPrecipitazioni(date,45);
 			     System.out.println("1");
@@ -442,5 +442,5 @@ public class ControllerDatiClimatici {
 			     System.out.println("interpolazione"+interpolazione(somma, pro,precrif));
 */
 
-	}
+	//}
 }

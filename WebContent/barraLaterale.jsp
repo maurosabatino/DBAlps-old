@@ -21,6 +21,9 @@
           <ul class="dropdown-menu">
              <li><a href="Servlet?operazione=formInserisciProcesso"> inserisci processo</a></li>
              <li><a href="Servlet?operazione=formInserisciStazione">Inserisci Stazione</a></li>
+             <li><a href="Servlet?operazione=elencocaricaDatiClimatici">Inserisci Dati Climatici</a></li>
+             <li><a href="Servlet?operazione=scegliProcessoAllegato">Allegato Processo</a></li>
+             <li><a href="Servlet?operazione=scegliStazioneAllegato">Allegato Stazione</a></li>
 			 
           </ul>
      </li>
@@ -38,13 +41,7 @@
           	<li><a href="Servlet?operazione=queryProcesso"> Query sul Processo</a></li>
           	<li><a href="Servlet?operazione=queryStazione"> Query Stazione Metereologica</a></li>
           	<li><a href="Servlet?operazione=queryClimatiche"> Query Climatiche</a></li>
-          	<li><a href="Servlet?operazione=elencoElaborazioni"> Elaborazioni</a></li>
-          	 <li><a href="Servlet?operazione=mostraTutteStazioniMetereologiche"> mostra tutte le stazioni</a></li>
-          	 <li><a href="Servlet?operazione=mostraStazioniMaps" class="list-group-item"> mostra stazioni su mappa</a></li>
- 			 <li><a href="Servlet?operazione=formRicercaStazione"> ricerca stazione</a></li>
- 			 <li><a href="Servlet?operazione=scegliStazioniDeltaT">distribuzione deltaT</a></li>
- 		     <li><a href="Servlet?operazione=scegliStazioniT"> distribuzione temperature</a></li>
-             <li><a href="Servlet?operazione=scegliStazioniPrecipitazioni"> distribuzione precipitazioni</a></li>
+          	<li><a href="Servlet?operazione=listaElaborazioni"> Elaborazioni</a></li>
           </ul>
      </li>
      <li class="dropdown">
@@ -52,6 +49,7 @@
           <ul class="dropdown-menu">
             <li><a href="Servlet?operazione=formCreaUtente"> Crea Utente</a></li>
             <li><a href="Servlet?operazione=visualizzaTuttiUtenti">visualizza tutti gli utenti</a></li>
+            <li><a href="Servlet?operazione=ricaricaJson">ricarica gli autocomplete</a></li>
           </ul>
      </li>
  
